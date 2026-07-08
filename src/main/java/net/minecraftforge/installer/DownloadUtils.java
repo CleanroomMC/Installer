@@ -126,7 +126,7 @@ public class DownloadUtils {
                     hcon.setRequestProperty("User-Agent", getUserAgent());
                     hcon.setInstanceFollowRedirects(false);
                     int res = hcon.getResponseCode();
-                    if (res == HttpURLConnection.HTTP_MOVED_PERM || res == HttpURLConnection.HTTP_MOVED_TEMP) {
+                    if (isRedirect(res)) {
                         String location = hcon.getHeaderField("Location");
                         hcon.disconnect(); //Kill old connection.
                         if (x == MAX - 1) {
@@ -147,13 +147,21 @@ public class DownloadUtils {
         } catch (SSLHandshakeException e) {
             System.out.println("Failed to establish connection to " + address);
             String host = url.getHost();
-            System.out.println(" Host: " + host + " [" + getIps(host).stream().collect(Collectors.joining(", ")) + "]");
+            System.out.println(" Host: " + host + " [" + String.join(", ", getIps(host)) + "]");
             e.printStackTrace();
             return null;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    private static boolean isRedirect(int status) {
+        return status == HttpURLConnection.HTTP_MOVED_PERM
+            || status == HttpURLConnection.HTTP_MOVED_TEMP
+            || status == HttpURLConnection.HTTP_SEE_OTHER
+            || status == 307
+            || status == 308;
     }
 
     private static String getUserAgent() {
