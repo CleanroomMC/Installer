@@ -29,7 +29,7 @@ base {
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 
-version = gitVersion()
+version = "${versionDetails().lastTag}.${versionDetails().commitDistance}"
 println('Installer Version: ' + version)
 
 ext {
