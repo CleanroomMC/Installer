@@ -138,7 +138,7 @@ publishing {
     }
     repositories {
         maven {
-            name = 'outlandsReleases'
+            name = 'outlands'
             url = 'https://maven.outlands.top/releases'
             credentials(PasswordCredentials)
             authentication {
