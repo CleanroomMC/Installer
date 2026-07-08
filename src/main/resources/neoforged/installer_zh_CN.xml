@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="installer.welcome.version">版本：</entry>
+    <entry key="installer.welcome.offline">离线模式</entry>
+    <entry key="installer.welcome.target.tooltip">Minecraft 安装文件夹路径</entry>
+    <entry key="installer.welcome.dirselect.tooltip">选择替换的 Minecraft 文件夹</entry>
+    <entry key="installer.button.proceed">继续</entry>
+    <entry key="installer.button.cancel">取消</entry>
+    <entry key="installer.action.install.client.name">安装客户端</entry>
+    <entry key="installer.action.install.client.tooltip">在 Minecraft 客户端启动器安装一个新的配置文件</entry>
+    <entry key="installer.action.install.client.finished.withoutlibs">已成功安装客户端配置文件 %s，版本 %s 到启动器</entry>
+    <entry key="installer.action.install.client.finished.withlibs">已成功安装客户端配置文件 %s，版本 %s 到启动器，并下载了 %d 个库</entry>
+    <entry key="installer.action.install.server.name">安装服务器</entry>
+    <entry key="installer.action.install.server.tooltip">建立一个新的模块服务器安装</entry>
+    <entry key="installer.action.install.server.finished.withoutlibs">已成功下载 Minecraft 服务器并安装 %s</entry>
+    <entry key="installer.action.install.server.finished.withlibs">已成功下载 Minecraft 服务器和 %d 个库并安装 %s</entry>
+    <entry key="installer.action.install.server.starterjar">服务器启动文件</entry>
+    <entry key="installer.action.install.server.starterjar.tooltip">生成一个 server.jar 文件取代启动脚本，用于启动服务器。</entry>
+    <entry key="installer.action.install.fat.name">建立完整安装程序</entry>
+    <entry key="installer.action.install.fat.tooltip">建立一个包含依赖库的安装程序，用于离线安装。</entry>
+    <entry key="installer.action.install.fat.finished">已建立 %s 的离线安装程序</entry>
+    <entry key="installer.action.extract.name">解压缩</entry>
+    <entry key="installer.action.extract.tooltip">解压缩包含的 jar 文件</entry>
+    <entry key="installer.action.extract.finished">解压缩成功</entry>
+    <entry key="installer.window.title">%s 安装程序</entry>
+    <entry key="installer.frame.installing">正在安装 %s（版本 %s）</entry>
+    <entry key="installer.installation.complete">安装完成</entry>
+    <entry key="installer.installation.cancelled">安装取消</entry>
+    <entry key="installer.target.error.notdirectory">指定的路径应为文件夹</entry>
+    <entry key="installer.target.error.directory.notempty">目标文件夹已存在文件</entry>
+    <entry key="installer.target.error.directory.doesntexist.critical">指定的文件夹不存在</entry>
+    <entry key="installer.target.error.directory.doesntexist.create">指定的文件夹不存在&lt;br&gt;它将被建立</entry>
+    <entry key="installer.target.error.missingprofile">这个文件夹中没有启动器配置文件。请先执行 Minecraft 启动器</entry>
+    <entry key="installer.fat.includemc">包含 Minecraft 的 jar 文件</entry>
+    <entry key="installer.fat.includemc.tooltip">&lt;html&gt;包含 Minecraft 的 jar 文件。&lt;br&gt; 输出的 jar 文件会包含 Minecraft 的服务器及客户端文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt; &lt;b&gt; 重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.fat.includemc.warning">输出 jar 档会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。二次转发整合安装程序是违法的。</entry>
+    <entry key="installer.fat.includemclibs">包含 Minecraft 程序库</entry>
+    <entry key="installer.fat.includemclibs.tooltip">包含 Minecraft 所使用的程序库</entry>
+    <entry key="installer.fat.includeinstallerlibs">包含安装器程序库</entry>
+    <entry key="installer.fat.includeinstallerlibs.tooltip">包含安装器所使用的程序库</entry>
+    <entry key="installer.fat.offline">离线安装</entry>
+    <entry key="installer.fat.offline.tooltip">&lt;html&gt;建立一个可以在离线状态下执行的安装程序。&lt;br&gt;这个离线安装程序会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt;&lt;b&gt;重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
+</properties>
