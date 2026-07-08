@@ -123,6 +123,9 @@ processResources {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            groupId = 'com.cleanroommc'
+            artifactId = 'installer'
+            version = project.version
             artifact sourcesJar
             artifact shrinkJar
             artifact jar
@@ -130,6 +133,16 @@ publishing {
                 name = base.archivesName
                 packaging = 'jar'
                 description = 'Cleanroom Installer'
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'outlandsReleases'
+            url = 'https://maven.outlands.top/releases'
+            credentials(PasswordCredentials)
+            authentication {
+                basic(BasicAuthentication)
             }
         }
     }
