@@ -57,6 +57,8 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import net.minecraftforge.installer.DownloadUtils;
 import net.minecraftforge.installer.SimpleInstaller;
+import net.minecraftforge.installer.Win11Dialog;
+import net.minecraftforge.installer.Win11MicaEffect;
 import net.minecraftforge.installer.actions.Action;
 import net.minecraftforge.installer.actions.ActionCanceledException;
 import net.minecraftforge.installer.actions.Actions;
@@ -406,8 +408,16 @@ public class InstallerPanel extends JPanel {
         cancelButton.addActionListener(e -> optionPane.setValue(JOptionPane.OK_CANCEL_OPTION));
         this.proceedButton = Optional.of(proceedButton);
 
-        dialog = optionPane.createDialog("");
-        TRANSLATIONS.translate(dialog, new TranslationTarget<>(Dialog::setTitle), "installer.window.title", profile.getProfile());
+        String title = TRANSLATIONS.translate("installer.window.title", profile.getProfile());
+        try {
+            dialog = Win11MicaEffect.isSupported()
+                    ? Win11Dialog.create(optionPane, this, title)
+                    : optionPane.createDialog(title);
+        } catch (Exception e) {
+            System.out.println("Failed to setup Win11 dialog, falling back to Swing default:");
+            e.printStackTrace();
+            dialog = optionPane.createDialog(title);
+        }
         dialog.setIconImages(Images.getWindowIcons());
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
         dialog.setVisible(true);

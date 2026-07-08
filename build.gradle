@@ -39,6 +39,7 @@ ext {
 
 ext.installerManifest = {
     attributes('Main-Class': MAIN_CLASS)
+    attributes('Multi-Release': 'true')
     attributes([
         'Specification-Title':      'Installer',
         'Specification-Vendor':     'Cleanroom',
@@ -105,9 +106,21 @@ tasks.register('pgShrinkJar', ProGuardTask) {
 
 tasks.register('shrinkJar', Jar) {
     dependsOn pgShrinkJar
+    dependsOn ':installer-java22:jar'
     archiveClassifier = 'shrunk'
     from zipTree(pgShrinkJar.obfuscatedJar)
     manifest installerManifest
+}
+
+evaluationDependsOn(':installer-java22')
+
+afterEvaluate {
+    tasks.named('shrinkJar').configure {
+        from(zipTree(project(':installer-java22').tasks.jar.archiveFile)) {
+            into 'META-INF/versions/22'
+            include '**/*.class'
+        }
+    }
 }
 
 artifacts {

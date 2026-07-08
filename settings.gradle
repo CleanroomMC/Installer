@@ -1,1 +1,3 @@
 rootProject.name = 'legacyinstaller'
+
+include 'installer-java22'

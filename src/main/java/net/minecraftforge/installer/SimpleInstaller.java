@@ -213,6 +213,7 @@ public class SimpleInstaller {
     private static void launchGui(ProgressCallback monitor, File installer) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            if (Win11MicaEffect.isSupported()) SwingUtil.applyGlobalFont("Segoe UI");
         } catch (Exception e) {}
 
         try {
