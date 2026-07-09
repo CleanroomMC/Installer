@@ -62,7 +62,7 @@ public class PostProcessors {
     }
 
     public Library[] getLibraries() {
-        return hasTasks ? profile.getLibraries() : new Library[0];
+        return profile.getLibraries();
     }
 
     public int getTaskCount() {

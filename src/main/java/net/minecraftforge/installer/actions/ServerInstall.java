@@ -104,6 +104,18 @@ public class ServerInstall extends Action {
         if (!downloadLibraries(librariesDir, optionals, libDirs))
             return false;
 
+        Artifact mainArtifact = profile.getPath();
+        if (mainArtifact != null && profile.getProcessors("server").isEmpty()) {
+            File mainTarget = new File(target, mainArtifact.getFilename());
+            if (!mainTarget.exists()) {
+                monitor.stage("Extracting main server jar");
+                if (!DownloadUtils.extractFile(mainArtifact, mainTarget, null)) {
+                    error("Failed to extract the main server jar: " + mainArtifact.getDescriptor());
+                    return false;
+                }
+            }
+        }
+
         checkCancel();
         if (!processors.process(librariesDir, serverTarget, target, installer))
             return false;
