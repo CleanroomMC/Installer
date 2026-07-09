@@ -255,10 +255,8 @@ public class InstallerPanel extends JPanel {
                 });
             } else if (action == Actions.SERVER) {
                 radioButton.addChangeListener(e -> {
-                    if (radioButton.isSelected() != serverStarterJar.isSelected()) {
-                        serverStarterJar.setVisible(radioButton.isSelected());
-                        revalidate();
-                    }
+                    serverStarterJar.setVisible(radioButton.isSelected());
+                    revalidate();
                 });
             }
         }
