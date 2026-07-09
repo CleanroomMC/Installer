@@ -79,10 +79,6 @@ public class DownloadUtils {
         monitor.message(String.format("Considering library %s", artifact.getDescriptor()));
 
         String url = applyMirror(download.getUrl());
-        if (url == null || url.isEmpty()) {
-            monitor.message("  Invalid library, missing url");
-            return false;
-        }
 
         if (monitor.downloader(url)
                 .additionalDirectory(additionalLibraryDirs.toArray(new File[0]))
