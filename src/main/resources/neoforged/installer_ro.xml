@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Include librăriile folosite de instalator</entry>
     <entry key="installer.fat.offline">Instalator offline</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Creează un instalator care poate fi rulat fără conexiune la internet.&lt;br&gt; Instalatorul offline va include serverul Minecraft și fișierele jar de client care sunt licențiate ca toate drepturile rezervate. &lt;br&gt; &lt;b&gt; Redistribuirea instalatorului offline este ilegală.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Folosește mirror</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Folosește mirror pentru Maven Central</entry>
 </properties>

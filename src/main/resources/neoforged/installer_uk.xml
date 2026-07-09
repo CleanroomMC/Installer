@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Включати бібліотеки, які використовує встановлювач</entry>
     <entry key="installer.fat.offline">Автономний встановлювач</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Створити встановлювач, який може бути запущений без підключення до Інтернету.&lt;br&gt; Автономний встановлювач буде включати сервер Minecraft та jar-файли клієнта, що ліцензовані як «Усі права захищені». &lt;br&gt; &lt;b&gt; Поширення автономного встановлювача є незаконним.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Використовувати дзеркало</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Використовувати дзеркало для Maven Central</entry>
 </properties>

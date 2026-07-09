@@ -51,6 +51,17 @@ public class DownloadUtils {
 
     public static boolean OFFLINE_MODE = false;
 
+    public static boolean USE_MAVEN_MIRROR = false;
+    public static final String MAVEN_CENTRAL = "https://repo.maven.apache.org/maven2";
+    public static final String MAVEN_MIRROR = "https://maven.aliyun.com/repository/public";
+
+    public static String applyMirror(String url) {
+        if (USE_MAVEN_MIRROR && url != null && url.contains(MAVEN_CENTRAL)) {
+            return url.replace(MAVEN_CENTRAL, MAVEN_MIRROR);
+        }
+        return url;
+    }
+
     public static boolean downloadLibrary(ProgressCallback monitor, Library library, File root, Predicate<String> optional, List<Artifact> grabbed, List<File> additionalLibraryDirs) {
         Artifact artifact = library.getName();
         File target = artifact.getLocalPath(root);
@@ -67,7 +78,7 @@ public class DownloadUtils {
 
         monitor.message(String.format("Considering library %s", artifact.getDescriptor()));
 
-        String url = download.getUrl();
+        String url = applyMirror(download.getUrl());
         if (url == null || url.isEmpty()) {
             monitor.message("  Invalid library, missing url");
             return false;
@@ -105,6 +116,7 @@ public class DownloadUtils {
             System.out.println("Offline Mode: Not downloading: " + address);
             return null;
         }
+        address = applyMirror(address);
 
         URL url;
         try {

@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Inclure les bibliothèques utilisées par l'installateur</entry>
     <entry key="installer.fat.offline">Installateur hors-ligne</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Créer un installeur qui peut être utilisé sans connexion internet.&lt;br&gt; L'installateur hors-ligne inclura le serveur Minecraft et les jars clients, qui sont sous licence Tous Droits Réservés. &lt;br&gt; &lt;b&gt; La redistribution de l'installateur hors-ligne est illégale.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Utiliser un miroir</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Utiliser un miroir pour Maven Central</entry>
 </properties>

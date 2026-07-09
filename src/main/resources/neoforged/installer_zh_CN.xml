@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">包含安装器所使用的程序库</entry>
     <entry key="installer.fat.offline">离线安装</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;建立一个可以在离线状态下运行的安装程序。&lt;br&gt;这个离线安装程序会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt;&lt;b&gt;重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">使用镜像</entry>
+    <entry key="installer.mirror.checkbox.tooltip">为中心 Maven 使用镜像</entry>
 </properties>

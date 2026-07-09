@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Sertakan pustaka yang digunakan oleh pemasang</entry>
     <entry key="installer.fat.offline">Pemasang luar talian</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Cipta sebuah pemasang yang boleh dijalankan tanpa sambungan internet.&lt;br&gt; Pemasang luar talian akan menyertakan jar pelayan dan klien Minecraft, yang dilesenkan sebagai Hak Cipta Terpelihara. &lt;br&gt; &lt;b&gt; Pengagihan semula pemasang luar talian adalah menyalahi undang-undang.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Guna mirror</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Guna mirror untuk Maven Central</entry>
 </properties>

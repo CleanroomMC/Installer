@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Включить библиотеки, используемые установщиком</entry>
     <entry key="installer.fat.offline">Офлайн-установщик</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Создайте установщик, который можно запустить без подключения к интернету.&lt;br&gt; Офлайн-установщик будет включать серверные и клиентские JAR-файлы Minecraft, которые имеют лицензию «Все права защищены». &lt;br&gt; &lt;b&gt; Распространение такого установщика будет считаться незаконным.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Использовать зеркало</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Использовать зеркало для Maven Central</entry>
 </properties>

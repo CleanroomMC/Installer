@@ -54,4 +54,6 @@
 
     <entry key="installer.fat.offline">Offline installer</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Create an installer that can be run without an internet connection.&lt;br&gt; The offline installer will include the Minecraft server and client jars, which are licensed as All Rights Reserved. &lt;br&gt; &lt;b&gt; Redistribution of the offline installer is illegal.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Use mirror</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Use a mirror for Maven Central</entry>
 </properties>

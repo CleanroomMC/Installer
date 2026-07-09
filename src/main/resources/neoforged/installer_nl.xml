@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Bibliotheken die door het installatieprogramma worden gebruikt bijvoegen</entry>
     <entry key="installer.fat.offline">Offline installatie</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Maak een installatieprogramma aan dat zonder internetverbinding kan worden uitgevoerd.&lt;br&gt; Het offline installatieprogramma bevat ook de Minecraft server en client jars, die gelicentieerd zijn als alle rechten voorbehouden. &lt;br&gt; &lt;b&gt; Herverdeling van het offline installatieprogramma is illegaal.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Mirror gebruiken</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Gebruik een mirror voor Maven Central</entry>
 </properties>

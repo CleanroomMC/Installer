@@ -102,10 +102,6 @@ public class Install extends Spec {
     public Mirror getMirror() {
         if (mirror != null)
             return mirror;
-        if (SimpleInstaller.mirror != null) {
-            mirror = new Mirror("Mirror", "", "", SimpleInstaller.mirror.toString());
-            return mirror;
-        }
         if (getMirrorList() == null)
             return null;
         if (!triedMirrors) {

@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">네오포지 설치기가 자체적으로 사용하는 라이브러리들을 포함합니다</entry>
     <entry key="installer.fat.offline">오프라인 설치기</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;인터넷 연결 없이 사용 가능한 네오포지 설치기를 생성합니다.&lt;br&gt; 오프라인 설치기는 모장이 소유하는 마인크래프트 서버 및 클라이언트 jar 파일을 포함하며, &lt;br&gt; &lt;b&gt; 출력된 파일을 재배포하는 것은 불법입니다.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">미러 사용</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Maven Central에 미러 사용</entry>
 </properties>

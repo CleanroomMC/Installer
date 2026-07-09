@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Vložit knihovny používané instalátorem</entry>
     <entry key="installer.fat.offline">Offline instalátor</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Vytvořit instalátor který může být spuštěn bez připojení k internetu. &lt;br&gt; Offline instalátor bude obsahovat jak Minecraft server tak klientové jars, které jsou licensovaný jako All Rights Reserved. &lt;br&gt; &lt;b&gt; Redistribuce fat instalatéru je nelegální.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Použít mirror</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Použít mirror pro Maven Central</entry>
 </properties>

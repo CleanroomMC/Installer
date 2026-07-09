@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">包含安裝器所使用的程式庫</entry>
     <entry key="installer.fat.offline">離線安裝</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;建立一個可以在離線狀態下執行的安裝程式。&lt;br&gt;這個離線安裝程式會包含 Minecraft 伺服器和用戶端 jar 檔，它們的授權方式皆為「版權所有」。&lt;br&gt;&lt;b&gt;二次轉發離線安裝程式是違法的。&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">使用鏡像</entry>
+    <entry key="installer.mirror.checkbox.tooltip">為中央 Maven 使用鏡像</entry>
 </properties>

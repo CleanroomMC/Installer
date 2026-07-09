@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">Bibliotheken einfügen, die vom Installationsprogramm verwendet werden</entry>
     <entry key="installer.fat.offline">Offline Installer</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;Ein Installisierungsprogramm erstellen, welches ohne Internetverbindung funktioniert.&lt;br&gt; Das Offline-Installisierungsprogramm wird die Minecraft-Jars des Clients und Servers beinhalten, welche unter Alle Rechte vorbehalten lizenziert sind. &lt;br&gt; &lt;b&gt; Die Veröffentlichung des Offline-Installisierungsprogramms ist illegal.&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">Mirror verwenden</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Einen Mirror für Maven Central verwenden</entry>
 </properties>

@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -52,7 +51,6 @@ import net.neoforged.cliutils.progress.ProgressReporter;
 public class SimpleInstaller {
     public static boolean headless = false;
     public static boolean debug = false;
-    public static URL mirror = null;
     public static boolean skipHashCheck = false;
 
     public static void main(String[] args) throws IOException, URISyntaxException {
@@ -99,7 +97,7 @@ public class SimpleInstaller {
         OptionSpec<Void> offlineOption = parser.accepts("offline", "Don't attempt any network calls");
         OptionSpec<Void> debugOption = parser.accepts("debug", "Run in debug mode -- don't delete any files");
         OptionSpec<Void> skipHashCheckOption = parser.accepts("skip-hash-check", "Skips the hash check when verifying outputs");
-        OptionSpec<URL> mirrorOption = parser.accepts("mirror", "Use a specific mirror URL").withRequiredArg().ofType(URL.class);
+        OptionSpec<Void> mavenMirrorOption = parser.accepts("maven-mirror", "Replace Maven Central URLs with a mirror");
         OptionSet optionSet = parser.parse(args);
 
         if (optionSet.has(helpOption)) {
@@ -108,8 +106,8 @@ public class SimpleInstaller {
         }
 
         debug = optionSet.has(debugOption);
-        if (optionSet.has(mirrorOption)) {
-            mirror = optionSet.valueOf(mirrorOption);
+        if (optionSet.has(mavenMirrorOption)) {
+            DownloadUtils.USE_MAVEN_MIRROR = true;
         }
         skipHashCheck = optionSet.has(skipHashCheckOption);
 

@@ -264,6 +264,13 @@ public class InstallerPanel extends JPanel {
         choicePanel.setAlignmentY(CENTER_ALIGNMENT);
         add(choicePanel);
 
+        JCheckBox mirrorCheckbox = TRANSLATIONS.checkBox("installer.mirror.checkbox");
+        TRANSLATIONS.setTooltip(mirrorCheckbox, "installer.mirror.checkbox.tooltip");
+        mirrorCheckbox.setAlignmentX(CENTER_ALIGNMENT);
+        mirrorCheckbox.addChangeListener(e ->
+            DownloadUtils.USE_MAVEN_MIRROR = mirrorCheckbox.isSelected());
+        this.add(mirrorCheckbox);
+
         JPanel entryPanel = new JPanel();
         entryPanel.setLayout(new BoxLayout(entryPanel, BoxLayout.X_AXIS));
 

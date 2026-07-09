@@ -42,4 +42,6 @@
     <entry key="installer.fat.includeinstallerlibs.tooltip">インストーラーで使用されているライブラリを含める</entry>
     <entry key="installer.fat.offline">オフラインインストーラー</entry>
     <entry key="installer.fat.offline.tooltip">&lt;html&gt;オフラインで利用できるインストーラーを作成します。&lt;br&gt;オフラインインストーラーには、ライセンスによりすべての権利が留保されているMinecraftのサーバーおよびクライアントのjarファイルが含まれます。&lt;br&gt; &lt;b&gt;オフラインインストーラーの再配布は違法です。&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.mirror.checkbox">ミラーを使用する</entry>
+    <entry key="installer.mirror.checkbox.tooltip">Maven Central にミラーを使用する</entry>
 </properties>
