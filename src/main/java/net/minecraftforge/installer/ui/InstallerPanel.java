@@ -86,8 +86,7 @@ public class InstallerPanel extends JPanel {
 
     private final AtomicReference<Actions> action = new AtomicReference<>(Actions.CLIENT);
     private JPanel fileEntryPanel;
-    private JPanel fatInstallerOptionsPanel;
-    private JPanel serverOptionsPanel;
+
 
     private JCheckBox fatIncludeMC, fatIncludeMCLibs, fatIncludeInstallerLibs, fatOffline;
     private JCheckBox serverStarterJar;
@@ -245,13 +244,15 @@ public class InstallerPanel extends JPanel {
                 radioButton.addChangeListener(e -> {
                     if (radioButton.isSelected()) {
                         this.remove(fileEntryPanel);
-                        this.add(fatInstallerOptionsPanel);
                     } else {
                         if (!Arrays.asList(this.getComponents()).contains(fileEntryPanel)) {
                             this.add(fileEntryPanel);
                         }
-                        this.remove(fatInstallerOptionsPanel);
                     }
+                    fatIncludeMC.setVisible(radioButton.isSelected());
+                    fatIncludeMCLibs.setVisible(radioButton.isSelected());
+                    fatIncludeInstallerLibs.setVisible(radioButton.isSelected());
+                    fatOffline.setVisible(radioButton.isSelected());
                 });
             } else if (action == Actions.SERVER) {
                 radioButton.addChangeListener(e -> {
@@ -263,9 +264,63 @@ public class InstallerPanel extends JPanel {
         JCheckBox mirrorCheckbox = TRANSLATIONS.checkBox("installer.mirror.checkbox");
         TRANSLATIONS.setTooltip(mirrorCheckbox, "installer.mirror.checkbox.tooltip");
         mirrorCheckbox.setAlignmentX(LEFT_ALIGNMENT);
+        mirrorCheckbox.setIconTextGap(10);
+        mirrorCheckbox.setMargin(new Insets(3, 3, 3, 3));
         mirrorCheckbox.addChangeListener(e ->
             DownloadUtils.USE_MAVEN_MIRROR = mirrorCheckbox.isSelected());
         choicePanel.add(mirrorCheckbox);
+
+        serverStarterJar = TRANSLATIONS.checkBox("installer.action.install.server.starterjar");
+        TRANSLATIONS.setTooltip(serverStarterJar, "installer.action.install.server.starterjar.tooltip");
+        serverStarterJar.setAlignmentX(LEFT_ALIGNMENT);
+        serverStarterJar.setIconTextGap(10);
+        serverStarterJar.setMargin(new Insets(3, 3, 3, 3));
+        serverStarterJar.setVisible(false);
+        choicePanel.add(serverStarterJar);
+
+        this.fatIncludeMC = TRANSLATIONS.checkBox("installer.fat.includemc");
+        TRANSLATIONS.setTooltip(fatIncludeMC, "installer.fat.includemc.tooltip");
+        fatIncludeMC.setAlignmentX(LEFT_ALIGNMENT);
+        fatIncludeMC.setIconTextGap(10);
+        fatIncludeMC.setMargin(new Insets(3, 3, 3, 3));
+        fatIncludeMC.setVisible(false);
+        choicePanel.add(fatIncludeMC);
+
+        this.fatIncludeMCLibs = TRANSLATIONS.checkBox("installer.fat.includemclibs");
+        TRANSLATIONS.setTooltip(fatIncludeMCLibs, "installer.fat.includemclibs.tooltip");
+        fatIncludeMCLibs.setAlignmentX(LEFT_ALIGNMENT);
+        fatIncludeMCLibs.setIconTextGap(10);
+        fatIncludeMCLibs.setMargin(new Insets(3, 3, 3, 3));
+        fatIncludeMCLibs.setVisible(false);
+        choicePanel.add(fatIncludeMCLibs);
+
+        this.fatIncludeInstallerLibs = TRANSLATIONS.checkBox("installer.fat.includeinstallerlibs");
+        TRANSLATIONS.setTooltip(fatIncludeInstallerLibs, "installer.fat.includeinstallerlibs.tooltip");
+        fatIncludeInstallerLibs.setAlignmentX(LEFT_ALIGNMENT);
+        fatIncludeInstallerLibs.setIconTextGap(10);
+        fatIncludeInstallerLibs.setMargin(new Insets(3, 3, 3, 3));
+        fatIncludeInstallerLibs.setVisible(false);
+        choicePanel.add(fatIncludeInstallerLibs);
+
+        final List<JCheckBox> fatOptions = Arrays.asList(fatIncludeMC, fatIncludeMCLibs, fatIncludeInstallerLibs);
+
+        this.fatOffline = TRANSLATIONS.checkBox("installer.fat.offline");
+        TRANSLATIONS.setTooltip(fatOffline, "installer.fat.offline.tooltip");
+        fatOffline.setAlignmentX(LEFT_ALIGNMENT);
+        fatOffline.setIconTextGap(10);
+        fatOffline.setMargin(new Insets(3, 3, 3, 3));
+        fatOffline.setVisible(false);
+        fatOffline.addChangeListener(e -> {
+            if (fatOffline.isSelected()) {
+                fatOptions.forEach(box -> {
+                    box.setSelected(true);
+                    box.setEnabled(false);
+                });
+            } else {
+                fatOptions.forEach(box -> box.setEnabled(true));
+            }
+        });
+        choicePanel.add(fatOffline);
 
         choicePanel.setAlignmentX(CENTER_ALIGNMENT);
         choicePanel.setAlignmentY(CENTER_ALIGNMENT);
@@ -296,14 +351,6 @@ public class InstallerPanel extends JPanel {
         infoLabel.setForeground(Color.RED);
         infoLabel.setVisible(false);
 
-        serverOptionsPanel = centreAlignedPanel();
-        serverStarterJar = TRANSLATIONS.checkBox("installer.action.install.server.starterjar");
-        serverStarterJar.setMargin(new Insets(3, 0, 3, 0));
-        serverStarterJar.setVisible(false);
-        TRANSLATIONS.setTooltip(serverStarterJar, "installer.action.install.server.starterjar.tooltip");
-        serverOptionsPanel.add(serverStarterJar);
-        this.add(serverOptionsPanel);
-
         fileEntryPanel = new JPanel();
         fileEntryPanel.setLayout(new BoxLayout(fileEntryPanel, BoxLayout.Y_AXIS));
         fileEntryPanel.add(infoLabel);
@@ -313,44 +360,7 @@ public class InstallerPanel extends JPanel {
         fileEntryPanel.setAlignmentY(TOP_ALIGNMENT);
         this.add(fileEntryPanel);
 
-        fatInstallerOptionsPanel = centreAlignedPanel();
-
-        this.fatIncludeMC = TRANSLATIONS.checkBox("installer.fat.includemc");
-        TRANSLATIONS.setTooltip(fatIncludeMC, "installer.fat.includemc.tooltip");
-        this.fatIncludeMCLibs = TRANSLATIONS.checkBox("installer.fat.includemclibs");
-        TRANSLATIONS.setTooltip(fatIncludeMCLibs, "installer.fat.includemclibs.tooltip");
-        this.fatIncludeInstallerLibs = TRANSLATIONS.checkBox("installer.fat.includeinstallerlibs");
-        TRANSLATIONS.setTooltip(fatIncludeInstallerLibs, "installer.fat.includeinstallerlibs.tooltip");
-        fatInstallerOptionsPanel.add(fatIncludeMC);
-        fatInstallerOptionsPanel.add(fatIncludeMCLibs);
-        fatInstallerOptionsPanel.add(fatIncludeInstallerLibs);
-
-        final List<JCheckBox> fatOptions = Arrays.asList(fatIncludeMC, fatIncludeMCLibs, fatIncludeInstallerLibs);
-
-        this.fatOffline = TRANSLATIONS.checkBox("installer.fat.offline");
-        TRANSLATIONS.setTooltip(fatOffline, "installer.fat.offline.tooltip");
-        fatOffline.setMargin(new Insets(3, 0, 0, 0));
-        fatOffline.addChangeListener(e -> {
-            if (fatOffline.isSelected()) {
-                fatOptions.forEach(box -> {
-                    box.setSelected(true);
-                    box.setEnabled(false);
-                });
-            } else {
-                fatOptions.forEach(box -> box.setEnabled(true));
-            }
-        });
-        fatInstallerOptionsPanel.add(fatOffline);
-
         updateFilePath();
-    }
-
-    private JPanel centreAlignedPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setAlignmentX(CENTER_ALIGNMENT);
-        panel.setAlignmentY(TOP_ALIGNMENT);
-        return panel;
     }
 
     private void updateFilePath() {
