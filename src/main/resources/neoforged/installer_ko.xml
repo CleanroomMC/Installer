@@ -5,6 +5,7 @@
     <entry key="installer.welcome.offline">오프라인 모드</entry>
     <entry key="installer.welcome.target.tooltip">마인크래프트 설치 경로</entry>
     <entry key="installer.welcome.dirselect.tooltip">마인크래프트 설치 경로 변경하기</entry>
+    <entry key="installer.welcome.message">Cleanroom 설치기를 환영합니다.</entry>
     <entry key="installer.button.proceed">설치</entry>
     <entry key="installer.button.cancel">취소</entry>
     <entry key="installer.action.install.client.name">클라이언트 설치</entry>
