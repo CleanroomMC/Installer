@@ -31,7 +31,7 @@
     <entry key="installer.target.error.directory.notempty">目标文件夹已存在文件</entry>
     <entry key="installer.target.error.directory.doesntexist.critical">指定的文件夹不存在</entry>
     <entry key="installer.target.error.directory.doesntexist.create">指定的文件夹不存在&lt;br&gt;它将被建立</entry>
-    <entry key="installer.target.error.missingprofile">这个文件夹中没有启动器配置文件。请先执行 Minecraft 启动器</entry>
+    <entry key="installer.target.error.missingprofile">这个文件夹中没有启动器配置文件。请先运行 Minecraft 启动器</entry>
     <entry key="installer.fat.includemc">包含 Minecraft 的 jar 文件</entry>
     <entry key="installer.fat.includemc.tooltip">&lt;html&gt;包含 Minecraft 的 jar 文件。&lt;br&gt; 输出的 jar 文件会包含 Minecraft 的服务器及客户端文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt; &lt;b&gt; 重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
     <entry key="installer.fat.includemc.warning">输出 jar 档会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。二次转发整合安装程序是违法的。</entry>
@@ -40,5 +40,5 @@
     <entry key="installer.fat.includeinstallerlibs">包含安装器程序库</entry>
     <entry key="installer.fat.includeinstallerlibs.tooltip">包含安装器所使用的程序库</entry>
     <entry key="installer.fat.offline">离线安装</entry>
-    <entry key="installer.fat.offline.tooltip">&lt;html&gt;建立一个可以在离线状态下执行的安装程序。&lt;br&gt;这个离线安装程序会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt;&lt;b&gt;重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
+    <entry key="installer.fat.offline.tooltip">&lt;html&gt;建立一个可以在离线状态下运行的安装程序。&lt;br&gt;这个离线安装程序会包含 Minecraft 服务器和客户端 jar 文件，它们的授权方式皆为“保留所有权利”。&lt;br&gt;&lt;b&gt;重新分发离线安装程序是违法的。&lt;/b&gt;&lt;/html&gt;</entry>
 </properties>
