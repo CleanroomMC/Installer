@@ -73,7 +73,13 @@ public abstract class Action {
         monitor.message(String.format("Found %d additional library directories", additionalLibDirs.size()));
 
         List<Library> libraries = new ArrayList<>();
-        libraries.addAll(Arrays.asList(version.getLibraries()));
+        for (Library lib : version.getLibraries()) {
+            if (lib.shouldDownload()) {
+                libraries.add(lib);
+            } else {
+                monitor.message(String.format("Skipping library %s (not for current OS)", lib.getName()));
+            }
+        }
         libraries.addAll(Arrays.asList(processors.getLibraries()));
 
         StringBuilder output = new StringBuilder();

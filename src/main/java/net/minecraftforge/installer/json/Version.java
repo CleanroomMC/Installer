@@ -15,6 +15,8 @@
  */
 package net.minecraftforge.installer.json;
 
+import org.apache.commons.lang3.SystemUtils;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +36,22 @@ public class Version {
 
     public Library[] getLibraries() {
         return libraries == null ? new Library[0] : libraries;
+    }
+
+    private static OsType currentOS;
+
+    public static OsType getCurrentOS() {
+        if (currentOS == null) {
+            if (SystemUtils.IS_OS_WINDOWS) currentOS = OsType.windows;
+            else if (SystemUtils.IS_OS_MAC) currentOS = OsType.osx;
+            else if (SystemUtils.IS_OS_LINUX) currentOS = OsType.linux;
+            else currentOS = OsType.UNKNOWN;
+        }
+        return currentOS;
+    }
+
+    public enum OsType {
+        windows, osx, linux, UNKNOWN;
     }
 
     public static class Download {
@@ -74,6 +92,7 @@ public class Version {
     public static class Library {
         private Artifact name;
         private Downloads downloads;
+        private Rule[] rules;
 
         public Artifact getName() {
             return name;
@@ -81,6 +100,45 @@ public class Version {
 
         public Downloads getDownloads() {
             return downloads;
+        }
+
+        public boolean shouldDownload() {
+            if (rules == null || rules.length == 0)
+                return true;
+
+            boolean allow = true;
+            OsType currentOS = getCurrentOS();
+            for (Rule rule : rules) {
+                if (rule.os == null || currentOS == rule.getOs().getName()) {
+                    allow = rule.getAction() == Rule.Action.allow;
+                }
+            }
+            return allow;
+        }
+    }
+
+    public static class Rule {
+        private Action action;
+        private Os os;
+
+        public Action getAction() {
+            return action;
+        }
+
+        public Os getOs() {
+            return os;
+        }
+
+        public enum Action {
+            allow, disallow;
+        }
+    }
+
+    public static class Os {
+        private OsType name;
+
+        public OsType getName() {
+            return name;
         }
     }
 
