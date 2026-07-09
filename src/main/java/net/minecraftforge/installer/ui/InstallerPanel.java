@@ -146,17 +146,17 @@ public class InstallerPanel extends JPanel {
         this.installer = installer;
 
         this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        //BufferedImage image = Images.getImage(profile.getLogo());
-        //final BufferedImage urlIcon = getImage(profile.getUrlIcon(), URL);
+        BufferedImage image = Images.getImage(profile.getLogo());
+        //final BufferedImage urlIcon = Images.getImage(profile.getUrlIcon(), URL);
 
         JPanel logoSplash = new JPanel();
         logoSplash.setLayout(new BoxLayout(logoSplash, BoxLayout.Y_AXIS));
-        //ImageIcon icon = new ImageIcon(image);
-        //JLabel logoLabel = new JLabel(icon);
-        //logoLabel.setAlignmentX(CENTER_ALIGNMENT);
-        //logoLabel.setAlignmentY(CENTER_ALIGNMENT);
-        //logoLabel.setSize(image.getWidth(), image.getHeight());
-        //logoSplash.add(logoLabel);
+        ImageIcon icon = new ImageIcon(image);
+        JLabel logoLabel = new JLabel(icon);
+        logoLabel.setAlignmentX(CENTER_ALIGNMENT);
+        logoLabel.setAlignmentY(CENTER_ALIGNMENT);
+        logoLabel.setSize(image.getWidth(), image.getHeight());
+        logoSplash.add(logoLabel);
         JLabel tag = new JLabel();
         TRANSLATIONS.translate(tag, TranslationTarget.LABEL_TEXT, profile.getWelcome());
         tag.setAlignmentX(CENTER_ALIGNMENT);
