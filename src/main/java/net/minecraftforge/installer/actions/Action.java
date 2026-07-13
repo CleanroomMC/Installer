@@ -74,13 +74,16 @@ public abstract class Action {
 
         List<Library> libraries = new ArrayList<>();
         for (Library lib : version.getLibraries()) {
-            if (lib.shouldDownload()) {
-                libraries.add(lib);
-            } else {
-                monitor.message(String.format("Skipping library %s (not for current OS)", lib.getName()));
-            }
+            libraries.add(lib);
         }
         libraries.addAll(Arrays.asList(processors.getLibraries()));
+        libraries.removeIf(lib -> {
+            if (lib.shouldDownload()) {
+                return false;
+            }
+            monitor.message(String.format("Skipping library %s (not for current OS)", lib.getName()));
+            return true;
+        });
 
         StringBuilder output = new StringBuilder();
         monitor.getStepProgress().setMaxProgress(libraries.size());
