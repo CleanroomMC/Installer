@@ -1,0 +1,80 @@
+plugins {
+    id 'com.cleanroommc.versioning' version '2.0.0'
+    id 'com.gradleup.shadow' version '9.6.1' apply false
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    group = 'com.cleanroommc'
+    version = rootProject.version
+
+    repositories {
+        maven {
+            url = 'https://maven.cleanroommc.com'
+        }
+        mavenCentral()
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(8)
+            vendor = JvmVendorSpec.AZUL
+        }
+        withSourcesJar()
+    }
+
+    dependencies {
+        compileOnly "org.jspecify:jspecify:${providers.gradleProperty('jspecify_version').get()}"
+
+        testImplementation platform("org.junit:junit-bom:${providers.gradleProperty('junit_version').get()}")
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
+    tasks.named('test', Test) {
+        useJUnitPlatform()
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+        systemProperty 'java.awt.headless', 'true'
+        testLogging.events 'passed', 'skipped', 'failed'
+    }
+
+    publishing {
+        publications.withType(MavenPublication).configureEach {
+            pom {
+                url = 'https://github.com/CleanroomMC/Installer'
+                scm {
+                    url = 'https://github.com/CleanroomMC/Installer'
+                    connection = 'scm:git:https://github.com/CleanroomMC/Installer.git'
+                    developerConnection = 'scm:git:git@github.com:CleanroomMC/Installer.git'
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = 'CleanroomMaven'
+                url = 'https://maven.cleanroommc.com'
+                credentials(PasswordCredentials)
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+    }
+
+}
+
+

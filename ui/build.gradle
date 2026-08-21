@@ -1,0 +1,19 @@
+base.archivesName = 'installer-ui'
+
+dependencies {
+    api project(':core')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'installer-ui'
+            from components.java
+            pom {
+                name = 'Installer UI'
+                description = 'Swing look and feel shared with CleanroomRelauncher, plus the Cleanroom installer window'
+            }
+        }
+    }
+}
+

@@ -1,0 +1,2265 @@
+package com.cleanroommc.installer.ui;
+
+import com.cleanroommc.platformutils.Platform;
+
+import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
+import java.awt.geom.Area;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public final class CleanroomUI {
+
+    private static final int MAX_CONTENT_WIDTH = 720;
+
+    private static boolean darkTheme;
+    private static float uiScale = 1f;
+
+    static final Color PRIMARY = new Color(32, 184, 176);
+
+    static Color BACKGROUND, SURFACE, CONTROL, CONTROL_HOVER, TEXT, MUTED_TEXT, PRIMARY_HOVER, BORDER, FOCUS, DISABLED_TEXT;
+
+    static {
+        setPalette(loadConfiguredDarkMode());
+    }
+
+    private static final boolean WINDOWS = Platform.current().isWindows();
+    private static final boolean X11 = isX11Session();
+    private static final String PRIMARY_BUTTON = "cleanroom.installer.primaryButton";
+    private static final String COMPACT_BUTTON = "cleanroom.installer.compactButton";
+    private static final String GHOST_BUTTON = "cleanroom.installer.ghostButton";
+    private static final String COMBO_ARROW = "cleanroom.installer.comboArrow";
+    private static final String DARK_RENDERER = "cleanroom.installer.darkRenderer";
+    private static final String KEEP_OPAQUE = "cleanroom.installer.keepOpaque";
+    private static final String THEME_ROLE = "cleanroom.installer.themeRole";
+    private static final String THEME_VALUE = "cleanroom.installer.themeValue";
+    private static final String THEME_SWITCH = "cleanroom.installer.themeSwitch";
+    private static final String BACKGROUND_ROLE = "background";
+    private static final String SURFACE_ROLE = "surface";
+    private static final String UI_FAMILY = resolveUiFamily();
+    private static final Font BASE_FONT = uiFont(13f, TextAttribute.WEIGHT_REGULAR);
+
+    private CleanroomUI() { }
+
+    private static String resolveUiFamily() {
+        // Preference order, not an assumption about what is installed
+        String[] candidates = {
+                "Segoe UI", // Windows
+                "SF Pro Text", "Helvetica Neue", "Lucida Grande", // Mac
+                "Inter", "Ubuntu", "Noto Sans", "DejaVu Sans", "Liberation Sans", "Cantarell", // Linux
+                "Lucida Sans" // Java (Oracle)
+        };
+        for (String candidate : candidates) {
+            Font probe = new Font(candidate, Font.PLAIN, 12);
+            if (isFontFamily(probe, candidate) && paintsGlyphs(probe)) {
+                return probe.getFamily();
+            }
+        }
+        // Last ditch
+        // SANS_SERIF is a logical family, every platform maps it onto something it considers its default
+        return Font.SANS_SERIF;
+    }
+
+    private static boolean isFontFamily(Font font, String expected) {
+        String family = font.getFamily();
+        return family != null && family.equalsIgnoreCase(expected);
+    }
+
+    /**
+     * A family can resolve, report metrics and claim every character while rasterizing nothing.
+     * Draw with the face and look for ink.
+     */
+    private static boolean paintsGlyphs(Font font) {
+        int size = 24;
+        try {
+            BufferedImage canvas = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = canvas.createGraphics();
+            try {
+                g.setFont(font.deriveFont(Font.PLAIN, 16f));
+                g.setColor(Color.BLACK);
+                g.drawString("AB", 2, size - 6);
+            } finally {
+                g.dispose();
+            }
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size; x++) {
+                    if ((canvas.getRGB(x, y) >>> 24) != 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        } catch (LinkageError | RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * UI type with explicit weight. Prefer {@link TextAttribute#WEIGHT_SEMIBOLD} over full {@link Font#BOLD}.
+     * Segoe Bold paints heavy and muddy at dialog sizes.
+     */
+    private static Font uiFont(float size, Float weight) {
+        // Whole-pixel sizes avoid soft/fractional glyph rasterization under Windows DPI
+        float pixelSize = Math.max(11f, Math.round(size));
+        Map<TextAttribute, Object> attributes = new HashMap<>();
+        attributes.put(TextAttribute.FAMILY, UI_FAMILY);
+        attributes.put(TextAttribute.SIZE, pixelSize);
+        attributes.put(TextAttribute.WEIGHT, weight);
+        attributes.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+        return new Font(attributes);
+    }
+
+    private static Font uiRegular(float size) {
+        return uiFont(size, TextAttribute.WEIGHT_REGULAR);
+    }
+
+    private static Font uiMedium(float size) {
+        // Slightly stronger than regular for hierarchy without full bold fatness
+        return uiFont(size, TextAttribute.WEIGHT_MEDIUM);
+    }
+
+    private static Font uiSemibold(float size) {
+        return uiFont(size, TextAttribute.WEIGHT_SEMIBOLD);
+    }
+
+    private static boolean loadConfiguredDarkMode() {
+        try {
+            return ThemeStore.get().dark();
+        } catch (LinkageError | RuntimeException ignored) { }
+        return true;
+    }
+
+    private static boolean isX11Session() {
+        String sessionType = System.getenv("XDG_SESSION_TYPE");
+        if ("x11".equalsIgnoreCase(sessionType)) {
+            return true;
+        }
+        if ("wayland".equalsIgnoreCase(sessionType)) {
+            return false;
+        }
+        return System.getenv("DISPLAY") != null && System.getenv("WAYLAND_DISPLAY") == null;
+    }
+
+    private static void setPalette(boolean dark) {
+        darkTheme = dark;
+        BACKGROUND = dark ? new Color(11, 17, 24) : new Color(243, 247, 250);
+        SURFACE = dark ? new Color(18, 28, 38) : Color.WHITE;
+        CONTROL = dark ? new Color(24, 37, 49) : new Color(248, 250, 252);
+        CONTROL_HOVER = dark ? new Color(31, 48, 62) : new Color(229, 242, 243);
+        TEXT = dark ? new Color(238, 245, 247) : new Color(24, 35, 46);
+        MUTED_TEXT = dark ? new Color(145, 164, 178) : new Color(92, 111, 126);
+        PRIMARY_HOVER = dark ? new Color(44, 203, 194) : new Color(22, 154, 148);
+        BORDER = dark ? new Color(41, 58, 72) : new Color(204, 217, 227);
+        FOCUS = dark ? new Color(71, 220, 211) : new Color(22, 143, 138);
+        DISABLED_TEXT = dark ? new Color(91, 108, 120) : new Color(145, 160, 172);
+    }
+
+    static void setDarkTheme(boolean useDarkTheme) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> setDarkTheme(useDarkTheme));
+            return;
+        }
+        if (useDarkTheme == darkTheme) {
+            return;
+        }
+
+        Color[] previousPalette = paletteSnapshot();
+        setPalette(useDarkTheme);
+        Color[] currentPalette = paletteSnapshot();
+        installThemeDefaults();
+
+        ThemeStore.get().dark(useDarkTheme);
+
+        for (Window window : Window.getWindows()) {
+            if (!window.isDisplayable()) {
+                continue;
+            }
+            remapComponentColors(window, previousPalette, currentPalette);
+            styleTree(window);
+            window.invalidate();
+            window.validate();
+            window.repaint();
+        }
+    }
+
+    private static Color[] paletteSnapshot() {
+        return new Color[] { BACKGROUND, SURFACE, CONTROL, CONTROL_HOVER, TEXT, MUTED_TEXT, PRIMARY_HOVER, BORDER,
+                FOCUS, DISABLED_TEXT };
+    }
+
+    private static void remapComponentColors(Component component, Color[] previous, Color[] current) {
+        component.setBackground(remapColor(component.getBackground(), previous, current));
+        component.setForeground(remapColor(component.getForeground(), previous, current));
+
+        if (component instanceof JComponent) {
+            JComponent swingComponent = (JComponent) component;
+            Object role = swingComponent.getClientProperty(THEME_ROLE);
+            if (BACKGROUND_ROLE.equals(role)) {
+                swingComponent.setBackground(BACKGROUND);
+                swingComponent.setOpaque(true);
+            } else if (SURFACE_ROLE.equals(role)) {
+                swingComponent.setBackground(SURFACE);
+                swingComponent.setOpaque(true);
+                swingComponent.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER));
+            }
+            Object themeValue = swingComponent.getClientProperty(THEME_VALUE);
+            if (themeValue instanceof Boolean && swingComponent instanceof AbstractButton) {
+                ((AbstractButton) swingComponent).setSelected(themeValue.equals(darkTheme));
+            }
+        }
+
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                remapComponentColors(child, previous, current);
+            }
+        }
+    }
+
+    private static Color remapColor(Color color, Color[] previous, Color[] current) {
+        if (color == null) {
+            return null;
+        }
+        for (int i = 0; i < previous.length; i++) {
+            if (color.equals(previous[i])) {
+                return current[i];
+            }
+        }
+        return color;
+    }
+
+    static void showInitiallyInForeground(Window window) {
+        window.setAutoRequestFocus(true);
+        WindowAdapter foregroundOnce = new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent event) {
+                window.toFront();
+                window.requestFocus();
+                EventQueue.invokeLater(() -> {
+                    if (window.isAlwaysOnTop()) {
+                        window.setAlwaysOnTop(false);
+                    }
+                    window.removeWindowListener(this);
+                });
+            }
+        };
+        window.addWindowListener(foregroundOnce);
+        if (window.isAlwaysOnTopSupported()) {
+            window.setAlwaysOnTop(true);
+        }
+        window.setVisible(true);
+    }
+
+    /**
+     * Shows a frame on the EDT and blocks until it is disposed.
+     * Same pattern as a modal dialog, but the window is a real {@link Frame} so taskbar icons and
+     * thumbnails work (unlike an empty owner frame), as it was previously done...
+     */
+    static void showAndWait(final Window window) {
+        if (!SwingUtilities.isEventDispatchThread()) {
+            try {
+                SwingUtilities.invokeAndWait(() -> showAndWait(window));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (InvocationTargetException e) {
+                Throwable cause = e.getCause();
+                if (cause instanceof RuntimeException) {
+                    throw (RuntimeException) cause;
+                }
+                if (cause instanceof Error) {
+                    throw (Error) cause;
+                }
+                throw new RuntimeException(cause);
+            }
+            return;
+        }
+
+        final SecondaryLoop loop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent event) {
+                loop.exit();
+            }
+        });
+        showInitiallyInForeground(window);
+        if (window.isDisplayable()) {
+            loop.enter();
+        }
+    }
+
+    static void install() {
+        if (WINDOWS) {
+            // LCD/ClearType on Windows
+            System.setProperty("awt.useSystemAAFontSettings", "lcd");
+            System.setProperty("swing.aatext", "true");
+        }
+        try {
+            String lookAndFeel = UIManager.getSystemLookAndFeelClassName();
+            // GTK's X11 HiDPI support can scale text twice while Java2D keeps component geometry at 1x (JDK-8058742)
+            if (X11 && lookAndFeel.contains(".gtk.")) {
+                lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+            }
+            UIManager.setLookAndFeel(lookAndFeel);
+        } catch (Exception ignored) { }
+        String[] fontKeys = {
+                "Button.font", "Label.font", "ComboBox.font", "TextField.font",
+                "CheckBox.font", "ToggleButton.font", "Panel.font", "OptionPane.font", "List.font"
+        };
+        for (String key : fontKeys) {
+            UIManager.put(key, BASE_FONT);
+        }
+        installThemeDefaults();
+    }
+
+    private static void installThemeDefaults() {
+        UIManager.put("Panel.background", BACKGROUND);
+        UIManager.put("OptionPane.background", SURFACE);
+        UIManager.put("OptionPane.messageForeground", TEXT);
+        UIManager.put("Label.foreground", TEXT);
+        UIManager.put("Button.background", CONTROL);
+        UIManager.put("Button.foreground", TEXT);
+        UIManager.put("ToggleButton.background", CONTROL);
+        UIManager.put("ToggleButton.foreground", TEXT);
+        UIManager.put("TextField.background", CONTROL);
+        UIManager.put("TextField.foreground", TEXT);
+        UIManager.put("TextField.caretForeground", PRIMARY);
+        UIManager.put("TextField.selectionBackground", PRIMARY);
+        UIManager.put("TextField.selectionForeground", Color.WHITE);
+        UIManager.put("TextField.inactiveForeground", DISABLED_TEXT);
+        UIManager.put("TextField.inactiveBackground", CONTROL);
+        UIManager.put("ComboBox.background", CONTROL);
+        UIManager.put("ComboBox.foreground", TEXT);
+        UIManager.put("ComboBox.selectionBackground", PRIMARY);
+        UIManager.put("ComboBox.selectionForeground", Color.WHITE);
+        UIManager.put("ComboBox.disabledBackground", SURFACE);
+        UIManager.put("ComboBox.disabledForeground", DISABLED_TEXT);
+        UIManager.put("List.background", CONTROL);
+        UIManager.put("List.foreground", TEXT);
+        UIManager.put("List.selectionBackground", PRIMARY);
+        UIManager.put("List.selectionForeground", Color.WHITE);
+        UIManager.put("CheckBox.background", SURFACE);
+        UIManager.put("CheckBox.foreground", TEXT);
+        UIManager.put("ScrollPane.background", BACKGROUND);
+        UIManager.put("Viewport.background", BACKGROUND);
+        UIManager.put("ProgressBar.background", CONTROL);
+        UIManager.put("ProgressBar.foreground", PRIMARY);
+        UIManager.put("ProgressBar.selectionBackground", TEXT);
+        UIManager.put("ProgressBar.selectionForeground", TEXT);
+        UIManager.put("ToolTip.background", CONTROL_HOVER);
+        UIManager.put("ToolTip.foreground", TEXT);
+        UIManager.put("ToolTip.border", BorderFactory.createLineBorder(BORDER));
+        UIManager.put("ToolTip.font", uiRegular(12f));
+    }
+
+    static void primary(AbstractButton button) {
+        button.putClientProperty(PRIMARY_BUTTON, Boolean.TRUE);
+        button.putClientProperty(GHOST_BUTTON, null);
+        button.setFont(uiMedium(button.getFont().getSize2D()));
+    }
+
+    static void compact(AbstractButton button) {
+        button.putClientProperty(COMPACT_BUTTON, Boolean.TRUE);
+    }
+
+    /** Secondary outline-style action that stays quieter than the primary CTA. */
+    static void ghost(AbstractButton button) {
+        button.putClientProperty(GHOST_BUTTON, Boolean.TRUE);
+        button.putClientProperty(PRIMARY_BUTTON, null);
+    }
+
+    static void showError(Component parent, String title, String message) {
+        showMessage(parent, title, message, true);
+    }
+
+    static void showInfo(Component parent, String title, String message) {
+        showMessage(parent, title, message, false);
+    }
+
+    private static void showMessage(Component parent, String title, String message, boolean error) {
+        // Panel.background has to be SURFACE for the duration of the dialog only
+        // Leaving it set would hand the wrong background to every panel created afterwards
+        Object previousPanelBackground = UIManager.get("Panel.background");
+        UIManager.put("OptionPane.background", SURFACE);
+        UIManager.put("Panel.background", SURFACE);
+        UIManager.put("OptionPane.messageForeground", TEXT);
+        try {
+            JOptionPane pane = new JOptionPane(wrapMessage(message),
+                    error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE,
+                    JOptionPane.DEFAULT_OPTION, dialogIcon());
+            JDialog dialog = pane.createDialog(parent, title);
+            // Built by hand rather than showMessageDialog so the title bar carries our mark:
+            // a dialog with no parent otherwise inherits the shared owner frame's stock icon.
+            Image mark = markImage();
+            if (mark != null) {
+                dialog.setIconImage(mark);
+            }
+            dialog.setVisible(true);
+            dialog.dispose();
+        } finally {
+            UIManager.put("Panel.background", previousPanelBackground);
+        }
+    }
+
+    /** The dialogs carry our own mark instead of the platform look and feel's stock icon. */
+    private static Icon dialogIcon() {
+        Image image = markImage();
+        return image == null ? null : new ImageIcon(image.getScaledInstance(48, 48, Image.SCALE_SMOOTH));
+    }
+
+    private static Image markImage() {
+        URL resource = CleanroomUI.class.getResource("/cleanroom.png");
+        if (resource == null) {
+            return null;
+        }
+        // ImageIcon blocks until the image is loaded, which setIconImage and getScaledInstance need.
+        return new ImageIcon(Toolkit.getDefaultToolkit().getImage(resource)).getImage();
+    }
+
+    /**
+     * Long single-line messages (stack trace text, paths) otherwise stretch the dialog off-screen.
+     * Line breaks become {@code <br>} rather than separate labels: JOptionPane splits a plain
+     * multi-line string per line, which would leave the closing html tags rendered as text.
+     */
+    private static String wrapMessage(String message) {
+        if (message == null) {
+            return null;
+        }
+        String body = escapeHtml(message)
+                .replace("\r\n", "\n")
+                .replace("\r", "\n")
+                .replace("\n", "<br>");
+        return "<html><body style='width: 380px; text-align: center'>" + body + "</body></html>";
+    }
+
+    private static String escapeHtml(String text) {
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    /**
+     * Binds Escape on the root pane. Prefer this over raw KeyListeners so
+     * focused text fields still pass Escape through when empty focus is fine.
+     */
+    static void onEscape(JRootPane rootPane, Runnable action) {
+        String key = "cleanroom.installer.escape";
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), key);
+        rootPane.getActionMap().put(key, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                action.run();
+            }
+        });
+    }
+
+    /**
+     * Records the display scale so fixed control sizes grow with the fonts.
+     * Call before building a window: {@link #styleTree} and the control factories read it while
+     * laying out, and scaled-up fonts inside fixed-height fields clip otherwise.
+     */
+    static void setUiScale(float scale) {
+        uiScale = scale;
+    }
+
+    /** Computes the display scale used for a window on the given screen. */
+    static float uiScaleFor(Rectangle screenBounds) {
+        return Math.max(0.9f, Math.min(1.25f, screenBounds.width / 1920f));
+    }
+
+    /** Scales a fixed control dimension by the active UI scale. */
+    static int scaled(int base) {
+        return Math.round(base * uiScale);
+    }
+
+    static void scaleComponent(Component component, float scale) {
+        if (component instanceof JTextField || component instanceof AbstractButton || component instanceof JComboBox) {
+            Dimension size = component.getPreferredSize();
+            component.setPreferredSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
+            component.setMaximumSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
+        } else if (component instanceof JLabel) {
+            JLabel label = (JLabel) component;
+            Icon icon = label.getIcon();
+            if (icon instanceof ImageIcon) {
+                ImageIcon imageIcon = (ImageIcon) icon;
+                Image image = imageIcon.getImage();
+                if (image != null) {
+                    Image scaledImage = image.getScaledInstance(
+                            (int) (imageIcon.getIconWidth() * scale),
+                            (int) (imageIcon.getIconHeight() * scale),
+                            Image.SCALE_SMOOTH);
+                    label.setIcon(new ImageIcon(scaledImage));
+                }
+            }
+        }
+
+        if (component instanceof JLabel || component instanceof AbstractButton || component instanceof JTextField ||
+                component instanceof JComboBox) {
+            Font font = component.getFont();
+            if (font != null) {
+                // Round to whole pixels so scaled text stays crisp
+                float scaled = Math.max(11f, Math.round(font.getSize2D() * scale));
+                component.setFont(font.deriveFont(scaled));
+            }
+        }
+
+        if (component instanceof AbstractButton) {
+            AbstractButton button = (AbstractButton) component;
+            Insets margin = button.getMargin();
+            if (margin != null) {
+                button.setMargin(new Insets(
+                        (int) (margin.top * scale),
+                        (int) (margin.left * scale),
+                        (int) (margin.bottom * scale),
+                        (int) (margin.right * scale)
+                ));
+            }
+        } else if (component instanceof JTextField) {
+            JTextField textField = (JTextField) component;
+            Insets margin = textField.getMargin();
+            if (margin != null) {
+                textField.setMargin(new Insets(
+                        (int) (margin.top * scale),
+                        (int) (margin.left * scale),
+                        (int) (margin.bottom * scale),
+                        (int) (margin.right * scale)
+                ));
+            }
+        } else if (component instanceof JComboBox) {
+            JComboBox<?> comboBox = (JComboBox<?>) component;
+            Insets margin = comboBox.getInsets();
+            if (margin != null) {
+                comboBox.setBorder(BorderFactory.createEmptyBorder(
+                        (int) (margin.top * scale),
+                        (int) (margin.left * scale),
+                        (int) (margin.bottom * scale),
+                        (int) (margin.right * scale)
+                ));
+            }
+        } else if (component instanceof JLabel) {
+            JLabel label = (JLabel) component;
+            Insets margin = label.getInsets();
+            if (margin != null) {
+                label.setBorder(BorderFactory.createEmptyBorder(
+                        (int) (margin.top * scale),
+                        (int) (margin.left * scale),
+                        (int) (margin.bottom * scale),
+                        (int) (margin.right * scale)
+                ));
+            }
+        } else if (component instanceof JPanel) {
+            JPanel panel = (JPanel) component;
+            Border existingBorder = panel.getBorder();
+
+            Insets margin = existingBorder instanceof EmptyBorder ?
+                    ((EmptyBorder) existingBorder).getBorderInsets()
+                    : new Insets(0, 0, 0, 0);
+
+            panel.setBorder(BorderFactory.createEmptyBorder(
+                    (int) (margin.top * scale),
+                    (int) (margin.left * scale),
+                    (int) (margin.bottom * scale),
+                    (int) (margin.right * scale)
+            ));
+        }
+
+        component.revalidate();
+        component.repaint();
+
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                scaleComponent(child, scale);
+            }
+        }
+    }
+
+    static void backgroundPanel(JPanel panel) {
+        panel.setBackground(BACKGROUND);
+        panel.setOpaque(true);
+        panel.putClientProperty(KEEP_OPAQUE, Boolean.TRUE);
+        panel.putClientProperty(THEME_ROLE, BACKGROUND_ROLE);
+    }
+
+    static JPanel themeToolbar() {
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 8));
+        backgroundPanel(toolbar);
+        toolbar.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 8));
+
+        ThemeToggle themeToggle = new ThemeToggle();
+        themeToggle.addActionListener(event -> setDarkTheme(themeToggle.isSelected()));
+
+        toolbar.add(themeToggle);
+        return toolbar;
+    }
+
+    static JLabel title(String text) {
+        JLabel label = new JLabel(text);
+        // Semibold + size for hierarchy
+        label.setFont(uiSemibold(22f));
+        label.setForeground(TEXT);
+        return label;
+    }
+
+    static JLabel subtitle(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(uiRegular(13f));
+        label.setForeground(MUTED_TEXT);
+        return label;
+    }
+
+    static JLabel fieldLabel(String text) {
+        JLabel label = new JLabel(text);
+        // Regular + muted color since bold labels looked too thick
+        label.setFont(uiRegular(12f));
+        label.setForeground(MUTED_TEXT);
+        return label;
+    }
+
+    /** Field label with spacing so it never sits flush against the control below. */
+    static JLabel fieldLabelAbove(String text) {
+        JLabel label = fieldLabel(text);
+        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+        return label;
+    }
+
+    static JLabel statusLabel(String text) {
+        JLabel label = subtitle(text);
+        label.setFont(uiRegular(12f));
+        label.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        return label;
+    }
+
+    /**
+     * A status line that wraps onto as many lines as it needs instead of stretching the window.
+     * The wrapping is done here rather than left to html: Swing's html never breaks a long unbroken
+     * run of characters, which is exactly what a url is.
+     */
+    static JLabel wrappingStatusLabel(String text) {
+        JLabel label = new WrappingLabel();
+        label.setFont(uiRegular(12f));
+        label.setForeground(MUTED_TEXT);
+        label.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
+        label.setText(text);
+        return label;
+    }
+
+    /** @see #wrappingStatusLabel(String) */
+    private static final class WrappingLabel extends JLabel {
+
+        private String plain = "";
+        private int wrappedWidth = -1;
+
+        WrappingLabel() {
+            addComponentListener(new ComponentAdapter() {
+                @Override
+                public void componentResized(ComponentEvent event) {
+                    // Only a change of width can change where the lines break.
+                    if (available() != WrappingLabel.this.wrappedWidth) {
+                        rewrap();
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void setText(String text) {
+            this.plain = text == null ? "" : text;
+            rewrap();
+        }
+
+        /** The text as it was handed over, without the markup the lines are drawn with. */
+        String plainText() {
+            return this.plain;
+        }
+
+        private void rewrap() {
+            int width = available();
+            this.wrappedWidth = width;
+            if (width <= 0 || this.plain.isEmpty()) {
+                // Before the first layout there is no width to wrap against; the resize does it.
+                super.setText(this.plain);
+                return;
+            }
+            StringBuilder html = new StringBuilder("<html>");
+            boolean first = true;
+            for (String line : wrap(this.plain, width, getFontMetrics(getFont()))) {
+                if (!first) {
+                    html.append("<br>");
+                }
+                html.append(escapeHtml(line));
+                first = false;
+            }
+            super.setText(html.append("</html>").toString());
+        }
+
+        private int available() {
+            Insets insets = getInsets();
+            return getWidth() - insets.left - insets.right;
+        }
+
+    }
+
+    /**
+     * Greedy word wrap, falling back to breaking mid-word for anything that cannot fit a line on
+     * its own — a url, a long path. A newline in the text is a break the caller asked for and is
+     * always kept, so a sentence can be made to start on its own line.
+     */
+    static List<String> wrap(String text, int width, FontMetrics metrics) {
+        List<String> lines = new ArrayList<>();
+        for (String paragraph : text.replace("\r\n", "\n").replace('\r', '\n').split("\n", -1)) {
+            wrapParagraph(paragraph, width, metrics, lines);
+        }
+        return lines;
+    }
+
+    private static void wrapParagraph(String text, int width, FontMetrics metrics, List<String> lines) {
+        StringBuilder line = new StringBuilder();
+        for (String word : text.split(" ")) {
+            if (line.length() == 0) {
+                line.append(word);
+            } else if (metrics.stringWidth(line + " " + word) <= width) {
+                line.append(' ').append(word);
+            } else {
+                lines.add(line.toString());
+                line.setLength(0);
+                line.append(word);
+            }
+            while (metrics.stringWidth(line.toString()) > width && line.length() > 1) {
+                int fits = fittingLength(line.toString(), width, metrics);
+                lines.add(line.substring(0, fits));
+                line.delete(0, fits);
+            }
+        }
+        lines.add(line.toString());
+    }
+
+    /** How much of this text fits in the width, never zero so wrapping always makes progress. */
+    private static int fittingLength(String text, int width, FontMetrics metrics) {
+        int fits = 1;
+        while (fits < text.length() && metrics.stringWidth(text.substring(0, fits + 1)) <= width) {
+            fits++;
+        }
+        return fits;
+    }
+
+    static JPanel optionRow(AbstractButton checkBox, String description) {
+        JPanel row = new JPanel();
+        row.setOpaque(false);
+        row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
+        row.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+        checkBox.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.add(checkBox);
+        if (description != null && !description.isEmpty()) {
+            JLabel detail = subtitle(description);
+            detail.setFont(uiRegular(12f));
+            detail.setAlignmentX(Component.LEFT_ALIGNMENT);
+            detail.setBorder(BorderFactory.createEmptyBorder(2, 24, 0, 0));
+            row.add(detail);
+        }
+        return row;
+    }
+
+    static void tooltip(JComponent component, String text) {
+        component.setToolTipText(text);
+        LayeredToolTipSupport.install(component);
+    }
+
+    static JProgressBar progressBar() {
+        JProgressBar bar = new JProgressBar();
+        bar.setOpaque(false);
+        bar.setBorderPainted(false);
+        bar.setStringPainted(false);
+        bar.setForeground(PRIMARY);
+        bar.setBackground(CONTROL);
+        bar.setPreferredSize(new Dimension(scaled(480), scaled(12)));
+        bar.setMaximumSize(new Dimension(Integer.MAX_VALUE, scaled(12)));
+        bar.setUI(new ModernProgressBarUI());
+        return bar;
+    }
+
+    static JPanel header(Image image, String title, String subtitle) {
+        JPanel header = new JPanel(new BorderLayout(16, 0));
+        header.setOpaque(false);
+        header.setBorder(BorderFactory.createEmptyBorder(4, 4, 18, 4));
+
+        JLabel logo = new JLabel(new ImageIcon(image.getScaledInstance(64, 64, Image.SCALE_SMOOTH)));
+        header.add(logo, BorderLayout.WEST);
+
+        JPanel copy = new JPanel();
+        copy.setOpaque(false);
+        copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
+        JLabel heading = title(title);
+        heading.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel detail = subtitle(subtitle);
+        detail.setAlignmentX(Component.LEFT_ALIGNMENT);
+        copy.add(Box.createVerticalGlue());
+        copy.add(heading);
+        copy.add(Box.createRigidArea(new Dimension(0, 4)));
+        copy.add(detail);
+        copy.add(Box.createVerticalGlue());
+        header.add(copy, BorderLayout.CENTER);
+        return header;
+    }
+
+    static JPanel centeredHeader(Image image, String title, String subtitle) {
+        JPanel header = new JPanel();
+        header.setOpaque(false);
+        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        header.setBorder(BorderFactory.createEmptyBorder(0, 4, 18, 4));
+        header.setAlignmentX(Component.CENTER_ALIGNMENT);
+        header.setMaximumSize(new Dimension(scaled(MAX_CONTENT_WIDTH), Integer.MAX_VALUE));
+
+        JLabel logo = new JLabel(new ImageIcon(image.getScaledInstance(56, 56, Image.SCALE_SMOOTH)));
+        logo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel heading = title(title);
+        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
+        heading.setHorizontalAlignment(SwingConstants.CENTER);
+        heading.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+        JLabel detail = subtitle(subtitle);
+        detail.setAlignmentX(Component.CENTER_ALIGNMENT);
+        detail.setHorizontalAlignment(SwingConstants.CENTER);
+        detail.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+        header.add(logo);
+        header.add(Box.createRigidArea(new Dimension(0, 8)));
+        header.add(heading);
+        header.add(Box.createRigidArea(new Dimension(0, 4)));
+        header.add(detail);
+        return header;
+    }
+
+    static JPanel card(String title, String description, JComponent content) {
+        JPanel card = new SurfacePanel(new BorderLayout(0, 12));
+        card.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
+        card.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // Capped and centre-aligned, so widening the window adds margin rather than card width
+        card.setMaximumSize(new Dimension(scaled(MAX_CONTENT_WIDTH), Integer.MAX_VALUE));
+
+        JPanel copy = new JPanel();
+        copy.setOpaque(false);
+        copy.setLayout(new BoxLayout(copy, BoxLayout.Y_AXIS));
+        JLabel heading = new JLabel(title);
+        heading.setForeground(TEXT);
+        heading.setFont(uiSemibold(15f));
+        heading.setAlignmentX(Component.LEFT_ALIGNMENT);
+        copy.add(heading);
+        if (description != null && !description.isEmpty()) {
+            JLabel detail = subtitle(description);
+            detail.setAlignmentX(Component.LEFT_ALIGNMENT);
+            detail.setBorder(BorderFactory.createEmptyBorder(3, 0, 0, 0));
+            copy.add(detail);
+        }
+        card.add(copy, BorderLayout.NORTH);
+        content.setOpaque(false);
+        card.add(content, BorderLayout.CENTER);
+        return card;
+    }
+
+    static JScrollPane scrollPane(Component content) {
+        JScrollPane scrollPane = new JScrollPane(content);
+        scrollPane.setBorder(null);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+        scrollPane.getViewport().setBackground(BACKGROUND);
+        scrollPane.setBackground(BACKGROUND);
+        return scrollPane;
+    }
+
+    static JPanel scrollableColumn() {
+        return new ScrollableColumn();
+    }
+
+    static JPanel footer() {
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 14));
+        footer.setBackground(SURFACE);
+        footer.putClientProperty(KEEP_OPAQUE, Boolean.TRUE);
+        footer.putClientProperty(THEME_ROLE, SURFACE_ROLE);
+        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER));
+        return footer;
+    }
+
+    private static void styleScrollBar(JScrollBar scrollBar, Color trackBackground) {
+        scrollBar.setBackground(trackBackground);
+        scrollBar.setUI(new DarkScrollBarUI());
+        scrollBar.setBackground(trackBackground);
+        scrollBar.setOpaque(true);
+        scrollBar.setBorder(null);
+
+        Dimension preferred = scrollBar.getPreferredSize();
+
+        if (scrollBar.getOrientation() == Adjustable.VERTICAL) {
+            scrollBar.setPreferredSize(new Dimension(scaled(10), preferred.height));
+        } else {
+            scrollBar.setPreferredSize(new Dimension(preferred.width, scaled(10)));
+        }
+    }
+
+    static void styleTree(Component component) {
+        if (component.getFont() == null) {
+            component.setFont(BASE_FONT);
+        }
+        // Ask Swing to use LCD glyph rasterization on every component paint path
+        if (component instanceof JComponent) {
+            JComponent swing = (JComponent) component;
+            swing.putClientProperty(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+            swing.putClientProperty(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+            if (swing.getToolTipText() != null) {
+                LayeredToolTipSupport.install(swing);
+            }
+        }
+
+        if (component instanceof JCheckBox) {
+            JCheckBox checkBox = (JCheckBox) component;
+            checkBox.setOpaque(false);
+            checkBox.setForeground(TEXT);
+            checkBox.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            checkBox.setFocusPainted(false);
+            checkBox.setIcon(new ModernCheckIcon());
+            checkBox.setSelectedIcon(new ModernCheckIcon());
+            checkBox.setDisabledIcon(new ModernCheckIcon());
+            checkBox.setDisabledSelectedIcon(new ModernCheckIcon());
+            checkBox.setMargin(new Insets(3, 0, 3, 0));
+        } else if (component instanceof AbstractButton) {
+            AbstractButton button = (AbstractButton) component;
+            if (Boolean.TRUE.equals(button.getClientProperty(THEME_SWITCH))) {
+                if (button instanceof ThemeToggle) {
+                    ((ThemeToggle) button).applySize();
+                }
+                button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                button.setFocusPainted(false);
+                button.setRolloverEnabled(true);
+                return;
+            }
+            if (Boolean.TRUE.equals(button.getClientProperty(COMBO_ARROW))) {
+                button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                return;
+            }
+            button.setUI(new ModernButtonUI());
+            button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            button.setFocusPainted(false);
+            button.setRolloverEnabled(true);
+            // Strip L&F chrome so we never get a second border/pill under
+            button.setBorderPainted(false);
+            button.setContentAreaFilled(false);
+            button.setOpaque(false);
+            // Padding has to live in the border, not the margin: an empty border contributes zero
+            // insets, and BasicButtonUI sizes from the border, so margin alone paints text-tight pills.
+            boolean compact = Boolean.TRUE.equals(button.getClientProperty(COMPACT_BUTTON));
+            setButtonPadding(button, compact ? new Insets(5, 12, 5, 12) : new Insets(8, 16, 8, 16));
+            if (compact) {
+                Dimension preferred = button.getPreferredSize();
+                button.setPreferredSize(new Dimension(preferred.width, scaled(34)));
+            }
+        } else if (component instanceof JTextField) {
+            JTextField text = (JTextField) component;
+            text.setForeground(TEXT);
+            text.setBackground(CONTROL);
+            text.setDisabledTextColor(DISABLED_TEXT);
+            text.setCaretColor(PRIMARY);
+            text.setMargin(new Insets(7, 10, 7, 10));
+            text.setBorder(textFieldBorder(text.hasFocus() ? FOCUS : BORDER));
+            int fieldHeight = scaled(34);
+            text.setPreferredSize(new Dimension(text.getPreferredSize().width, fieldHeight));
+            text.setMaximumSize(new Dimension(Integer.MAX_VALUE, fieldHeight));
+        } else if (component instanceof JComboBox) {
+            JComboBox<?> comboBox = (JComboBox<?>) component;
+            comboBox.setOpaque(false);
+            comboBox.setBackground(CONTROL);
+            comboBox.setForeground(TEXT);
+            installDarkRenderer(comboBox);
+            comboBox.setUI(new DarkComboBoxUI());
+            comboBox.setBorder(new RoundedBorder(BORDER, 8));
+            int comboHeight = scaled(36);
+            comboBox.setPreferredSize(new Dimension(comboBox.getPreferredSize().width, comboHeight));
+            comboBox.setMinimumSize(new Dimension(scaled(80), comboHeight));
+            comboBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, comboHeight));
+        } else if (component instanceof JScrollBar) {
+            JScrollBar scrollBar = (JScrollBar) component;
+            styleScrollBar(scrollBar, BACKGROUND);
+        } else if (component instanceof JProgressBar) {
+            JProgressBar progressBar = (JProgressBar) component;
+            progressBar.setUI(new ModernProgressBarUI());
+            progressBar.setForeground(PRIMARY);
+            progressBar.setBackground(CONTROL);
+            progressBar.setBorderPainted(false);
+            progressBar.setOpaque(false);
+        } else if (component instanceof JLabel) {
+            JLabel label = (JLabel) component;
+            if (label.getForeground() == null || Color.BLACK.equals(label.getForeground())) {
+                component.setForeground(TEXT);
+            }
+        } else if (component instanceof JPanel && !(component instanceof SurfacePanel)) {
+            JPanel panel = (JPanel) component;
+            if (!Boolean.TRUE.equals(panel.getClientProperty(KEEP_OPAQUE))) {
+                panel.setOpaque(false);
+            }
+        }
+
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                styleTree(child);
+            }
+        }
+    }
+
+    /** Scales the padding with the UI and keeps margin/border in agreement. */
+    private static void setButtonPadding(AbstractButton button, Insets padding) {
+        Insets scaled = new Insets(scaled(padding.top), scaled(padding.left),
+                scaled(padding.bottom), scaled(padding.right));
+        button.setMargin(scaled);
+        button.setBorder(BorderFactory.createEmptyBorder(scaled.top, scaled.left, scaled.bottom, scaled.right));
+    }
+
+    static void installTextFieldFocus(JTextField text) {
+        text.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                text.setBorder(textFieldBorder(FOCUS));
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                text.setBorder(textFieldBorder(BORDER));
+            }
+        });
+    }
+
+    static Dimension dialogSize(Rectangle screenBounds) {
+        int width = Math.min(720, Math.max(560, screenBounds.width - 80));
+        int height = Math.min(820, Math.max(640, screenBounds.height - 100));
+        return new Dimension(width, height);
+    }
+
+    /**
+     * Sizes a dialog and enforces a minimum size.
+     * Windows native peers sometimes ignore {@link Window#setMinimumSize(Dimension)}.
+     * The resize guard clamps after-the-fact.
+     *
+     * @param contentFloor preferred size of the screen that must remain usable (e.g. starting UI)
+     */
+    static void sizeAndGuard(Window window, Dimension targetSize, Dimension contentFloor) {
+        final Dimension contentFloorCopy = new Dimension(contentFloor);
+        Dimension minimum = computeMinimumSize(window, contentFloorCopy);
+        window.setMinimumSize(minimum);
+
+        GraphicsConfiguration gc = window.getGraphicsConfiguration();
+        if (gc == null) {
+            gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        }
+        Rectangle screen = gc.getBounds();
+        Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        int maxW = Math.max(minimum.width, screen.width - screenInsets.left - screenInsets.right - 40);
+        int maxH = Math.max(minimum.height, screen.height - screenInsets.top - screenInsets.bottom - 40);
+
+        int width = Math.min(maxW, Math.max(minimum.width, targetSize.width));
+        int height = Math.min(maxH, Math.max(minimum.height, targetSize.height));
+        window.setSize(width, height);
+        installMinimumSizeGuard(window, contentFloorCopy);
+    }
+
+    private static Dimension computeMinimumSize(Window window, Dimension contentFloor) {
+        Insets insets = window.getInsets();
+        // Peer insets are often 0 before first show
+        int chromeW = Math.max(insets.left + insets.right, 16);
+        int chromeH = Math.max(insets.top + insets.bottom, 48);
+
+        int minW = Math.max(560, contentFloor.width + chromeW);
+        int minH = Math.max(660, contentFloor.height + chromeH);
+
+        GraphicsConfiguration gc = window.getGraphicsConfiguration();
+        if (gc == null) {
+            gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        }
+        Rectangle screen = gc.getBounds();
+        Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
+        int maxW = Math.max(minW, screen.width - screenInsets.left - screenInsets.right - 40);
+        int maxH = Math.max(minH, screen.height - screenInsets.top - screenInsets.bottom - 40);
+
+        return new Dimension(Math.min(minW, maxW), Math.min(minH, maxH));
+    }
+
+    private static void installMinimumSizeGuard(final Window window, final Dimension contentFloor) {
+        window.addComponentListener(new ComponentAdapter() {
+            private boolean adjusting;
+
+            @Override
+            public void componentResized(ComponentEvent event) {
+                if (adjusting) {
+                    return;
+                }
+                Dimension minimum = computeMinimumSize(window, contentFloor);
+                window.setMinimumSize(minimum);
+                int width = window.getWidth();
+                int height = window.getHeight();
+                int clampedW = Math.max(width, minimum.width);
+                int clampedH = Math.max(height, minimum.height);
+                if (clampedW != width || clampedH != height) {
+                    adjusting = true;
+                    try {
+                        window.setSize(clampedW, clampedH);
+                    } finally {
+                        adjusting = false;
+                    }
+                }
+            }
+        });
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent event) {
+                Dimension minimum = computeMinimumSize(window, contentFloor);
+                window.setMinimumSize(minimum);
+                int width = Math.max(window.getWidth(), minimum.width);
+                int height = Math.max(window.getHeight(), minimum.height);
+                if (width != window.getWidth() || height != window.getHeight()) {
+                    window.setSize(width, height);
+                }
+            }
+        });
+    }
+
+    private static Border textFieldBorder(Color color) {
+        return BorderFactory.createCompoundBorder(
+                new RoundedBorder(color, 8),
+                BorderFactory.createEmptyBorder(0, 4, 0, 4)
+        );
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void installDarkRenderer(JComboBox comboBox) {
+        if (Boolean.TRUE.equals(comboBox.getClientProperty(DARK_RENDERER))) {
+            return;
+        }
+        comboBox.setRenderer(new DarkListCellRenderer(comboBox.getRenderer()));
+        comboBox.putClientProperty(DARK_RENDERER, Boolean.TRUE);
+    }
+
+    private static final class SurfacePanel extends JPanel {
+        private SurfacePanel(LayoutManager layout) {
+            super(layout);
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(SURFACE);
+            g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, 12, 12));
+            g.setColor(BORDER);
+            g.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 2, getHeight() - 2, 12, 12));
+            g.dispose();
+            super.paintComponent(graphics);
+        }
+    }
+
+    private static final class ScrollableColumn extends JPanel implements Scrollable {
+        private ScrollableColumn() {
+            setOpaque(false);
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return new Dimension(680, 720);
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return 18;
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return Math.max(18, visibleRect.height - 36);
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
+    }
+
+    private static final class RoundedBorder implements Border {
+
+        private final Color color;
+        private final int radius;
+
+        private RoundedBorder(Color color, int radius) {
+            this.color = color;
+            this.radius = radius;
+        }
+
+        @Override
+        public Insets getBorderInsets(Component component) {
+            return new Insets(1, 1, 1, 1);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+
+        @Override
+        public void paintBorder(Component component, Graphics graphics, int x, int y, int width, int height) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(color);
+            g.drawRoundRect(x, y, width - 1, height - 1, radius, radius);
+            g.dispose();
+        }
+
+    }
+
+    private static final class ModernCheckIcon implements Icon {
+
+        @Override
+        public int getIconWidth() {
+            return 16;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 16;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            AbstractButton button = (AbstractButton) component;
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(button.isSelected() ? PRIMARY : CONTROL);
+            g.fillRoundRect(x, y, 15, 15, 5, 5);
+            g.setColor(button.isEnabled() ? (button.isSelected() ? PRIMARY_HOVER : BORDER) : DISABLED_TEXT);
+            g.drawRoundRect(x, y, 15, 15, 5, 5);
+            if (button.isSelected()) {
+                g.setColor(Color.WHITE);
+                g.setStroke(new BasicStroke(1.8F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                g.drawLine(x + 4, y + 8, x + 7, y + 11);
+                g.drawLine(x + 7, y + 11, x + 12, y + 5);
+            }
+            g.dispose();
+        }
+
+    }
+
+    private static final class ThemeToggle extends JToggleButton {
+
+        private static final int SWITCH_WIDTH = 58;
+        private static final int SWITCH_HEIGHT = 23;
+
+        private ThemeToggle() {
+            putClientProperty(THEME_VALUE, Boolean.TRUE);
+            putClientProperty(THEME_SWITCH, Boolean.TRUE);
+            setSelected(darkTheme);
+            applySize();
+            setOpaque(false);
+            setContentAreaFilled(false);
+            setBorderPainted(false);
+            setFocusPainted(false);
+            setRolloverEnabled(true);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            getAccessibleContext().setAccessibleName("Theme");
+            updateDescription();
+            addItemListener(event -> {
+                updateDescription();
+                repaint();
+            });
+        }
+
+        private void applySize() {
+            Dimension size = new Dimension(SWITCH_WIDTH, SWITCH_HEIGHT);
+            setPreferredSize(size);
+            setMinimumSize(size);
+            setMaximumSize(size);
+        }
+
+        private void updateDescription() {
+            String description = isSelected() ? "Dark mode. Switch to light mode." : "Light mode. Switch to dark mode.";
+            tooltip(this, description);
+            getAccessibleContext().setAccessibleDescription(description);
+        }
+
+        @Override
+        protected void paintComponent(Graphics graphics) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            int width = getWidth();
+            int height = getHeight();
+            int padding = 2;
+            int thumbHeight = height - padding * 2;
+            int thumbWidth = width / 2 - padding;
+            boolean dark = isSelected();
+            int thumbX = dark ? padding : width - padding - thumbWidth;
+
+            Color track = dark ? new Color(133, 137, 140) : new Color(103, 105, 107);
+            if (getModel().isRollover()) {
+                track = dark ? new Color(148, 152, 155) : new Color(116, 119, 121);
+            }
+            g.setColor(track);
+            g.fillRoundRect(0, 0, width - 1, height - 1, height, height);
+
+            g.setComposite(AlphaComposite.SrcOver.derive(0.22f));
+            g.setColor(Color.BLACK);
+            g.fillRoundRect(thumbX + 1, padding + 1, thumbWidth, thumbHeight, thumbHeight, thumbHeight);
+            g.setComposite(AlphaComposite.SrcOver);
+
+            g.setColor(dark ? new Color(29, 29, 36) : new Color(250, 250, 250));
+            g.fillRoundRect(thumbX, padding, thumbWidth, thumbHeight, thumbHeight, thumbHeight);
+
+            int iconY = height / 2;
+            int leftIconX = padding + thumbWidth / 2;
+            int rightIconX = width - padding - thumbWidth / 2;
+            paintMoon(g, leftIconX, iconY, dark);
+            paintSun(g, rightIconX, iconY, !dark);
+
+            Color outline = hasFocus() || getModel().isRollover()
+                    ? FOCUS
+                    : dark ? new Color(151, 155, 158) : new Color(83, 87, 90);
+            g.setColor(outline);
+            g.setStroke(new BasicStroke(hasFocus() ? 1.5f : 1f));
+            g.drawRoundRect(1, 1, width - 3, height - 3, height - 2, height - 2);
+            g.dispose();
+        }
+
+        private void paintMoon(Graphics2D g, int centerX, int centerY, boolean active) {
+            double radius = 5.5;
+            Area moon = new Area(new Ellipse2D.Double(
+                    centerX - radius, centerY - radius, radius * 2, radius * 2));
+            moon.subtract(new Area(new Ellipse2D.Double(
+                    centerX - radius * 0.42, centerY - radius * 1.08, radius * 1.72, radius * 1.72)));
+            g.setColor(active ? new Color(153, 156, 159) : Color.WHITE);
+            g.fill(moon);
+        }
+
+        private void paintSun(Graphics2D g, int centerX, int centerY, boolean active) {
+            Color sun = active ? new Color(102, 104, 106) : new Color(27, 28, 33);
+            g.setColor(sun);
+            if (active) {
+                g.fillOval(centerX - 4, centerY - 4, 8, 8);
+            } else {
+                g.setStroke(new BasicStroke(1f));
+                g.drawOval(centerX - 4, centerY - 4, 8, 8);
+            }
+
+            int rayDistance = 7;
+            int raySize = 2;
+            for (int i = 0; i < 8; i++) {
+                double angle = Math.PI * i / 4;
+                int x = (int) Math.round(centerX + Math.cos(angle) * rayDistance) - raySize / 2;
+                int y = (int) Math.round(centerY + Math.sin(angle) * rayDistance) - raySize / 2;
+                g.fillOval(x, y, raySize, raySize);
+            }
+        }
+
+    }
+
+    private static final class ChevronIcon implements Icon {
+
+        @Override
+        public int getIconWidth() {
+            return 12;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return 8;
+        }
+
+        @Override
+        public void paintIcon(Component component, Graphics graphics, int x, int y) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(MUTED_TEXT);
+            g.setStroke(new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+            g.drawLine(x + 2, y + 2, x + 6, y + 6);
+            g.drawLine(x + 6, y + 6, x + 10, y + 2);
+            g.dispose();
+        }
+
+    }
+
+    private static final class LayeredToolTipSupport extends MouseAdapter {
+
+        private static final String INSTALLED = "cleanroom.installer.layeredToolTipInstalled";
+        private static final LayeredToolTipSupport INSTANCE = new LayeredToolTipSupport();
+
+        private static final int CURSOR_OFFSET_X = 12;
+        private static final int CURSOR_OFFSET_Y = 20;
+        private static final int FLIPPED_OFFSET_Y = 8;
+
+        private final Timer showTimer;
+        private final Timer dismissTimer;
+
+        private JComponent owner;
+        private Point ownerPoint;
+        private String text;
+
+        private JToolTip tip;
+        private JLayeredPane layeredPane;
+        private Window ownerWindow;
+
+        private final WindowAdapter windowListener = new WindowAdapter() {
+            @Override
+            public void windowLostFocus(WindowEvent event) {
+                hide();
+            }
+
+            @Override
+            public void windowClosed(WindowEvent event) {
+                hide();
+            }
+        };
+
+        private LayeredToolTipSupport() {
+            showTimer = new Timer(750, event -> showNow());
+            showTimer.setRepeats(false);
+
+            dismissTimer = new Timer(4000, event -> hide());
+            dismissTimer.setRepeats(false);
+        }
+
+        static void install(JComponent component) {
+            ToolTipManager.sharedInstance().unregisterComponent(component);
+
+            if (Boolean.TRUE.equals(component.getClientProperty(INSTALLED))) {
+                return;
+            }
+
+            component.putClientProperty(INSTALLED, Boolean.TRUE);
+
+            component.addMouseListener(INSTANCE);
+            component.addMouseMotionListener(INSTANCE);
+            component.addMouseWheelListener(INSTANCE);
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent event) {
+            updateTarget(event);
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent event) {
+            updateTarget(event);
+        }
+
+        @Override
+        public void mouseExited(MouseEvent event) {
+            if (event.getSource() == owner) {
+                hide();
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent event) {
+            hide();
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent event) {
+            hide();
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent event) {
+            hide();
+        }
+
+        private void updateTarget(MouseEvent event) {
+            if (!(event.getSource() instanceof JComponent)) {
+                hide();
+                return;
+            }
+
+            JComponent nextOwner = (JComponent) event.getSource();
+
+            if (!nextOwner.isEnabled() || !nextOwner.isShowing()) {
+                hide();
+                return;
+            }
+
+            String nextText = nextOwner.getToolTipText(event);
+
+            if (nextText == null || nextText.isEmpty()) {
+                if (nextOwner == owner) {
+                    hide();
+                }
+                return;
+            }
+
+            Point nextPoint = event.getPoint();
+
+            if (tip != null && nextOwner == owner) {
+                ownerPoint = nextPoint;
+                text = nextText;
+
+                tip.setTipText(text);
+                positionTip();
+
+                dismissTimer.restart();
+                return;
+            }
+
+            if (nextOwner != owner) {
+                hide();
+            }
+
+            owner = nextOwner;
+            ownerPoint = nextPoint;
+            text = nextText;
+
+            showTimer.restart();
+        }
+
+        private void showNow() {
+            if (owner == null || ownerPoint == null || text == null || !owner.isShowing()) {
+                hide();
+                return;
+            }
+
+            JRootPane rootPane = SwingUtilities.getRootPane(owner);
+
+            if (rootPane == null) {
+                hide();
+                return;
+            }
+
+            removeTipComponent();
+
+            layeredPane = rootPane.getLayeredPane();
+
+            tip = owner.createToolTip();
+            tip.setTipText(text);
+
+            tip.putClientProperty(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
+            tip.putClientProperty(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
+
+            layeredPane.add(tip, Integer.valueOf(JLayeredPane.POPUP_LAYER + 1));
+
+            positionTip();
+
+            tip.setVisible(true);
+            tip.revalidate();
+            tip.repaint();
+
+            ownerWindow = SwingUtilities.getWindowAncestor(owner);
+
+            if (ownerWindow != null) {
+                ownerWindow.addWindowFocusListener(windowListener);
+            }
+
+            dismissTimer.restart();
+        }
+
+        private void positionTip() {
+            if (tip == null || layeredPane == null || owner == null || ownerPoint == null) {
+                return;
+            }
+
+            Point cursor = SwingUtilities.convertPoint(owner, ownerPoint, layeredPane);
+
+            Dimension size = tip.getPreferredSize();
+
+            int x = cursor.x + CURSOR_OFFSET_X;
+            int y = cursor.y + CURSOR_OFFSET_Y;
+
+            if (y + size.height > layeredPane.getHeight()) {
+                y = cursor.y - size.height - FLIPPED_OFFSET_Y;
+            }
+
+            int maxX = Math.max(0, layeredPane.getWidth() - size.width);
+            int maxY = Math.max(0, layeredPane.getHeight() - size.height);
+
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+
+            tip.setBounds(
+                    x,
+                    y,
+                    size.width,
+                    size.height
+            );
+        }
+
+        private void hide() {
+            showTimer.stop();
+            dismissTimer.stop();
+
+            removeTipComponent();
+
+            owner = null;
+            ownerPoint = null;
+            text = null;
+        }
+
+        private void removeTipComponent() {
+            if (ownerWindow != null) {
+                ownerWindow.removeWindowFocusListener(windowListener);
+                ownerWindow = null;
+            }
+
+            if (tip != null) {
+                Container parent = tip.getParent();
+                if (parent != null) {
+                    Rectangle dirty = tip.getBounds();
+
+                    parent.remove(tip);
+                    parent.revalidate();
+                    parent.repaint(
+                            dirty.x,
+                            dirty.y,
+                            dirty.width,
+                            dirty.height
+                    );
+                }
+
+                tip = null;
+            }
+
+            layeredPane = null;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final class LayeredComboPopup implements ComboPopup {
+
+        private final JComboBox comboBox;
+        private final JList list;
+        private final JScrollPane scroller;
+        private final JScrollBar verticalScrollBar;
+        private final JPanel popupPanel;
+
+        private final MouseListener invocationMouseListener;
+        private final KeyListener keyListener;
+        private final AWTEventListener outsideMouseListener;
+        private final WindowFocusListener windowFocusListener;
+        private final PropertyChangeListener propertyChangeListener;
+
+        private JLayeredPane layeredPane;
+        private Window ownerWindow;
+
+        private boolean armed;
+        private boolean hooksInstalled;
+
+        private LayeredComboPopup(JComboBox comboBox) {
+            this.comboBox = comboBox;
+
+            list = new JList(comboBox.getModel());
+            list.setCellRenderer(comboBox.getRenderer());
+            list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            list.setFocusable(false);
+
+            list.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent event) {
+                    if (!SwingUtilities.isLeftMouseButton(event)) {
+                        return;
+                    }
+
+                    int index = list.locationToIndex(event.getPoint());
+                    if (index < 0) {
+                        return;
+                    }
+
+                    Rectangle cell = list.getCellBounds(index, index);
+                    if (cell == null || !cell.contains(event.getPoint())) {
+                        return;
+                    }
+
+                    comboBox.setSelectedIndex(index);
+                    hide();
+
+                    event.consume();
+                }
+            });
+
+            scroller = new JScrollPane(
+                    list,
+                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+            scroller.setFocusable(false);
+            scroller.setWheelScrollingEnabled(true);
+            scroller.addMouseWheelListener(InputEvent::consume);
+
+            verticalScrollBar = scroller.getVerticalScrollBar();
+            verticalScrollBar.setUnitIncrement(scaled(10));
+
+            popupPanel = new JPanel(new BorderLayout());
+            popupPanel.setOpaque(true);
+            popupPanel.setBackground(comboBox.getBackground());
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
+                    BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+            popupPanel.putClientProperty(KEEP_OPAQUE, Boolean.TRUE);
+            popupPanel.add(scroller, BorderLayout.CENTER);
+
+            applyTheme();
+
+            invocationMouseListener = new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent event) {
+                    Component source = (Component) event.getSource();
+                    armed = SwingUtilities.isLeftMouseButton(event) && comboBox.isEnabled() && source.contains(event.getPoint());
+                    if (armed && comboBox.isRequestFocusEnabled()) {
+                        comboBox.requestFocusInWindow();
+                    }
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent event) {
+                    Component source = (Component) event.getSource();
+                    boolean shouldToggle = armed && source.contains(event.getPoint());
+                    armed = false;
+                    if (!shouldToggle) {
+                        return;
+                    }
+
+                    event.consume();
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (!comboBox.isShowing() || !comboBox.isEnabled()) {
+                            return;
+                        }
+                        if (isVisible()) {
+                            hide();
+                        } else {
+                            show();
+                        }
+                    });
+                }
+            };
+
+            keyListener = new KeyAdapter() {
+                @Override
+                public void keyPressed(KeyEvent event) {
+                    if (event.getKeyCode() == KeyEvent.VK_ESCAPE && isVisible()) {
+                        hide();
+                        event.consume();
+                    }
+                }
+            };
+
+            outsideMouseListener = awtEvent -> {
+                if (!isVisible() || !(awtEvent instanceof MouseEvent)) {
+                    return;
+                }
+
+                MouseEvent event = (MouseEvent) awtEvent;
+                if (event.getID() != MouseEvent.MOUSE_PRESSED) {
+                    return;
+                }
+
+                Component source = (Component) event.getSource();
+                if (inside(source, popupPanel) || inside(source, comboBox)) {
+                    return;
+                }
+
+                hide();
+            };
+
+            windowFocusListener = new WindowAdapter() {
+                @Override
+                public void windowLostFocus(WindowEvent event) {
+                    hide();
+                }
+            };
+
+            propertyChangeListener = event -> {
+                String name = event.getPropertyName();
+                if ("model".equals(name)) {
+                    list.setModel((ListModel) event.getNewValue());
+                } else if ("renderer".equals(name)) {
+                    list.setCellRenderer((ListCellRenderer) event.getNewValue());
+                } else if ("font".equals(name)) {
+                    list.setFont((Font) event.getNewValue());
+                } else if ("enabled".equals(name) && !comboBox.isEnabled()) {
+                    hide();
+                }
+            };
+
+            comboBox.addPropertyChangeListener(propertyChangeListener);
+        }
+
+        private void applyTheme() {
+            list.setOpaque(true);
+            list.setBackground(CONTROL);
+            list.setForeground(TEXT);
+            list.setSelectionBackground(PRIMARY);
+            list.setSelectionForeground(Color.WHITE);
+
+            scroller.setOpaque(true);
+            scroller.setBackground(CONTROL);
+            scroller.setBorder(null);
+
+            JViewport viewport = scroller.getViewport();
+            viewport.setOpaque(true);
+            viewport.setBackground(CONTROL);
+
+            styleScrollBar(verticalScrollBar, CONTROL);
+            verticalScrollBar.setUnitIncrement(scaled(10));
+
+            popupPanel.setOpaque(true);
+            popupPanel.setBackground(CONTROL);
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
+                            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+            popupPanel.revalidate();
+            popupPanel.repaint();
+        }
+
+        @Override
+        public void show() {
+            if (isVisible() || !comboBox.isShowing()) {
+                return;
+            }
+
+            JRootPane rootPane = SwingUtilities.getRootPane(comboBox);
+            if (rootPane == null) {
+                return;
+            }
+
+            comboBox.firePopupMenuWillBecomeVisible();
+            syncFromComboBox();
+
+            layeredPane = rootPane.getLayeredPane();
+            layeredPane.add(popupPanel, JLayeredPane.POPUP_LAYER);
+
+            positionPopup();
+
+            popupPanel.setVisible(true);
+            popupPanel.revalidate();
+            popupPanel.repaint();
+
+            installHooks();
+        }
+
+        @Override
+        public void hide() {
+            boolean wasVisible = isVisible();
+
+            uninstallHooks();
+
+            Container parent = popupPanel.getParent();
+            if (parent != null) {
+                parent.remove(popupPanel);
+                parent.revalidate();
+                parent.repaint();
+            }
+
+            layeredPane = null;
+
+            if (wasVisible) {
+                comboBox.firePopupMenuWillBecomeInvisible();
+            }
+        }
+
+        @Override
+        public boolean isVisible() {
+            return popupPanel.getParent() != null;
+        }
+
+        @Override
+        public JList getList() {
+            return list;
+        }
+
+        @Override
+        public MouseListener getMouseListener() {
+            return invocationMouseListener;
+        }
+
+        @Override
+        public MouseMotionListener getMouseMotionListener() {
+            return null;
+        }
+
+        @Override
+        public KeyListener getKeyListener() {
+            return keyListener;
+        }
+
+        @Override
+        public void uninstallingUI() {
+            comboBox.removePropertyChangeListener(propertyChangeListener);
+            hide();
+        }
+
+        private void syncFromComboBox() {
+            list.setModel(comboBox.getModel());
+            list.setCellRenderer(comboBox.getRenderer());
+            list.setFont(comboBox.getFont());
+            list.setComponentOrientation(comboBox.getComponentOrientation());
+            list.setSelectedIndex(comboBox.getSelectedIndex());
+            applyTheme();
+            int rows = Math.max(1, Math.min(comboBox.getMaximumRowCount(), comboBox.getItemCount()));
+            list.setVisibleRowCount(rows);
+            if (list.getSelectedIndex() >= 0) {
+                list.ensureIndexIsVisible(list.getSelectedIndex());
+            }
+        }
+
+        private void positionPopup() {
+            Dimension preferred = popupPanel.getPreferredSize();
+            int width = Math.max(comboBox.getWidth(), preferred.width);
+            int height = preferred.height;
+            width = Math.min(width, layeredPane.getWidth());
+            height = Math.min(height, layeredPane.getHeight());
+
+            Point below = SwingUtilities.convertPoint(
+                    comboBox,
+                    0,
+                    comboBox.getHeight(),
+                    layeredPane);
+            Point top = SwingUtilities.convertPoint(
+                    comboBox,
+                    0,
+                    0,
+                    layeredPane);
+
+            int x = Math.max(0, Math.min(below.x, layeredPane.getWidth() - width));
+            int y = below.y;
+
+            if (y + height > layeredPane.getHeight() && top.y - height >= 0) {
+                y = top.y - height;
+            } else {
+                y = Math.max(0, Math.min(y, layeredPane.getHeight() - height));
+            }
+
+            popupPanel.setBounds(
+                    x,
+                    y,
+                    width,
+                    height);
+        }
+
+        private void installHooks() {
+            if (hooksInstalled) {
+                return;
+            }
+
+            hooksInstalled = true;
+
+            Toolkit.getDefaultToolkit().addAWTEventListener(outsideMouseListener, AWTEvent.MOUSE_EVENT_MASK);
+
+            ownerWindow = SwingUtilities.getWindowAncestor(comboBox);
+
+            if (ownerWindow != null) {
+                ownerWindow.addWindowFocusListener(windowFocusListener);
+            }
+        }
+
+        private void uninstallHooks() {
+            if (!hooksInstalled) {
+                return;
+            }
+
+            hooksInstalled = false;
+
+            Toolkit.getDefaultToolkit().removeAWTEventListener(outsideMouseListener);
+
+            if (ownerWindow != null) {
+                ownerWindow.removeWindowFocusListener(windowFocusListener);
+                ownerWindow = null;
+            }
+        }
+
+        private static boolean inside(Component child, Component ancestor) {
+            return child == ancestor || SwingUtilities.isDescendingFrom(child, ancestor);
+        }
+    }
+
+    private static final class DarkComboBoxUI extends BasicComboBoxUI {
+
+        @Override
+        protected FocusListener createFocusListener() {
+            return new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent event) {
+                    comboBox.repaint();
+                }
+
+                @Override
+                public void focusLost(FocusEvent event) {
+                    comboBox.repaint();
+                }
+            };
+        }
+
+        @Override
+        protected JButton createArrowButton() {
+            JButton button = new JButton(new ChevronIcon());
+            button.putClientProperty(COMBO_ARROW, Boolean.TRUE);
+            button.setOpaque(false);
+            button.setContentAreaFilled(false);
+            button.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 10));
+            button.setFocusPainted(false);
+            return button;
+        }
+
+        @Override
+        public void paintCurrentValueBackground(Graphics graphics, Rectangle bounds, boolean hasFocus) {
+            graphics.setColor(CONTROL);
+            graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+        }
+
+        @Override
+        public void paint(Graphics graphics, JComponent component) {
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(CONTROL);
+            g.fillRoundRect(0, 0, component.getWidth(), component.getHeight(), 8, 8);
+            g.dispose();
+            paintCurrentValue(graphics, rectangleForCurrentValue(), comboBox.hasFocus());
+        }
+
+        @Override
+        public void paintCurrentValue(Graphics graphics, Rectangle bounds, boolean hasFocus) {
+            ListCellRenderer<Object> renderer = comboBox.getRenderer();
+            Component rendered = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(),
+                    -1, false, false);
+            rendered.setFont(comboBox.getFont());
+            rendered.setBackground(CONTROL);
+            rendered.setForeground(comboBox.isEnabled() ? TEXT : DISABLED_TEXT);
+            if (rendered instanceof JComponent) {
+                ((JComponent) rendered).setOpaque(false);
+                ((JComponent) rendered).setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 4));
+            }
+            currentValuePane.paintComponent(graphics, rendered, comboBox,
+                    bounds.x, bounds.y, bounds.width, bounds.height, true);
+        }
+
+        @Override
+        protected ComboPopup createPopup() {
+            return new LayeredComboPopup(comboBox);
+        }
+
+    }
+
+    private static final class DarkListCellRenderer implements ListCellRenderer<Object> {
+
+        private final ListCellRenderer<Object> delegate;
+
+        @SuppressWarnings("unchecked")
+        private DarkListCellRenderer(ListCellRenderer<?> delegate) {
+            this.delegate = (ListCellRenderer<Object>) delegate;
+        }
+
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            Component rendered = delegate.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            boolean popupSelection = index >= 0 && isSelected;
+            rendered.setBackground(popupSelection ? PRIMARY : CONTROL);
+            rendered.setForeground(popupSelection ? Color.WHITE : TEXT);
+            if (rendered instanceof JComponent) {
+                ((JComponent) rendered).setBorder(BorderFactory.createEmptyBorder(7, 10, 7, 10));
+                ((JComponent) rendered).setOpaque(true);
+            }
+            return rendered;
+        }
+
+    }
+
+    private static final class DarkScrollBarUI extends BasicScrollBarUI {
+
+        @Override
+        protected void configureScrollBarColors() {
+            trackColor = scrollbar != null ? scrollbar.getBackground() : BACKGROUND;
+            thumbColor = BORDER;
+            thumbHighlightColor = CONTROL_HOVER;
+            thumbDarkShadowColor = BORDER;
+            thumbLightShadowColor = BORDER;
+        }
+
+        @Override
+        protected void paintTrack(Graphics graphics, JComponent component, Rectangle bounds) {
+            graphics.setColor(component.getBackground());
+            graphics.fillRect(
+                    bounds.x,
+                    bounds.y,
+                    bounds.width,
+                    bounds.height
+            );
+        }
+
+        @Override
+        protected JButton createDecreaseButton(int orientation) {
+            return zeroButton();
+        }
+
+        @Override
+        protected JButton createIncreaseButton(int orientation) {
+            return zeroButton();
+        }
+
+        @Override
+        protected void paintThumb(Graphics graphics, JComponent component, Rectangle bounds) {
+            if (!component.isEnabled() || bounds.width <= 0 || bounds.height <= 0) {
+                return;
+            }
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setColor(isDragging ? PRIMARY : BORDER);
+            g.fillRoundRect(bounds.x + 2, bounds.y + 2, Math.max(4, bounds.width - 4),
+                    Math.max(4, bounds.height - 4), 8, 8);
+            g.dispose();
+        }
+
+        private JButton zeroButton() {
+            JButton button = new JButton();
+            button.putClientProperty(COMBO_ARROW, Boolean.TRUE);
+            button.setPreferredSize(new Dimension(0, 0));
+            button.setMinimumSize(new Dimension(0, 0));
+            button.setMaximumSize(new Dimension(0, 0));
+            return button;
+        }
+
+    }
+
+    private static final class ModernButtonUI extends BasicButtonUI {
+
+        @Override
+        public void installUI(JComponent component) {
+            super.installUI(component);
+            AbstractButton button = (AbstractButton) component;
+            button.setOpaque(false);
+            button.setContentAreaFilled(false);
+            button.setBorderPainted(false);
+            button.setBorder(BorderFactory.createEmptyBorder());
+        }
+
+        @Override
+        public void update(Graphics graphics, JComponent component) {
+            // Skip ComponentUI's opaque fill, we paint it ourselves
+            paint(graphics, component);
+        }
+
+        @Override
+        public void paint(Graphics graphics, JComponent component) {
+            AbstractButton button = (AbstractButton) component;
+            ButtonModel model = button.getModel();
+            boolean primary = Boolean.TRUE.equals(button.getClientProperty(PRIMARY_BUTTON)) ||
+                    (button instanceof JToggleButton && model.isSelected());
+            boolean ghost = Boolean.TRUE.equals(button.getClientProperty(GHOST_BUTTON));
+
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+            Color foreground;
+            int width = component.getWidth();
+            int height = component.getHeight();
+
+            if (!button.isEnabled()) {
+                fillButton(g, SURFACE, BORDER, width, height, true);
+                foreground = DISABLED_TEXT;
+            } else if (primary) {
+                // One solid pill only
+                Color fill = model.isPressed() || model.isRollover() ? PRIMARY_HOVER : PRIMARY;
+                fillButton(g, fill, null, width, height, false);
+                foreground = Color.WHITE;
+            } else if (ghost) {
+                Color fill = model.isPressed() || model.isRollover() ? CONTROL_HOVER : SURFACE;
+                Color outline = model.isRollover() || model.isPressed() || button.hasFocus() ? FOCUS : BORDER;
+                fillButton(g, fill, outline, width, height, true);
+                foreground = TEXT;
+            } else {
+                Color fill = model.isPressed() || model.isRollover() ? CONTROL_HOVER : CONTROL;
+                Color outline = model.isRollover() || button.hasFocus() ? FOCUS : BORDER;
+                fillButton(g, fill, outline, width, height, true);
+                foreground = TEXT;
+            }
+            g.dispose();
+
+            button.setForeground(foreground);
+            super.paint(graphics, component);
+        }
+
+        private static void fillButton(Graphics2D g, Color fill, Color outline, int width, int height, boolean drawOutline) {
+            // Fill the full bounds so AA doesn't leave a 1px "outer ring" of the background
+            int arc = Math.min(height, 12);
+            g.setColor(fill);
+            g.fillRoundRect(0, 0, width, height, arc, arc);
+            if (drawOutline && outline != null) {
+                g.setColor(outline);
+                g.drawRoundRect(0, 0, width - 1, height - 1, arc, arc);
+            }
+        }
+    }
+
+    private static final class ModernProgressBarUI extends BasicProgressBarUI {
+
+        @Override
+        protected void paintDeterminate(Graphics graphics, JComponent component) {
+            paintTrackAndFill(graphics, component, true);
+        }
+
+        @Override
+        protected void paintIndeterminate(Graphics graphics, JComponent component) {
+            paintTrackAndFill(graphics, component, false);
+        }
+
+        private void paintTrackAndFill(Graphics graphics, JComponent component, boolean determinate) {
+            Insets insets = progressBar.getInsets();
+            int width = progressBar.getWidth() - insets.right - insets.left;
+            int height = progressBar.getHeight() - insets.top - insets.bottom;
+            if (width <= 0 || height <= 0) {
+                return;
+            }
+
+            Graphics2D g = (Graphics2D) graphics.create();
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int x = insets.left;
+            int y = insets.top;
+            int radius = Math.max(8, height);
+
+            g.setColor(CONTROL);
+            g.fillRoundRect(x, y, width, height, radius, radius);
+
+            if (determinate) {
+                int fill = getAmountFull(insets, width, height);
+                if (fill > 0) {
+                    g.setColor(PRIMARY);
+                    g.fillRoundRect(x, y, Math.max(height, fill), height, radius, radius);
+                }
+            } else {
+                boxRect = getBox(boxRect);
+                if (boxRect != null) {
+                    g.setColor(PRIMARY);
+                    int pulseWidth = Math.max(height * 3, boxRect.width);
+                    int pulseX = Math.min(x + width - pulseWidth, Math.max(x, boxRect.x));
+                    g.fillRoundRect(pulseX, y, pulseWidth, height, radius, radius);
+                }
+            }
+
+            if (progressBar.isStringPainted()) {
+                paintString(g, x, y, width, height, getAmountFull(insets, width, height), insets);
+            }
+            g.dispose();
+        }
+
+        @Override
+        protected Color getSelectionForeground() {
+            return TEXT;
+        }
+
+        @Override
+        protected Color getSelectionBackground() {
+            return TEXT;
+        }
+
+    }
+}

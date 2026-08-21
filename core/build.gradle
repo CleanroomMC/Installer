@@ -1,0 +1,23 @@
+base.archivesName = 'installer-core'
+
+dependencies {
+    api "com.google.code.gson:gson:${providers.gradleProperty('gson_version').get()}"
+    api "org.slf4j:slf4j-api:${providers.gradleProperty('slf4j_version').get()}"
+    api "com.cleanroommc:platform-utils:${providers.gradleProperty('platform_utils_version').get()}"
+    api ("com.cleanroommc:java-utils:${providers.gradleProperty('java_utils_version').get()}") {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'installer-core'
+            from components.java
+            pom {
+                name = 'Installer Core'
+                description = 'Profiles, downloads, install targets, Java resolution and directory detection for the Cleanroom installer'
+            }
+        }
+    }
+}

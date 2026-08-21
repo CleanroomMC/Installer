@@ -1,0 +1,57 @@
+apply plugin: 'application'
+apply plugin: 'com.gradleup.shadow'
+
+base.archivesName = 'installer'
+
+dependencies {
+    implementation project(':core')
+    implementation project(':ui')
+}
+
+application {
+    mainClass = 'com.cleanroommc.installer.Main'
+    applicationName = 'installer'
+}
+
+tasks.named('run', JavaExec) {
+    standardInput = System.in
+}
+
+
+tasks.matching { it.name in ['distZip', 'distTar', 'shadowDistZip', 'shadowDistTar'] }.configureEach {
+    enabled = false
+}
+
+tasks.named('shadowJar') {
+    archiveClassifier = ''
+    mergeServiceFiles()
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', 'module-info.class', 'META-INF/versions/**'
+    manifest {
+        attributes(
+                'Main-Class': application.mainClass.get(),
+                'Implementation-Version': project.version
+        )
+    }
+}
+
+tasks.named('jar', Jar) {
+    archiveClassifier = 'thin'
+}
+
+tasks.named('assemble') {
+    dependsOn tasks.named('shadowJar')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'installer'
+            artifact tasks.named('shadowJar')
+            artifact tasks.named('sourcesJar')
+            pom {
+                name = 'Installer'
+                description = 'The Cleanroom installer: graphical and command line installation of Cleanroom profiles, servers and MultiMC instances'
+            }
+        }
+    }
+}

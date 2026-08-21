@@ -1,0 +1,3 @@
+com.cleanroommc.installer.target.client.ClientTarget
+com.cleanroommc.installer.target.server.ServerTarget
+com.cleanroommc.installer.target.mmc.MmcTarget
