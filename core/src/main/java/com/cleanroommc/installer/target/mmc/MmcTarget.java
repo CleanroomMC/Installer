@@ -145,7 +145,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         if (!updating && requestedName != null && !requestedName.isEmpty()) {
             values.put("name", requestedName);
         }
-        if (!updating || request.flag(OPTION_REPLACE_JAVA_PATH)) {
+        if (request.flag(OPTION_REPLACE_JAVA_PATH)) {
             JavaResolution java = context.javaResolver().resolve(
                     request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
                     context.listener());
