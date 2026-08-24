@@ -2,6 +2,8 @@ package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolution;
+import com.cleanroommc.installer.maven.Coordinate;
+import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.DetectedLauncher;
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.platform.InstallLocations;
@@ -46,6 +48,10 @@ public final class MmcTarget extends AbstractInstallTarget {
         return InstallLocations.looksLikeMmcInstance(directory);
     }
 
+    static boolean shouldReplaceJavaPath(InstallRequest request) {
+        return request.flag(OPTION_REPLACE_JAVA_PATH);
+    }
+
     private static String packFileName(InstallProfile profile) {
         return InstallerMeta.CLEANROOM_ARTIFACT + "-" + profile.cleanroomVersion() + "-mmc.zip";
     }
@@ -60,6 +66,26 @@ public final class MmcTarget extends AbstractInstallTarget {
         }
         String legacy = directory + InstallerMeta.CLEANROOM_ARTIFACT + "-" + profile.cleanroomVersion() + ".zip";
         return context.downloader().exists(legacy) ? legacy : current;
+    }
+
+    private static List<String> updateNotes(MmcInstance existing, String version) {
+        List<String> notes = new ArrayList<>();
+        switch (existing.kind()) {
+            case CLEANROOM:
+                notes.add(existing.isCleanroom(version)
+                        ? "Repaired the existing Cleanroom " + version + " instance"
+                        : "Changed this instance from Cleanroom " + existing.loaderVersion() + " to " + version);
+                break;
+            case FORGE:
+                notes.add("Replaced Forge " + existing.loaderVersion() + " with Cleanroom " + version);
+                notes.add("Mods built for Forge may need updating before they load");
+                break;
+            default:
+                notes.add("Installed Cleanroom " + version + " to the existing instance");
+                break;
+        }
+        notes.add("Kept the instance's own configuration");
+        return notes;
     }
 
     @Override
@@ -135,8 +161,12 @@ public final class MmcTarget extends AbstractInstallTarget {
 
         InstallPlan plan = new InstallPlan(ID, versionId, instance);
         Path pack = context.cache().resolve("packs").resolve(packFileName(profile));
-        plan.add(packAction(context, profile, pack));
+        boolean embeddedPack = hasEmbeddedPack(context);
+        plan.add(packAction(context, profile, pack, embeddedPack));
         plan.add(updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance));
+        if (embeddedPack) {
+            plan.add(embeddedUniversalAction(context, profile, instance));
+        }
         plan.add(new WriteFileAction(instance.resolve(".cleanroom-installer"),
                 "Created by the Cleanroom Installer for " + versionId + System.lineSeparator()));
 
@@ -145,7 +175,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         if (!updating && requestedName != null && !requestedName.isEmpty()) {
             values.put("name", requestedName);
         }
-        if (request.flag(OPTION_REPLACE_JAVA_PATH)) {
+        if (shouldReplaceJavaPath(request)) {
             JavaResolution java = context.javaResolver().resolve(
                     request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
                     context.listener());
@@ -168,33 +198,28 @@ public final class MmcTarget extends AbstractInstallTarget {
         return plan;
     }
 
-    private static List<String> updateNotes(MmcInstance existing, String version) {
-        List<String> notes = new ArrayList<>();
-        switch (existing.kind()) {
-            case CLEANROOM:
-                notes.add(existing.isCleanroom(version)
-                        ? "Repaired the existing Cleanroom " + version + " instance"
-                        : "Changed this instance from Cleanroom " + existing.loaderVersion() + " to " + version);
-                break;
-            case FORGE:
-                notes.add("Replaced Forge " + existing.loaderVersion() + " with Cleanroom " + version);
-                notes.add("Mods built for Forge may need updating before they load");
-                break;
-            default:
-                notes.add("Installed Cleanroom " + version + " to the existing instance");
-                break;
-        }
-        notes.add("Kept the instance's own configuration");
-        return notes;
+    private boolean hasEmbeddedPack(InstallContext context) {
+        try (InputStream embedded = context.source().open(EMBEDDED_PACK)) {
+            return embedded != null;
+        } catch (IOException ignored) { }
+        return false;
     }
 
-    private Action packAction(InstallContext context, InstallProfile profile, Path pack) {
-        try (InputStream embedded = context.source().open(EMBEDDED_PACK)) {
-            if (embedded != null) {
-                return new CopyResourceAction(EMBEDDED_PACK, () -> context.source().open(EMBEDDED_PACK), pack);
-            }
-        } catch (IOException ignored) { }
+    private Action packAction(InstallContext context, InstallProfile profile, Path pack, boolean embeddedPack) {
+        if (embeddedPack) {
+            return new CopyResourceAction(EMBEDDED_PACK, () -> context.source().open(EMBEDDED_PACK), pack);
+        }
         return new DownloadAction(packUrl(context, profile), pack, null, 0L);
+    }
+
+    private Action embeddedUniversalAction(InstallContext context, InstallProfile profile, Path instance) throws InstallException {
+        if (profile.path == null || profile.path.isEmpty()) {
+            throw new InstallException(ExitCode.INTERNAL, "install_profile.json has no 'path' for the universal jar");
+        }
+        Coordinate universal = Coordinate.parse(profile.path);
+        String entry = MavenLayout.EMBEDDED_ROOT + universal.path();
+        Path destination = instance.resolve("libraries").resolve(universal.fileName());
+        return new CopyResourceAction(entry, () -> context.source().open(entry), destination);
     }
 
     private Path directory(InstallRequest request, Environment environment) {

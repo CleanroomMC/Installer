@@ -24,7 +24,7 @@ java -jar cleanroom-installer.jar --help
 
 ## Compatibility
 
-- Two paths inside an installer jar are load-bearing and must not move: `/version.json` and`/maven/com/cleanroommc/cleanroom/<version>/cleanroom-<version>.jar`.
+- Two paths inside an installer jar are load-bearing and must not move: `/version.json` and `/maven/com/cleanroommc/cleanroom/<version>/cleanroom-<version>-universal.jar`.
   - CleanroomRelauncher reads both directly out of published installer jars.
 - `version.json` is written self-contained, with no `inheritsFrom`.
 - Inheriting from `1.12.2` would cause the launcher to merge parent libraries which ends up adding LWJGL 2 onto the classpath. (Previous installer/zip did this.)

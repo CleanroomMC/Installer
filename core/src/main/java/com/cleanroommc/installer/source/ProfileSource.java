@@ -21,7 +21,7 @@ public interface ProfileSource extends AutoCloseable {
 
     /**
      * Opens an artifact the source carries, by its path inside the jar
-     * ({@code maven/com/cleanroommc/cleanroom/<v>/cleanroom-<v>.jar}), or null when absent.
+     * ({@code maven/com/cleanroommc/cleanroom/<v>/cleanroom-<v>-universal.jar}), or null when absent.
      */
     InputStream open(String path) throws IOException;
 

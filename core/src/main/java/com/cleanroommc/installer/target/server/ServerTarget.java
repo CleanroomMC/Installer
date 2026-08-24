@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -102,13 +103,10 @@ public final class ServerTarget extends AbstractInstallTarget {
 
         Coordinate universal = Coordinate.parse(profile.path);
         Path universalJar = libraries.resolve(universal.path().replace('/', File.separatorChar));
-        plan.add(universalAction(context, universal, universalJar));
-
-        List<Path> classpath = new ArrayList<>();
-        for (Action action : libraryActions) {
-            classpath.add(action.destination());
+        if (libraryActions.stream().noneMatch(action -> action.destination().equals(universalJar))) {
+            plan.add(universalAction(context, universal, universalJar));
         }
-        classpath.add(0, universalJar);
+        List<Path> classpath = classpathDestinations(libraryActions, universalJar);
 
         if (!request.flag(OPTION_NO_SERVER_JAR)) {
             Download server = version.downloads == null ? null : version.downloads.get("server");
@@ -189,6 +187,15 @@ public final class ServerTarget extends AbstractInstallTarget {
             builder.append(relative.toString().replace(File.separatorChar, separator.equals(";") ? '\\' : '/'));
         }
         return builder.toString();
+    }
+
+    static List<Path> classpathDestinations(List<Action> libraryActions, Path universalJar) {
+        LinkedHashSet<Path> classpath = new LinkedHashSet<>();
+        classpath.add(universalJar);
+        for (Action action : libraryActions) {
+            classpath.add(action.destination());
+        }
+        return new ArrayList<>(classpath);
     }
 
     /**
