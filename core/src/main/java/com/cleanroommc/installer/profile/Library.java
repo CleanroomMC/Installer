@@ -11,6 +11,7 @@ import java.util.Map;
 public final class Library {
 
     public String name;
+    public String side;
     public Downloads downloads;
     public Map<String, String> natives;
     public List<Rule> rules;

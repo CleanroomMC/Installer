@@ -26,9 +26,18 @@ public final class MavenLayout {
 
     public static List<Action> actions(List<Library> libraries, Path librariesDirectory, ProfileSource source,
                                        Platform platform, boolean nativesForThisPlatformOnly) {
+        return actions(libraries, librariesDirectory, source, platform, nativesForThisPlatformOnly, true);
+    }
+
+    public static List<Action> actions(List<Library> libraries, Path librariesDirectory, ProfileSource source,
+                                       Platform platform, boolean nativesForThisPlatformOnly,
+                                       boolean includeClientNatives) {
         List<Action> actions = new ArrayList<>();
         for (Library library : libraries) {
             if (!library.allowed(platform)) {
+                continue;
+            }
+            if (!includeClientNatives && "client".equals(library.side)) {
                 continue;
             }
             if (nativesForThisPlatformOnly && !nativeMatches(library, platform)) {

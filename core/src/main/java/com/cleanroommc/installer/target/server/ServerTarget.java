@@ -98,7 +98,8 @@ public final class ServerTarget extends AbstractInstallTarget {
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");
 
-        List<Action> libraryActions = MavenLayout.actions(version.libraries(), libraries, context.source(), Platform.current(), true);
+        List<Action> libraryActions = MavenLayout.actions(
+                version.libraries(), libraries, context.source(), Platform.current(), true, false);
         plan.addAll(libraryActions);
 
         Coordinate universal = Coordinate.parse(profile.path);
