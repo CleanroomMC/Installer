@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.util;
 
 import java.io.IOException;
@@ -19,7 +24,14 @@ import java.util.Date;
  */
 public final class Log implements AutoCloseable {
 
-    public enum Level { DEBUG, INFO, WARN, ERROR }
+    public enum Level {
+
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR
+
+    }
 
     private final SimpleDateFormat stamp = new SimpleDateFormat("HH:mm:ss.SSS");
     private final PrintStream console;
@@ -44,8 +56,7 @@ public final class Log implements AutoCloseable {
                 if (file.getParent() != null) {
                     Files.createDirectories(file.getParent());
                 }
-                opened = Files.newBufferedWriter(file, StandardCharsets.UTF_8,
-                        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                opened = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
             } catch (IOException e) {
                 console.println("[WARN ] Unable to open log file " + file + ": " + e);
             }
@@ -139,6 +150,7 @@ public final class Log implements AutoCloseable {
             try {
                 this.writer.close();
             } catch (IOException ignored) {
+                // The log is best-effort
             }
         }
     }

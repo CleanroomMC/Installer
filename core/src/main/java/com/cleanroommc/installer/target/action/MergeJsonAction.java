@@ -1,7 +1,13 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.action;
 
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
+
 import com.google.gson.JsonObject;
 
 import java.nio.file.Path;

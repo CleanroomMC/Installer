@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target;
 
 import com.cleanroommc.installer.java.JavaSpec;
@@ -97,13 +102,13 @@ public final class InstallRequest {
 
     public Builder toBuilder() {
         Builder builder = new Builder(this.targetId)
-                .version(this.version)
-                .directory(this.directory)
-                .offline(this.offline)
-                .dryRun(this.dryRun)
-                .force(this.force)
-                .assumeYes(this.assumeYes)
-                .java(this.java);
+            .version(this.version)
+            .directory(this.directory)
+            .offline(this.offline)
+            .dryRun(this.dryRun)
+            .force(this.force)
+            .assumeYes(this.assumeYes)
+            .java(this.java);
         builder.jvmArgs.addAll(this.jvmArgs);
         builder.extras.putAll(this.extras);
         return builder;

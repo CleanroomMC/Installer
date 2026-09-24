@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.java;
 
 import com.cleanroommc.installer.platform.Environment;
@@ -58,11 +63,12 @@ public final class JavaResolver {
             return located;
         }
         if (!spec.allowProvision()) {
-            throw new InstallException(ExitCode.JAVA,
-                    "No " + spec.requirement() + " was found." + System.lineSeparator()
-                            + "Cleanroom cannot run on the Java the Minecraft launcher ships." + System.lineSeparator()
-                            + "Pass --java <path> to point at one, or --provision-java to download "
-                            + "Java " + spec.target() + " into " + this.environment.javaCache() + ".");
+            throw new InstallException(
+                ExitCode.JAVA,
+                "No " + spec.requirement() + " was found." + System.lineSeparator() + "Cleanroom cannot run on the Java the Minecraft launcher ships." + System.lineSeparator() +
+                    "Pass --java <path> to point at one, or --provision-java to download " + "Java " + spec.target() + " into " + this.environment.javaCache() +
+                    "."
+            );
         }
         return provision(spec, listener);
     }
@@ -81,8 +87,7 @@ public final class JavaResolver {
             JavaInstall install = JavaUtils.parseInstall(spec.path());
             int major = install.version().major();
             if (!spec.accepts(major)) {
-                throw new InstallException(ExitCode.JAVA,
-                        spec.path() + " is Java " + major + ", but Cleanroom needs " + spec.requirement() + ".");
+                throw new InstallException(ExitCode.JAVA, spec.path() + " is Java " + major + ", but Cleanroom needs " + spec.requirement() + ".");
             }
             return new JavaResolution(install, JavaResolution.Origin.EXPLICIT);
         } catch (IOException e) {
@@ -123,18 +128,16 @@ public final class JavaResolver {
     private static Comparator<JavaInstall> preference(JavaSpec spec) {
         JavaDistro wanted = spec.distro() == null ? JavaDistro.UNKNOWN : spec.distro();
         return Comparator
-                .comparing((JavaInstall install) -> install.version().major() == spec.target() ? 0 : 1)
-                .thenComparing(install -> install.jdk() ? 0 : 1)
-                .thenComparing(install -> wanted.equals(install.distro()) ? 0 : 1)
-                .thenComparing(Comparator.<JavaInstall>reverseOrder());
+            .comparing((JavaInstall install) -> install.version().major() == spec.target() ? 0 : 1)
+            .thenComparing(install -> install.jdk() ? 0 : 1)
+            .thenComparing(install -> wanted.equals(install.distro()) ? 0 : 1)
+            .thenComparing(Comparator.<JavaInstall>reverseOrder());
     }
 
     private JavaResolution provision(JavaSpec spec, ProgressListener listener) throws InstallException {
         JavaDistro distro = spec.distro() == null ? JavaDistro.UNKNOWN : spec.distro();
         Path directory = this.environment.javaCache();
-        JavaProvisioner provisioner = JavaProvisioner.provisioners().stream()
-                .findFirst()
-                .orElseGet(FoojayJavaProvisioner::new);
+        JavaProvisioner provisioner = JavaProvisioner.provisioners().stream().findFirst().orElseGet(FoojayJavaProvisioner::new);
         if (listener != null) {
             listener.stage("Downloading Java " + spec.target() + " (" + distro.name() + ")");
             provisioner.onDownload((done, total, name) -> {
@@ -147,8 +150,7 @@ public final class JavaResolver {
             this.log.info("Provisioned {}", install);
             return new JavaResolution(install, JavaResolution.Origin.PROVISIONED);
         } catch (IOException e) {
-            throw new InstallException(ExitCode.JAVA,
-                    "Unable to download Java " + spec.target() + " into " + directory, e);
+            throw new InstallException(ExitCode.JAVA, "Unable to download Java " + spec.target() + " into " + directory, e);
         }
     }
 

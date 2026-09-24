@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.platform.Environment;
@@ -10,6 +15,7 @@ import com.cleanroommc.installer.target.InstallPlan;
 import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.action.CopyResourceAction;
 import com.cleanroommc.installer.util.Log;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -24,10 +30,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class MmcTargetTest {
 
@@ -38,10 +41,8 @@ class MmcTargetTest {
 
     @Test
     void replacingJavaPathIsOptInForEveryInstall() {
-        assertFalse(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID).build()));
-        assertTrue(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID)
-                .flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, true)
-                .build()));
+        assertThat(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID).build())).isFalse();
+        assertThat(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID).flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, true).build())).isTrue();
     }
 
     @Test
@@ -51,11 +52,12 @@ class MmcTargetTest {
         InstallPlan plan = new MmcTarget().plan(request(), context);
 
         Path localUniversal = directory.resolve("instances/Cleanroom 1.0.0+build.4/libraries/cleanroom-1.0.0+build.4-universal.jar");
-        assertEquals(4, plan.actions().size());
-        CopyResourceAction copy = assertInstanceOf(CopyResourceAction.class, plan.actions().get(2));
-        assertEquals(localUniversal, copy.destination());
+        assertThat(plan.actions()).hasSize(4);
+        assertThat(plan.actions().get(2)).isInstanceOf(CopyResourceAction.class);
+        CopyResourceAction copy = (CopyResourceAction) plan.actions().get(2);
+        assertThat(copy.destination()).isEqualTo(localUniversal);
         copy.execute(context);
-        assertEquals("universal", new String(Files.readAllBytes(localUniversal), StandardCharsets.UTF_8));
+        assertThat(new String(Files.readAllBytes(localUniversal), StandardCharsets.UTF_8)).isEqualTo("universal");
     }
 
     @Test
@@ -64,8 +66,8 @@ class MmcTargetTest {
 
         InstallPlan plan = new MmcTarget().plan(request(), context);
 
-        assertEquals(3, plan.actions().size());
-        assertTrue(plan.actions().stream().noneMatch(action -> action.destination().toString().contains("libraries")));
+        assertThat(plan.actions()).hasSize(3);
+        assertThat(plan.actions().stream().noneMatch(action -> action.destination().toString().contains("libraries"))).isTrue();
     }
 
     private InstallRequest request() {
@@ -87,19 +89,21 @@ class MmcTargetTest {
         }
         Map<String, byte[]> resources = new HashMap<>();
         resources.put(MmcTarget.EMBEDDED_PACK, pack.toByteArray());
-        resources.put("maven/com/cleanroommc/cleanroom/1.0.0+build.4/cleanroom-1.0.0+build.4-universal.jar",
-                "universal".getBytes(StandardCharsets.UTF_8));
+        resources.put("maven/com/cleanroommc/cleanroom/1.0.0+build.4/cleanroom-1.0.0+build.4-universal.jar", "universal".getBytes(StandardCharsets.UTF_8));
         Environment environment = new Environment() {
+
             @Override
             public Path installerCache() {
                 return directory.resolve("cache");
             }
+
         };
         return new InstallContext(source(profile, version, resources), null, null, environment, Log.console());
     }
 
     private static ProfileSource source(InstallProfile profile, VersionJson version, Map<String, byte[]> resources) {
         return new ProfileSource() {
+
             @Override
             public InstallProfile profile() throws InstallException {
                 return profile;
@@ -118,6 +122,7 @@ class MmcTargetTest {
 
             @Override
             public void close() { }
+
         };
     }
 

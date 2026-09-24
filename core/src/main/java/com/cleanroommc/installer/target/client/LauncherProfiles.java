@@ -1,8 +1,14 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.client;
 
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.util.Json;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
@@ -51,8 +57,7 @@ public final class LauncherProfiles {
                 return false;
             }
             JsonObject profile = profiles.getAsJsonObject(key);
-            return profile.has("lastVersionId")
-                    && versionId.equals(profile.get("lastVersionId").getAsString());
+            return profile.has("lastVersionId") && versionId.equals(profile.get("lastVersionId").getAsString());
         } catch (InstallException e) {
             return false;
         }
@@ -118,8 +123,7 @@ public final class LauncherProfiles {
             JsonObject document = Json.readObject(this.file);
             return document == null ? skeleton() : document;
         } catch (JsonSyntaxException | IOException e) {
-            throw new InstallException(ExitCode.TARGET,
-                    "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.", e);
+            throw new InstallException(ExitCode.TARGET, "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.", e);
         }
     }
 

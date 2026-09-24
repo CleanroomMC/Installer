@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.source;
 
 import com.cleanroommc.installer.profile.InstallProfile;
@@ -81,8 +86,7 @@ public final class JarProfileSource implements ProfileSource {
     private <T> T read(String entryName, Class<T> type) throws InstallException {
         try (InputStream in = open(entryName)) {
             if (in == null) {
-                throw new InstallException(ExitCode.INTERNAL,
-                        this.location + " has no " + entryName + "; it is not a version-pinned installer jar");
+                throw new InstallException(ExitCode.INTERNAL, this.location + " has no " + entryName + "; it is not a version-pinned installer jar");
             }
             try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
                 return Json.read(reader, type);
@@ -97,6 +101,7 @@ public final class JarProfileSource implements ProfileSource {
         try {
             this.zip.close();
         } catch (IOException ignored) {
+            // Nothing was written, a failed close loses nothing
         }
     }
 

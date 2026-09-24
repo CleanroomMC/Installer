@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer;
 
 import com.cleanroommc.installer.cli.Cli;
 import com.cleanroommc.installer.cli.CliOptions;
 import com.cleanroommc.installer.platform.Environment;
-import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.ui.InstallerWindow;
 

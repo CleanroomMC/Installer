@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.maven;
 
 import java.util.Objects;
@@ -63,10 +68,15 @@ public final class Coordinate {
 
     public String path() {
         StringBuilder builder = new StringBuilder();
-        builder.append(this.group.replace('.', '/')).append('/')
-                .append(this.artifact).append('/')
-                .append(this.version).append('/')
-                .append(this.artifact).append('-').append(this.version);
+        builder.append(this.group.replace('.', '/'))
+            .append('/')
+            .append(this.artifact)
+            .append('/')
+            .append(this.version)
+            .append('/')
+            .append(this.artifact)
+            .append('-')
+            .append(this.version);
         if (this.classifier != null) {
             builder.append('-').append(this.classifier);
         }
@@ -80,10 +90,7 @@ public final class Coordinate {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder()
-                .append(this.group).append(':')
-                .append(this.artifact).append(':')
-                .append(this.version);
+        StringBuilder builder = new StringBuilder().append(this.group).append(':').append(this.artifact).append(':').append(this.version);
         if (this.classifier != null) {
             builder.append(':').append(this.classifier);
         }
@@ -102,11 +109,11 @@ public final class Coordinate {
             return false;
         }
         Coordinate that = (Coordinate) other;
-        return this.group.equals(that.group)
-                && this.artifact.equals(that.artifact)
-                && this.version.equals(that.version)
-                && Objects.equals(this.classifier, that.classifier)
-                && this.extension.equals(that.extension);
+        return this.group.equals(that.group) &&
+            this.artifact.equals(that.artifact) &&
+            this.version.equals(that.version) &&
+            Objects.equals(this.classifier, that.classifier) &&
+            this.extension.equals(that.extension);
     }
 
     @Override

@@ -1,7 +1,13 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.ui;
 
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.util.Json;
+
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
@@ -50,7 +56,9 @@ public interface ThemeStore {
             document.addProperty("darkMode", dark);
             try {
                 Json.writeString(this.file, Json.GSON.toJson(document) + "\n");
-            } catch (IOException ignored) { }
+            } catch (IOException ignored) {
+                // The choice still applies for this session
+            }
         }
 
         private boolean read() {

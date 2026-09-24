@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.source;
 
 import com.cleanroommc.installer.net.Downloader;
@@ -50,8 +55,7 @@ public final class Sources {
      * @param requestedVersion the version the user asked for, or null for "whatever this jar carries,
      *                         else the latest release"
      */
-    public static ProfileSource open(String requestedVersion, Downloader downloader, Log log, Path cache,
-                                     ProgressListener listener) throws InstallException {
+    public static ProfileSource open(String requestedVersion, Downloader downloader, Log log, Path cache, ProgressListener listener) throws InstallException {
         Path own = ownJar();
         if (own != null) {
             JarProfileSource embedded = JarProfileSource.of(own);
@@ -68,8 +72,8 @@ public final class Sources {
         return remote(requestedVersion, downloader, log, cache, listener);
     }
 
-    private static ProfileSource remote(String requestedVersion, Downloader downloader, Log log, Path cache,
-                                        ProgressListener listener) throws InstallException {
+    private static ProfileSource remote(String requestedVersion, Downloader downloader, Log log, Path cache, ProgressListener listener)
+        throws InstallException {
         VersionIndex index = new VersionIndex(downloader, log, cache);
         RemoteVersion version = requestedVersion == null ? index.latest() : index.byId(requestedVersion);
         Path jar = cache.resolve("installers").resolve("cleanroom-" + version.id() + "-installer.jar");
@@ -95,7 +99,9 @@ public final class Sources {
         }
         try {
             closeable.close();
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            // Quiet by contract
+        }
     }
 
     private Sources() { }

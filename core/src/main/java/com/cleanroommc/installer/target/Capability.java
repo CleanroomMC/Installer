@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target;
 
 /**
@@ -8,6 +13,6 @@ public enum Capability {
     DRY_RUN,
     UNINSTALL,
     JAVA_PIN,
-    NEEDS_NETWORK;
+    NEEDS_NETWORK
 
 }

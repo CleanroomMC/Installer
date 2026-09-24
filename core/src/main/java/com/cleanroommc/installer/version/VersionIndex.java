@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.version;
 
 import com.cleanroommc.installer.InstallerMeta;
@@ -6,10 +11,6 @@ import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.util.Log;
 
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamConstants;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,6 +21,10 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 
 /**
  * The list of installable Cleanroom versions, for the generic installer jar.
@@ -86,24 +91,19 @@ public final class VersionIndex {
                 return version;
             }
         }
-        throw new InstallException(ExitCode.USAGE,
-                "No such Cleanroom version: " + id + ". Run 'list-versions' to see what is available.");
+        throw new InstallException(ExitCode.USAGE, "No such Cleanroom version: " + id + ". Run 'list-versions' to see what is available.");
     }
 
     public static String installerUrl(String version) {
-        return InstallerMeta.CLEANROOM_REPO
-                + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/"
-                + InstallerMeta.CLEANROOM_ARTIFACT + "/" + version + "/"
-                + InstallerMeta.CLEANROOM_ARTIFACT + "-" + version + "-installer.jar";
+        return InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" + InstallerMeta.CLEANROOM_ARTIFACT + "/" + version + "/" + InstallerMeta.CLEANROOM_ARTIFACT +
+            "-" + version + "-installer.jar";
     }
 
     private List<String> fromMavenMetadata() throws InstallException {
-        String url = InstallerMeta.CLEANROOM_REPO
-                + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/"
-                + InstallerMeta.CLEANROOM_ARTIFACT + "/maven-metadata.xml";
+        String url = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" + InstallerMeta.CLEANROOM_ARTIFACT +
+            "/maven-metadata.xml";
         byte[] xml = this.downloader.fetch(url);
-        List<String> versions = parseMavenMetadata(new InputStreamReader(
-                new ByteArrayInputStream(xml), StandardCharsets.UTF_8));
+        List<String> versions = parseMavenMetadata(new InputStreamReader(new ByteArrayInputStream(xml), StandardCharsets.UTF_8));
         Collections.reverse(versions);
         return versions;
     }

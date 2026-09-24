@@ -1,51 +1,55 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.maven;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class CoordinateTest {
 
     @Test
     void parsesGroupArtifactVersion() {
         Coordinate coordinate = Coordinate.parse("com.cleanroommc:cleanroom:0.6.11-alpha");
-        assertEquals("com.cleanroommc", coordinate.group());
-        assertEquals("cleanroom", coordinate.artifact());
-        assertEquals("0.6.11-alpha", coordinate.version());
-        assertNull(coordinate.classifier());
-        assertEquals("jar", coordinate.extension());
-        assertEquals("com/cleanroommc/cleanroom/0.6.11-alpha/cleanroom-0.6.11-alpha.jar", coordinate.path());
+        assertThat(coordinate.group()).isEqualTo("com.cleanroommc");
+        assertThat(coordinate.artifact()).isEqualTo("cleanroom");
+        assertThat(coordinate.version()).isEqualTo("0.6.11-alpha");
+        assertThat(coordinate.classifier()).isNull();
+        assertThat(coordinate.extension()).isEqualTo("jar");
+        assertThat(coordinate.path()).isEqualTo("com/cleanroommc/cleanroom/0.6.11-alpha/cleanroom-0.6.11-alpha.jar");
     }
 
     @Test
     void parsesClassifierAndExtension() {
         Coordinate coordinate = Coordinate.parse("de.oceanlabs.mcp:mcp_config:1.12.2-2026@zip");
-        assertEquals("zip", coordinate.extension());
-        assertEquals("de/oceanlabs/mcp/mcp_config/1.12.2-2026/mcp_config-1.12.2-2026.zip", coordinate.path());
+        assertThat(coordinate.extension()).isEqualTo("zip");
+        assertThat(coordinate.path()).isEqualTo("de/oceanlabs/mcp/mcp_config/1.12.2-2026/mcp_config-1.12.2-2026.zip");
 
         Coordinate natives = Coordinate.parse("org.lwjgl:lwjgl:3.4.1:natives-linux");
-        assertEquals("natives-linux", natives.classifier());
-        assertEquals("org/lwjgl/lwjgl/3.4.1/lwjgl-3.4.1-natives-linux.jar", natives.path());
-        assertEquals("org.lwjgl:lwjgl:3.4.1", natives.withoutClassifier().toString());
+        assertThat(natives.classifier()).isEqualTo("natives-linux");
+        assertThat(natives.path()).isEqualTo("org/lwjgl/lwjgl/3.4.1/lwjgl-3.4.1-natives-linux.jar");
+        assertThat(natives.withoutClassifier().toString()).isEqualTo("org.lwjgl:lwjgl:3.4.1");
     }
 
     @Test
     void roundTripsThroughToString() {
         for (String notation : new String[] {
-                "com.cleanroommc:cleanroom:0.6.11-alpha",
-                "org.lwjgl:lwjgl:3.4.1:natives-macos-arm64",
-                "de.oceanlabs.mcp:mcp_config:1.12.2@zip"
+            "com.cleanroommc:cleanroom:0.6.11-alpha",
+            "org.lwjgl:lwjgl:3.4.1:natives-macos-arm64",
+            "de.oceanlabs.mcp:mcp_config:1.12.2@zip"
         }) {
-            assertEquals(notation, Coordinate.parse(notation).toString());
+            assertThat(Coordinate.parse(notation).toString()).isEqualTo(notation);
         }
     }
 
     @Test
     void rejectsNonsense() {
-        assertThrows(IllegalArgumentException.class, () -> Coordinate.parse("cleanroom"));
-        assertThrows(IllegalArgumentException.class, () -> Coordinate.parse("a:b:c:d:e"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> Coordinate.parse("cleanroom"));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> Coordinate.parse("a:b:c:d:e"));
     }
 
 }

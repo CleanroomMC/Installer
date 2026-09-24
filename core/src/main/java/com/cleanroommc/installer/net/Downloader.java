@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.net;
 
 import com.cleanroommc.installer.InstallerMeta;
@@ -160,10 +165,9 @@ public final class Downloader {
                 listener.detail(destination.getFileName().toString());
                 listener.progress(resumeFrom, total);
             }
-            try (InputStream in = connection.getInputStream();
-                 OutputStream out = resumed
-                         ? Files.newOutputStream(partial, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
-                         : Files.newOutputStream(partial, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+            try (InputStream in = connection.getInputStream(); OutputStream out = resumed
+                ? Files.newOutputStream(partial, StandardOpenOption.CREATE, StandardOpenOption.APPEND)
+                : Files.newOutputStream(partial, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
                 byte[] buffer = new byte[BUFFER];
                 int read;
                 while ((read = in.read(buffer)) != -1) {
@@ -184,8 +188,7 @@ public final class Downloader {
             long actual = Files.size(destination);
             if (actual != size) {
                 Files.deleteIfExists(destination);
-                throw new InstallException(ExitCode.VERIFICATION,
-                        "Size mismatch for " + url + ": expected " + size + " bytes, got " + actual);
+                throw new InstallException(ExitCode.VERIFICATION, "Size mismatch for " + url + ": expected " + size + " bytes, got " + actual);
             }
         }
         if (sha1 == null || sha1.trim().isEmpty()) {
@@ -194,11 +197,11 @@ public final class Downloader {
         String actual = Hashes.sha1(destination);
         if (!sha1.trim().equalsIgnoreCase(actual)) {
             Files.deleteIfExists(destination);
-            throw new InstallException(ExitCode.VERIFICATION,
-                    "SHA-1 mismatch for " + url + System.lineSeparator()
-                            + "  expected " + sha1.trim() + System.lineSeparator()
-                            + "  actual   " + actual + System.lineSeparator()
-                            + "  saved to " + destination);
+            throw new InstallException(
+                ExitCode.VERIFICATION,
+                "SHA-1 mismatch for " + url + System.lineSeparator() + "  expected " + sha1.trim() + System.lineSeparator() + "  actual   " + actual +
+                    System.lineSeparator() + "  saved to " + destination
+            );
         }
     }
 

@@ -1,6 +1,16 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.ServiceLoader;
 
 /**
  * The registry. Mirrors {@link com.cleanroommc.javautils.spi.JavaLocator#locators} so the shape is familiar.
@@ -17,10 +27,12 @@ public final class InstallTargets {
             for (InstallTarget target : ServiceLoader.load(InstallTarget.class, InstallTargets.class.getClassLoader())) {
                 targets.add(target);
             }
-            targets.sort(Comparator.comparingInt(target -> {
-                int index = ORDER.indexOf(target.id());
-                return index < 0 ? ORDER.size() : index;
-            }));
+            targets.sort(
+                Comparator.comparingInt(target -> {
+                    int index = ORDER.indexOf(target.id());
+                    return index < 0 ? ORDER.size() : index;
+                })
+            );
             cached = Collections.unmodifiableList(targets);
         }
         return cached;

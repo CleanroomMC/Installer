@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.target.action.ExtractZipAction;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -16,8 +22,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class InstanceConfigActionTest {
 
@@ -27,8 +32,7 @@ class InstanceConfigActionTest {
     @Test
     void existingKeysAreReplacedAndTheRestSurvives() throws Exception {
         Path config = this.temp.resolve("instance.cfg");
-        Files.write(config, String.join("\n", "name=My Pack", "JavaPath=/old/java", "iconKey=default")
-                .getBytes(StandardCharsets.UTF_8));
+        Files.write(config, String.join("\n", "name=My Pack", "JavaPath=/old/java", "iconKey=default").getBytes(StandardCharsets.UTF_8));
 
         Map<String, String> values = new LinkedHashMap<>();
         values.put("JavaPath", "/new/java");
@@ -36,11 +40,11 @@ class InstanceConfigActionTest {
         new InstanceConfigAction(config, values).execute(null);
 
         List<String> lines = Files.readAllLines(config, StandardCharsets.UTF_8);
-        assertTrue(lines.contains("name=My Pack"));
-        assertTrue(lines.contains("iconKey=default"));
-        assertTrue(lines.contains("JavaPath=/new/java"));
-        assertTrue(lines.contains("OverrideJavaLocation=true"));
-        assertEquals(4, lines.size());
+        assertThat(lines.contains("name=My Pack")).isTrue();
+        assertThat(lines.contains("iconKey=default")).isTrue();
+        assertThat(lines.contains("JavaPath=/new/java")).isTrue();
+        assertThat(lines.contains("OverrideJavaLocation=true")).isTrue();
+        assertThat(lines).hasSize(4);
     }
 
     @Test
@@ -56,8 +60,8 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertEquals("name=Mine", new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8));
-        assertEquals("{}", new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8));
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo("name=Mine");
+        assertThat(new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8)).isEqualTo("{}");
     }
 
     @Test
@@ -70,7 +74,7 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertEquals("name=Cleanroom", new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8));
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo("name=Cleanroom");
     }
 
     private static void write(ZipOutputStream zip, String name, String content) throws IOException {

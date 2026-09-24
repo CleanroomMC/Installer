@@ -1,10 +1,36 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.ui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
 public class ProgressWindow {
 
@@ -33,6 +59,7 @@ public class ProgressWindow {
         frame.setBackground(new Color(0, 0, 0, 0));
 
         JPanel panel = new JPanel(new BorderLayout(0, 0)) {
+
             @Override
             protected void paintComponent(Graphics graphics) {
                 Graphics2D g = (Graphics2D) graphics.create();
@@ -43,16 +70,15 @@ public class ProgressWindow {
                 g.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 2, getHeight() - 2, CORNER_RADIUS, CORNER_RADIUS));
                 g.dispose();
             }
+
         };
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
 
-        ImageIcon rawIcon = new ImageIcon(
-                Toolkit.getDefaultToolkit().getImage(ProgressWindow.class.getResource("/cleanroom.png")));
+        ImageIcon rawIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(ProgressWindow.class.getResource("/cleanroom.png")));
         frame.setIconImage(rawIcon.getImage());
 
-        JPanel header = CleanroomUI.header(rawIcon.getImage(), "Installing Cleanroom",
-                "This may take a moment.");
+        JPanel header = CleanroomUI.header(rawIcon.getImage(), "Installing Cleanroom", "This may take a moment.");
         panel.add(header, BorderLayout.NORTH);
 
         JPanel progressContent = new JPanel();
@@ -132,6 +158,7 @@ public class ProgressWindow {
                 Point onScreen = event.getLocationOnScreen();
                 frame.setLocation(onScreen.x - grabOffset.x, onScreen.y - grabOffset.y);
             }
+
         };
         grip.addMouseListener(dragger);
         grip.addMouseMotionListener(dragger);
@@ -204,4 +231,5 @@ public class ProgressWindow {
             frame.dispose();
         });
     }
+
 }

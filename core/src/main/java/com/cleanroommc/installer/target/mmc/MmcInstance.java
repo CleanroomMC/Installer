@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.util.Json;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -53,7 +59,9 @@ public final class MmcInstance {
                     return line.substring(separator + 1).trim();
                 }
             }
-        } catch (IOException ignored) { }
+        } catch (IOException ignored) {
+            // An unreadable config reads as an unset key
+        }
         return null;
     }
 
@@ -80,7 +88,8 @@ public final class MmcInstance {
         if (Files.isRegularFile(pack)) {
             JsonObject root = readObject(pack);
             JsonArray components = root != null && root.get("components") != null && root.get("components").isJsonArray()
-                    ? root.getAsJsonArray("components") : new JsonArray();
+                ? root.getAsJsonArray("components")
+                : new JsonArray();
             for (JsonElement element : components) {
                 if (!element.isJsonObject()) {
                     continue;

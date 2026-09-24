@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.net;
 
 import com.cleanroommc.installer.target.ExitCode;
@@ -5,6 +10,7 @@ import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.util.Hashes;
 import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.installer.util.ProgressListener;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
@@ -19,10 +25,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class DownloaderTest {
 
@@ -57,8 +61,8 @@ class DownloaderTest {
     void downloadsAndVerifies() throws Exception {
         Path file = this.directory.resolve("artifact.jar");
         Downloader downloader = downloader();
-        assertTrue(downloader.download(this.base + "/good", file, sha1(), BODY.length, ProgressListener.NONE));
-        assertEquals("cleanroom", new String(Files.readAllBytes(file), StandardCharsets.UTF_8));
+        assertThat(downloader.download(this.base + "/good", file, sha1(), BODY.length, ProgressListener.NONE)).isTrue();
+        assertThat(new String(Files.readAllBytes(file), StandardCharsets.UTF_8)).isEqualTo("cleanroom");
     }
 
     @Test
@@ -66,52 +70,61 @@ class DownloaderTest {
         Path file = this.directory.resolve("artifact.jar");
         Downloader downloader = downloader();
         downloader.download(this.base + "/good", file, sha1(), BODY.length, ProgressListener.NONE);
-        assertFalse(downloader.download(this.base + "/good", file, sha1(), BODY.length, ProgressListener.NONE),
-                "an intact file must not be fetched again");
+        assertThat(downloader.download(this.base + "/good", file, sha1(), BODY.length, ProgressListener.NONE))
+            .as("an intact file must not be fetched again")
+            .isFalse();
     }
 
     @Test
     void aWrongHashFailsAndLeavesNoFileBehind() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = assertThrows(InstallException.class, () -> downloader().download(
-                this.base + "/good", file, "0000000000000000000000000000000000000000", 0, ProgressListener.NONE));
-        assertEquals(ExitCode.VERIFICATION, failure.exitCode());
-        assertTrue(failure.getMessage().contains("/good"), "the message must name the URL");
-        assertFalse(Files.exists(file), "a file that failed verification must not be left in place");
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> downloader().download(this.base + "/good", file, "0000000000000000000000000000000000000000", 0, ProgressListener.NONE)
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
+        assertThat(failure.getMessage().contains("/good")).as("the message must name the URL").isTrue();
+        assertThat(Files.exists(file)).as("a file that failed verification must not be left in place").isFalse();
     }
 
     @Test
     void aWrongSizeFailsBeforeHashing() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = assertThrows(InstallException.class, () -> downloader().download(
-                this.base + "/truncated", file, sha1(), BODY.length, ProgressListener.NONE));
-        assertEquals(ExitCode.VERIFICATION, failure.exitCode());
-        assertTrue(failure.getMessage().contains("expected " + BODY.length));
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> downloader().download(this.base + "/truncated", file, sha1(), BODY.length, ProgressListener.NONE)
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
+        assertThat(failure.getMessage().contains("expected " + BODY.length)).isTrue();
     }
 
     @Test
     void serverErrorsBecomeNetworkFailures() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = assertThrows(InstallException.class, () -> downloader().download(
-                this.base + "/broken", file, null, 0, ProgressListener.NONE));
-        assertEquals(ExitCode.NETWORK, failure.exitCode());
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> downloader().download(this.base + "/broken", file, null, 0, ProgressListener.NONE)
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.NETWORK);
     }
 
     @Test
     void offlineModeNeverReachesTheNetwork() {
         Path file = this.directory.resolve("artifact.jar");
         Downloader offline = new Downloader(Log.console(), true, 1);
-        InstallException failure = assertThrows(InstallException.class,
-                () -> offline.download(this.base + "/good", file, null, 0, ProgressListener.NONE));
-        assertEquals(ExitCode.NETWORK, failure.exitCode());
-        assertTrue(failure.getMessage().contains("Offline"));
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> offline.download(this.base + "/good", file, null, 0, ProgressListener.NONE)
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.NETWORK);
+        assertThat(failure.getMessage().contains("Offline")).isTrue();
     }
 
     @Test
     void existsProbesWithoutDownloading() {
         Downloader downloader = downloader();
-        assertTrue(downloader.exists(this.base + "/good"));
-        assertFalse(downloader.exists(this.base + "/broken"));
+        assertThat(downloader.exists(this.base + "/good")).isTrue();
+        assertThat(downloader.exists(this.base + "/broken")).isFalse();
     }
 
     private Downloader downloader() {

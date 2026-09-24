@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.ui;
 
 import com.cleanroommc.installer.util.ProgressListener;
 
-import javax.swing.SwingUtilities;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.swing.SwingUtilities;
 
 public final class SwingProgress implements ProgressListener {
 

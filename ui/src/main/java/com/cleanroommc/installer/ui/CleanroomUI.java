@@ -1,13 +1,59 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.ui;
 
 import com.cleanroommc.platformutils.Platform;
 
-import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.plaf.basic.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTEvent;
+import java.awt.Adjustable;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.LayoutManager;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.SecondaryLoop;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.AWTEventListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
 import java.awt.font.TextAttribute;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
@@ -20,6 +66,50 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JRootPane;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JToggleButton;
+import javax.swing.JToolTip;
+import javax.swing.JViewport;
+import javax.swing.KeyStroke;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListModel;
+import javax.swing.ListSelectionModel;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.plaf.basic.BasicComboBoxUI;
+import javax.swing.plaf.basic.BasicProgressBarUI;
+import javax.swing.plaf.basic.BasicScrollBarUI;
+import javax.swing.plaf.basic.ComboPopup;
 
 public final class CleanroomUI {
 
@@ -30,7 +120,16 @@ public final class CleanroomUI {
 
     static final Color PRIMARY = new Color(32, 184, 176);
 
-    static Color BACKGROUND, SURFACE, CONTROL, CONTROL_HOVER, TEXT, MUTED_TEXT, PRIMARY_HOVER, BORDER, FOCUS, DISABLED_TEXT;
+    static Color BACKGROUND;
+    static Color SURFACE;
+    static Color CONTROL;
+    static Color CONTROL_HOVER;
+    static Color TEXT;
+    static Color MUTED_TEXT;
+    static Color PRIMARY_HOVER;
+    static Color BORDER;
+    static Color FOCUS;
+    static Color DISABLED_TEXT;
 
     static {
         setPalette(loadConfiguredDarkMode());
@@ -57,10 +156,17 @@ public final class CleanroomUI {
     private static String resolveUiFamily() {
         // Preference order, not an assumption about what is installed
         String[] candidates = {
-                "Segoe UI", // Windows
-                "SF Pro Text", "Helvetica Neue", "Lucida Grande", // Mac
-                "Inter", "Ubuntu", "Noto Sans", "DejaVu Sans", "Liberation Sans", "Cantarell", // Linux
-                "Lucida Sans" // Java (Oracle)
+            "Segoe UI", // Windows
+            "SF Pro Text",
+            "Helvetica Neue",
+            "Lucida Grande", // Mac
+            "Inter",
+            "Ubuntu",
+            "Noto Sans",
+            "DejaVu Sans",
+            "Liberation Sans",
+            "Cantarell", // Linux
+            "Lucida Sans" // Java (Oracle)
         };
         for (String candidate : candidates) {
             Font probe = new Font(candidate, Font.PLAIN, 12);
@@ -138,7 +244,9 @@ public final class CleanroomUI {
     private static boolean loadConfiguredDarkMode() {
         try {
             return ThemeStore.get().dark();
-        } catch (LinkageError | RuntimeException ignored) { }
+        } catch (LinkageError | RuntimeException ignored) {
+            // Defaults to dark when the theme store is unavailable
+        }
         return true;
     }
 
@@ -196,8 +304,7 @@ public final class CleanroomUI {
     }
 
     private static Color[] paletteSnapshot() {
-        return new Color[] { BACKGROUND, SURFACE, CONTROL, CONTROL_HOVER, TEXT, MUTED_TEXT, PRIMARY_HOVER, BORDER,
-                FOCUS, DISABLED_TEXT };
+        return new Color[] { BACKGROUND, SURFACE, CONTROL, CONTROL_HOVER, TEXT, MUTED_TEXT, PRIMARY_HOVER, BORDER, FOCUS, DISABLED_TEXT };
     }
 
     private static void remapComponentColors(Component component, Color[] previous, Color[] current) {
@@ -243,6 +350,7 @@ public final class CleanroomUI {
     static void showInitiallyInForeground(Window window) {
         window.setAutoRequestFocus(true);
         WindowAdapter foregroundOnce = new WindowAdapter() {
+
             @Override
             public void windowOpened(WindowEvent event) {
                 window.toFront();
@@ -254,6 +362,7 @@ public final class CleanroomUI {
                     window.removeWindowListener(this);
                 });
             }
+
         };
         window.addWindowListener(foregroundOnce);
         if (window.isAlwaysOnTopSupported()) {
@@ -288,10 +397,12 @@ public final class CleanroomUI {
 
         final SecondaryLoop loop = Toolkit.getDefaultToolkit().getSystemEventQueue().createSecondaryLoop();
         window.addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowClosed(WindowEvent event) {
                 loop.exit();
             }
+
         });
         showInitiallyInForeground(window);
         if (window.isDisplayable()) {
@@ -312,10 +423,19 @@ public final class CleanroomUI {
                 lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
             }
             UIManager.setLookAndFeel(lookAndFeel);
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+            // Swing keeps its default look and feel
+        }
         String[] fontKeys = {
-                "Button.font", "Label.font", "ComboBox.font", "TextField.font",
-                "CheckBox.font", "ToggleButton.font", "Panel.font", "OptionPane.font", "List.font"
+            "Button.font",
+            "Label.font",
+            "ComboBox.font",
+            "TextField.font",
+            "CheckBox.font",
+            "ToggleButton.font",
+            "Panel.font",
+            "OptionPane.font",
+            "List.font"
         };
         for (String key : fontKeys) {
             UIManager.put(key, BASE_FONT);
@@ -395,9 +515,12 @@ public final class CleanroomUI {
         UIManager.put("Panel.background", SURFACE);
         UIManager.put("OptionPane.messageForeground", TEXT);
         try {
-            JOptionPane pane = new JOptionPane(wrapMessage(message),
-                    error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE,
-                    JOptionPane.DEFAULT_OPTION, dialogIcon());
+            JOptionPane pane = new JOptionPane(
+                wrapMessage(message),
+                error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE,
+                JOptionPane.DEFAULT_OPTION,
+                dialogIcon()
+            );
             JDialog dialog = pane.createDialog(parent, title);
             // Built by hand rather than showMessageDialog so the title bar carries our mark:
             // a dialog with no parent otherwise inherits the shared owner frame's stock icon.
@@ -436,10 +559,7 @@ public final class CleanroomUI {
         if (message == null) {
             return null;
         }
-        String body = escapeHtml(message)
-                .replace("\r\n", "\n")
-                .replace("\r", "\n")
-                .replace("\n", "<br>");
+        String body = escapeHtml(message).replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>");
         return "<html><body style='width: 380px; text-align: center'>" + body + "</body></html>";
     }
 
@@ -453,13 +573,14 @@ public final class CleanroomUI {
      */
     static void onEscape(JRootPane rootPane, Runnable action) {
         String key = "cleanroom.installer.escape";
-        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), key);
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), key);
         rootPane.getActionMap().put(key, new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 action.run();
             }
+
         });
     }
 
@@ -495,16 +616,16 @@ public final class CleanroomUI {
                 Image image = imageIcon.getImage();
                 if (image != null) {
                     Image scaledImage = image.getScaledInstance(
-                            (int) (imageIcon.getIconWidth() * scale),
-                            (int) (imageIcon.getIconHeight() * scale),
-                            Image.SCALE_SMOOTH);
+                        (int) (imageIcon.getIconWidth() * scale),
+                        (int) (imageIcon.getIconHeight() * scale),
+                        Image.SCALE_SMOOTH
+                    );
                     label.setIcon(new ImageIcon(scaledImage));
                 }
             }
         }
 
-        if (component instanceof JLabel || component instanceof AbstractButton || component instanceof JTextField ||
-                component instanceof JComboBox) {
+        if (component instanceof JLabel || component instanceof AbstractButton || component instanceof JTextField || component instanceof JComboBox) {
             Font font = component.getFont();
             if (font != null) {
                 // Round to whole pixels so scaled text stays crisp
@@ -517,60 +638,58 @@ public final class CleanroomUI {
             AbstractButton button = (AbstractButton) component;
             Insets margin = button.getMargin();
             if (margin != null) {
-                button.setMargin(new Insets(
-                        (int) (margin.top * scale),
-                        (int) (margin.left * scale),
-                        (int) (margin.bottom * scale),
-                        (int) (margin.right * scale)
-                ));
+                button.setMargin(
+                    new Insets((int) (margin.top * scale), (int) (margin.left * scale), (int) (margin.bottom * scale), (int) (margin.right * scale))
+                );
             }
         } else if (component instanceof JTextField) {
             JTextField textField = (JTextField) component;
             Insets margin = textField.getMargin();
             if (margin != null) {
-                textField.setMargin(new Insets(
-                        (int) (margin.top * scale),
-                        (int) (margin.left * scale),
-                        (int) (margin.bottom * scale),
-                        (int) (margin.right * scale)
-                ));
+                textField.setMargin(
+                    new Insets((int) (margin.top * scale), (int) (margin.left * scale), (int) (margin.bottom * scale), (int) (margin.right * scale))
+                );
             }
         } else if (component instanceof JComboBox) {
             JComboBox<?> comboBox = (JComboBox<?>) component;
             Insets margin = comboBox.getInsets();
             if (margin != null) {
-                comboBox.setBorder(BorderFactory.createEmptyBorder(
+                comboBox.setBorder(
+                    BorderFactory.createEmptyBorder(
                         (int) (margin.top * scale),
                         (int) (margin.left * scale),
                         (int) (margin.bottom * scale),
                         (int) (margin.right * scale)
-                ));
+                    )
+                );
             }
         } else if (component instanceof JLabel) {
             JLabel label = (JLabel) component;
             Insets margin = label.getInsets();
             if (margin != null) {
-                label.setBorder(BorderFactory.createEmptyBorder(
+                label.setBorder(
+                    BorderFactory.createEmptyBorder(
                         (int) (margin.top * scale),
                         (int) (margin.left * scale),
                         (int) (margin.bottom * scale),
                         (int) (margin.right * scale)
-                ));
+                    )
+                );
             }
         } else if (component instanceof JPanel) {
             JPanel panel = (JPanel) component;
             Border existingBorder = panel.getBorder();
 
-            Insets margin = existingBorder instanceof EmptyBorder ?
-                    ((EmptyBorder) existingBorder).getBorderInsets()
-                    : new Insets(0, 0, 0, 0);
+            Insets margin = existingBorder instanceof EmptyBorder ? ((EmptyBorder) existingBorder).getBorderInsets() : new Insets(0, 0, 0, 0);
 
-            panel.setBorder(BorderFactory.createEmptyBorder(
+            panel.setBorder(
+                BorderFactory.createEmptyBorder(
                     (int) (margin.top * scale),
                     (int) (margin.left * scale),
                     (int) (margin.bottom * scale),
                     (int) (margin.right * scale)
-            ));
+                )
+            );
         }
 
         component.revalidate();
@@ -661,6 +780,7 @@ public final class CleanroomUI {
 
         WrappingLabel() {
             addComponentListener(new ComponentAdapter() {
+
                 @Override
                 public void componentResized(ComponentEvent event) {
                     // Only a change of width can change where the lines break.
@@ -668,6 +788,7 @@ public final class CleanroomUI {
                         rewrap();
                     }
                 }
+
             });
         }
 
@@ -1014,14 +1135,14 @@ public final class CleanroomUI {
 
     /** Scales the padding with the UI and keeps margin/border in agreement. */
     private static void setButtonPadding(AbstractButton button, Insets padding) {
-        Insets scaled = new Insets(scaled(padding.top), scaled(padding.left),
-                scaled(padding.bottom), scaled(padding.right));
+        Insets scaled = new Insets(scaled(padding.top), scaled(padding.left), scaled(padding.bottom), scaled(padding.right));
         button.setMargin(scaled);
         button.setBorder(BorderFactory.createEmptyBorder(scaled.top, scaled.left, scaled.bottom, scaled.right));
     }
 
     static void installTextFieldFocus(JTextField text) {
         text.addFocusListener(new FocusAdapter() {
+
             @Override
             public void focusGained(FocusEvent e) {
                 text.setBorder(textFieldBorder(FOCUS));
@@ -1031,6 +1152,7 @@ public final class CleanroomUI {
             public void focusLost(FocusEvent e) {
                 text.setBorder(textFieldBorder(BORDER));
             }
+
         });
     }
 
@@ -1090,6 +1212,7 @@ public final class CleanroomUI {
 
     private static void installMinimumSizeGuard(final Window window, final Dimension contentFloor) {
         window.addComponentListener(new ComponentAdapter() {
+
             private boolean adjusting;
 
             @Override
@@ -1112,8 +1235,10 @@ public final class CleanroomUI {
                     }
                 }
             }
+
         });
         window.addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowOpened(WindowEvent event) {
                 Dimension minimum = computeMinimumSize(window, contentFloor);
@@ -1124,17 +1249,15 @@ public final class CleanroomUI {
                     window.setSize(width, height);
                 }
             }
+
         });
     }
 
     private static Border textFieldBorder(Color color) {
-        return BorderFactory.createCompoundBorder(
-                new RoundedBorder(color, 8),
-                BorderFactory.createEmptyBorder(0, 4, 0, 4)
-        );
+        return BorderFactory.createCompoundBorder(new RoundedBorder(color, 8), BorderFactory.createEmptyBorder(0, 4, 0, 4));
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static void installDarkRenderer(JComboBox comboBox) {
         if (Boolean.TRUE.equals(comboBox.getClientProperty(DARK_RENDERER))) {
             return;
@@ -1144,6 +1267,7 @@ public final class CleanroomUI {
     }
 
     private static final class SurfacePanel extends JPanel {
+
         private SurfacePanel(LayoutManager layout) {
             super(layout);
             setOpaque(false);
@@ -1160,9 +1284,11 @@ public final class CleanroomUI {
             g.dispose();
             super.paintComponent(graphics);
         }
+
     }
 
     private static final class ScrollableColumn extends JPanel implements Scrollable {
+
         private ScrollableColumn() {
             setOpaque(false);
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -1192,6 +1318,7 @@ public final class CleanroomUI {
         public boolean getScrollableTracksViewportHeight() {
             return false;
         }
+
     }
 
     private static final class RoundedBorder implements Border {
@@ -1328,9 +1455,7 @@ public final class CleanroomUI {
             paintMoon(g, leftIconX, iconY, dark);
             paintSun(g, rightIconX, iconY, !dark);
 
-            Color outline = hasFocus() || getModel().isRollover()
-                    ? FOCUS
-                    : dark ? new Color(151, 155, 158) : new Color(83, 87, 90);
+            Color outline = hasFocus() || getModel().isRollover() ? FOCUS : dark ? new Color(151, 155, 158) : new Color(83, 87, 90);
             g.setColor(outline);
             g.setStroke(new BasicStroke(hasFocus() ? 1.5f : 1f));
             g.drawRoundRect(1, 1, width - 3, height - 3, height - 2, height - 2);
@@ -1339,10 +1464,8 @@ public final class CleanroomUI {
 
         private void paintMoon(Graphics2D g, int centerX, int centerY, boolean active) {
             double radius = 5.5;
-            Area moon = new Area(new Ellipse2D.Double(
-                    centerX - radius, centerY - radius, radius * 2, radius * 2));
-            moon.subtract(new Area(new Ellipse2D.Double(
-                    centerX - radius * 0.42, centerY - radius * 1.08, radius * 1.72, radius * 1.72)));
+            Area moon = new Area(new Ellipse2D.Double(centerX - radius, centerY - radius, radius * 2, radius * 2));
+            moon.subtract(new Area(new Ellipse2D.Double(centerX - radius * 0.42, centerY - radius * 1.08, radius * 1.72, radius * 1.72)));
             g.setColor(active ? new Color(153, 156, 159) : Color.WHITE);
             g.fill(moon);
         }
@@ -1415,6 +1538,7 @@ public final class CleanroomUI {
         private Window ownerWindow;
 
         private final WindowAdapter windowListener = new WindowAdapter() {
+
             @Override
             public void windowLostFocus(WindowEvent event) {
                 hide();
@@ -1424,6 +1548,7 @@ public final class CleanroomUI {
             public void windowClosed(WindowEvent event) {
                 hide();
             }
+
         };
 
         private LayeredToolTipSupport() {
@@ -1588,12 +1713,7 @@ public final class CleanroomUI {
             x = Math.max(0, Math.min(x, maxX));
             y = Math.max(0, Math.min(y, maxY));
 
-            tip.setBounds(
-                    x,
-                    y,
-                    size.width,
-                    size.height
-            );
+            tip.setBounds(x, y, size.width, size.height);
         }
 
         private void hide() {
@@ -1620,12 +1740,7 @@ public final class CleanroomUI {
 
                     parent.remove(tip);
                     parent.revalidate();
-                    parent.repaint(
-                            dirty.x,
-                            dirty.y,
-                            dirty.width,
-                            dirty.height
-                    );
+                    parent.repaint(dirty.x, dirty.y, dirty.width, dirty.height);
                 }
 
                 tip = null;
@@ -1633,9 +1748,10 @@ public final class CleanroomUI {
 
             layeredPane = null;
         }
+
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static final class LayeredComboPopup implements ComboPopup {
 
         private final JComboBox comboBox;
@@ -1665,6 +1781,7 @@ public final class CleanroomUI {
             list.setFocusable(false);
 
             list.addMouseListener(new MouseAdapter() {
+
                 @Override
                 public void mouseReleased(MouseEvent event) {
                     if (!SwingUtilities.isLeftMouseButton(event)) {
@@ -1686,12 +1803,10 @@ public final class CleanroomUI {
 
                     event.consume();
                 }
+
             });
 
-            scroller = new JScrollPane(
-                    list,
-                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            scroller = new JScrollPane(list, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
             scroller.setFocusable(false);
             scroller.setWheelScrollingEnabled(true);
@@ -1703,14 +1818,14 @@ public final class CleanroomUI {
             popupPanel = new JPanel(new BorderLayout());
             popupPanel.setOpaque(true);
             popupPanel.setBackground(comboBox.getBackground());
-            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
-                    BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8), BorderFactory.createEmptyBorder(1, 1, 1, 1)));
             popupPanel.putClientProperty(KEEP_OPAQUE, Boolean.TRUE);
             popupPanel.add(scroller, BorderLayout.CENTER);
 
             applyTheme();
 
             invocationMouseListener = new MouseAdapter() {
+
                 @Override
                 public void mousePressed(MouseEvent event) {
                     Component source = (Component) event.getSource();
@@ -1742,9 +1857,11 @@ public final class CleanroomUI {
                         }
                     });
                 }
+
             };
 
             keyListener = new KeyAdapter() {
+
                 @Override
                 public void keyPressed(KeyEvent event) {
                     if (event.getKeyCode() == KeyEvent.VK_ESCAPE && isVisible()) {
@@ -1752,6 +1869,7 @@ public final class CleanroomUI {
                         event.consume();
                     }
                 }
+
             };
 
             outsideMouseListener = awtEvent -> {
@@ -1773,10 +1891,12 @@ public final class CleanroomUI {
             };
 
             windowFocusListener = new WindowAdapter() {
+
                 @Override
                 public void windowLostFocus(WindowEvent event) {
                     hide();
                 }
+
             };
 
             propertyChangeListener = event -> {
@@ -1815,8 +1935,7 @@ public final class CleanroomUI {
 
             popupPanel.setOpaque(true);
             popupPanel.setBackground(CONTROL);
-            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
-                            BorderFactory.createEmptyBorder(1, 1, 1, 1)));
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8), BorderFactory.createEmptyBorder(1, 1, 1, 1)));
             popupPanel.revalidate();
             popupPanel.repaint();
         }
@@ -1919,16 +2038,8 @@ public final class CleanroomUI {
             width = Math.min(width, layeredPane.getWidth());
             height = Math.min(height, layeredPane.getHeight());
 
-            Point below = SwingUtilities.convertPoint(
-                    comboBox,
-                    0,
-                    comboBox.getHeight(),
-                    layeredPane);
-            Point top = SwingUtilities.convertPoint(
-                    comboBox,
-                    0,
-                    0,
-                    layeredPane);
+            Point below = SwingUtilities.convertPoint(comboBox, 0, comboBox.getHeight(), layeredPane);
+            Point top = SwingUtilities.convertPoint(comboBox, 0, 0, layeredPane);
 
             int x = Math.max(0, Math.min(below.x, layeredPane.getWidth() - width));
             int y = below.y;
@@ -1939,11 +2050,7 @@ public final class CleanroomUI {
                 y = Math.max(0, Math.min(y, layeredPane.getHeight() - height));
             }
 
-            popupPanel.setBounds(
-                    x,
-                    y,
-                    width,
-                    height);
+            popupPanel.setBounds(x, y, width, height);
         }
 
         private void installHooks() {
@@ -1980,6 +2087,7 @@ public final class CleanroomUI {
         private static boolean inside(Component child, Component ancestor) {
             return child == ancestor || SwingUtilities.isDescendingFrom(child, ancestor);
         }
+
     }
 
     private static final class DarkComboBoxUI extends BasicComboBoxUI {
@@ -1987,6 +2095,7 @@ public final class CleanroomUI {
         @Override
         protected FocusListener createFocusListener() {
             return new FocusAdapter() {
+
                 @Override
                 public void focusGained(FocusEvent event) {
                     comboBox.repaint();
@@ -1996,6 +2105,7 @@ public final class CleanroomUI {
                 public void focusLost(FocusEvent event) {
                     comboBox.repaint();
                 }
+
             };
         }
 
@@ -2029,8 +2139,7 @@ public final class CleanroomUI {
         @Override
         public void paintCurrentValue(Graphics graphics, Rectangle bounds, boolean hasFocus) {
             ListCellRenderer<Object> renderer = comboBox.getRenderer();
-            Component rendered = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(),
-                    -1, false, false);
+            Component rendered = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(), -1, false, false);
             rendered.setFont(comboBox.getFont());
             rendered.setBackground(CONTROL);
             rendered.setForeground(comboBox.isEnabled() ? TEXT : DISABLED_TEXT);
@@ -2038,8 +2147,7 @@ public final class CleanroomUI {
                 ((JComponent) rendered).setOpaque(false);
                 ((JComponent) rendered).setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 4));
             }
-            currentValuePane.paintComponent(graphics, rendered, comboBox,
-                    bounds.x, bounds.y, bounds.width, bounds.height, true);
+            currentValuePane.paintComponent(graphics, rendered, comboBox, bounds.x, bounds.y, bounds.width, bounds.height, true);
         }
 
         @Override
@@ -2087,12 +2195,7 @@ public final class CleanroomUI {
         @Override
         protected void paintTrack(Graphics graphics, JComponent component, Rectangle bounds) {
             graphics.setColor(component.getBackground());
-            graphics.fillRect(
-                    bounds.x,
-                    bounds.y,
-                    bounds.width,
-                    bounds.height
-            );
+            graphics.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
 
         @Override
@@ -2113,8 +2216,7 @@ public final class CleanroomUI {
             Graphics2D g = (Graphics2D) graphics.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(isDragging ? PRIMARY : BORDER);
-            g.fillRoundRect(bounds.x + 2, bounds.y + 2, Math.max(4, bounds.width - 4),
-                    Math.max(4, bounds.height - 4), 8, 8);
+            g.fillRoundRect(bounds.x + 2, bounds.y + 2, Math.max(4, bounds.width - 4), Math.max(4, bounds.height - 4), 8, 8);
             g.dispose();
         }
 
@@ -2151,8 +2253,7 @@ public final class CleanroomUI {
         public void paint(Graphics graphics, JComponent component) {
             AbstractButton button = (AbstractButton) component;
             ButtonModel model = button.getModel();
-            boolean primary = Boolean.TRUE.equals(button.getClientProperty(PRIMARY_BUTTON)) ||
-                    (button instanceof JToggleButton && model.isSelected());
+            boolean primary = Boolean.TRUE.equals(button.getClientProperty(PRIMARY_BUTTON)) || (button instanceof JToggleButton && model.isSelected());
             boolean ghost = Boolean.TRUE.equals(button.getClientProperty(GHOST_BUTTON));
 
             Graphics2D g = (Graphics2D) graphics.create();
@@ -2198,6 +2299,7 @@ public final class CleanroomUI {
                 g.drawRoundRect(0, 0, width - 1, height - 1, arc, arc);
             }
         }
+
     }
 
     private static final class ModernProgressBarUI extends BasicProgressBarUI {
@@ -2262,4 +2364,5 @@ public final class CleanroomUI {
         }
 
     }
+
 }

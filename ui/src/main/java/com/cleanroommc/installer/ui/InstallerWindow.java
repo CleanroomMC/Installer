@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.ui;
 
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolver;
 import com.cleanroommc.installer.java.JavaSpec;
-import com.cleanroommc.installer.util.slf4j.LogBridge;
 import com.cleanroommc.installer.net.Downloader;
 import com.cleanroommc.installer.platform.DetectedLauncher;
 import com.cleanroommc.installer.platform.Environment;
@@ -23,9 +27,25 @@ import com.cleanroommc.installer.target.mmc.MmcInstance;
 import com.cleanroommc.installer.target.mmc.MmcTarget;
 import com.cleanroommc.installer.target.server.ServerTarget;
 import com.cleanroommc.installer.util.Log;
+import com.cleanroommc.installer.util.slf4j.LogBridge;
 import com.cleanroommc.installer.version.RemoteVersion;
 import com.cleanroommc.installer.version.VersionIndex;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
@@ -44,21 +64,6 @@ import javax.swing.WindowConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GraphicsEnvironment;
-import java.awt.Image;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The graphical installer. Inspired by {@code CleanroomRelauncher}.
@@ -138,6 +143,7 @@ public final class InstallerWindow {
         this.frame.setResizable(false);
         this.frame.setLayout(new BorderLayout());
         this.frame.addWindowListener(new WindowAdapter() {
+
             @Override
             public void windowClosing(WindowEvent event) {
                 cancel();
@@ -150,6 +156,7 @@ public final class InstallerWindow {
                     defaultButton.requestFocusInWindow();
                 }
             }
+
         });
 
         JPanel container = new JPanel(new BorderLayout());
@@ -259,9 +266,12 @@ public final class InstallerWindow {
 
     private void applyVersions(List<RemoteVersion> versions, String failure) {
         if (versions.isEmpty()) {
-            this.versionStatus.setText(failure == null
-                    ? "No releases were found. The newest release will be installed."
-                    : "Unable to list versions (" + failure + "). The newest release will be installed.");
+            this.versionStatus
+                .setText(
+                    failure == null
+                        ? "No releases were found. The newest release will be installed."
+                        : "Unable to list versions (" + failure + "). The newest release will be installed."
+                );
             repack();
             return;
         }
@@ -306,6 +316,7 @@ public final class InstallerWindow {
         }
         box.setModel(model);
         box.setRenderer(new DefaultListCellRenderer() {
+
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -314,6 +325,7 @@ public final class InstallerWindow {
                 }
                 return this;
             }
+
         });
         box.setSelectedItem(initial);
         box.setMaximumRowCount(5);
@@ -352,9 +364,11 @@ public final class InstallerWindow {
             JLabel version = new JLabel("Cleanroom " + fixed);
             version.setAlignmentX(Component.LEFT_ALIGNMENT);
             select.add(version);
-            this.versionStatus = CleanroomUI.wrappingStatusLabel(fixed.equals(this.seedVersion)
+            this.versionStatus = CleanroomUI.wrappingStatusLabel(
+                fixed.equals(this.seedVersion)
                     ? "Asked for on the command line. Drop --version to choose a version here."
-                    : "This installer only installs this version.");
+                    : "This installer only installs this version."
+            );
             this.versionStatus.setAlignmentX(Component.LEFT_ALIGNMENT);
             select.add(this.versionStatus);
             return CleanroomUI.card("Cleanroom Version", "What this installer will install", picker);
@@ -368,6 +382,7 @@ public final class InstallerWindow {
         this.versionBox = new JComboBox<>();
         this.versionBox.setModel(new DefaultComboBoxModel<>());
         this.versionBox.setRenderer(new DefaultListCellRenderer() {
+
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -377,6 +392,7 @@ public final class InstallerWindow {
                 }
                 return this;
             }
+
         });
         // Nothing to choose from until the fetch below returns.
         this.versionBox.addItem(new RemoteVersion("Loading\u2026", ""));
@@ -412,6 +428,7 @@ public final class InstallerWindow {
         this.directoryField = new JTextField(defaultDirectory().toString());
         CleanroomUI.installTextFieldFocus(this.directoryField);
         this.directoryField.getDocument().addDocumentListener(new DocumentListener() {
+
             @Override
             public void insertUpdate(DocumentEvent event) {
                 directoryChanged();
@@ -426,6 +443,7 @@ public final class InstallerWindow {
             public void changedUpdate(DocumentEvent event) {
                 directoryChanged();
             }
+
         });
         row.add(this.directoryField, BorderLayout.CENTER);
 
@@ -553,9 +571,8 @@ public final class InstallerWindow {
                 case CLEANROOM:
                     return "Existing " + existing.describe() + ". Repairs it or changes its version.";
                 case FORGE:
-                    return "Existing " + existing.describe() + ". Cleanroom will replace Forge in it."
-                            + System.lineSeparator()
-                            + "Consult after installation: https://cleanroommc.com/wiki/end-user-guide/preparing-your-modpack";
+                    return "Existing " + existing.describe() + ". Cleanroom will replace Forge in it." + System.lineSeparator() +
+                        "Consult after installation: https://cleanroommc.com/wiki/end-user-guide/preparing-your-modpack";
                 case VANILLA:
                     return "Existing " + existing.describe() + ". Cleanroom will be added to it.";
                 default:
@@ -566,19 +583,17 @@ public final class InstallerWindow {
             }
             List<DetectedLauncher> launchers = InstallLocations.multiMcFamily(this.environment);
             return launchers.isEmpty()
-                    ? "No Prism, PolyMC or MultiMC installation was found."
-                    : "Found " + launchers.get(0).kind().displayName() + ". A new instance will be created here.";
+                ? "No Prism, PolyMC or MultiMC installation was found."
+                : "Found " + launchers.get(0).kind().displayName() + ". A new instance will be created here.";
         }
         if (ClientTarget.ID.equals(this.selectedTargetId)) {
             Path directory = this.environment.path(this.directoryField.getText());
             return InstallLocations.looksLikeMinecraft(directory)
-                    ? "This looks like a Minecraft installation."
-                    : "No Minecraft installation detected here yet.";
+                ? "This looks like a Minecraft installation."
+                : "No Minecraft installation detected here yet.";
         }
         if (ServerTarget.ID.equals(this.selectedTargetId) && ServerTarget.busyDirectory(currentDirectory())) {
-            return "This folder is not empty and holds no server installation."
-                    + System.lineSeparator()
-                    + "Installing here will add files to it.";
+            return "This folder is not empty and holds no server installation." + System.lineSeparator() + "Installing here will add files to it.";
         }
         return "";
     }
@@ -624,47 +639,49 @@ public final class InstallerWindow {
         progress.show();
         SwingProgress listener = new SwingProgress(progress);
 
-        new Thread(() -> {
-            Log log = Log.toFile(this.environment.installerCache().resolve("logs")
-                    .resolve("installer-" + System.currentTimeMillis() + ".log"));
-            LogBridge.attach(log);
-            try {
-                InstallTarget target = InstallTargets.byId(request.targetId());
-                Downloader downloader = new Downloader(log, request.offline());
-                try (ProfileSource source = Sources.open(request.version(), downloader, log,
-                        this.environment.installerCache(), listener)) {
-                    InstallContext context = new InstallContext(source, downloader,
-                            new JavaResolver(this.environment, log), this.environment, log)
-                            .listener(listener);
-                    target.validate(request, context);
-                    InstallPlan plan = target.plan(request, context);
-                    InstallResult result = target.apply(plan, context, listener);
+        new Thread(
+            () -> {
+                Log log = Log.toFile(this.environment.installerCache().resolve("logs").resolve("installer-" + System.currentTimeMillis() + ".log"));
+                LogBridge.attach(log);
+                try {
+                    InstallTarget target = InstallTargets.byId(request.targetId());
+                    Downloader downloader = new Downloader(log, request.offline());
+                    try (ProfileSource source = Sources.open(request.version(), downloader, log, this.environment.installerCache(), listener)) {
+                        InstallContext context = new InstallContext(
+                            source,
+                            downloader,
+                            new JavaResolver(this.environment, log),
+                            this.environment,
+                            log
+                        ).listener(listener);
+                        target.validate(request, context);
+                        InstallPlan plan = target.plan(request, context);
+                        InstallResult result = target.apply(plan, context, listener);
+                        progress.close();
+                        succeeded(result, log);
+                    }
+                } catch (InstallException e) {
                     progress.close();
-                    succeeded(result, log);
+                    log.error(e, "Install failed");
+                    failed(e.getMessage(), log, e.exitCode());
+                } catch (RuntimeException e) {
+                    progress.close();
+                    log.error(e, "Unexpected failure");
+                    failed(String.valueOf(e), log, ExitCode.INTERNAL);
+                } finally {
+                    LogBridge.detach();
+                    log.close();
                 }
-            } catch (InstallException e) {
-                progress.close();
-                log.error(e, "Install failed");
-                failed(e.getMessage(), log, e.exitCode());
-            } catch (RuntimeException e) {
-                progress.close();
-                log.error(e, "Unexpected failure");
-                failed(String.valueOf(e), log, ExitCode.INTERNAL);
-            } finally {
-                LogBridge.detach();
-                log.close();
-            }
-        }, "cleanroom-installer").start();
+            },
+            "cleanroom-installer"
+        ).start();
     }
 
     private InstallRequest request() {
-        InstallRequest.Builder builder = (this.seed == null
-                ? InstallRequest.builder(this.selectedTargetId)
-                : this.seed.toBuilder())
-                .directory(this.environment.path(this.directoryField.getText()).toAbsolutePath())
-                .assumeYes(true);
-        JavaSpec java = (this.seed == null ? JavaSpec.defaults() : this.seed.java())
-                .withProvision(this.provisionJava.isSelected());
+        InstallRequest.Builder builder = (this.seed == null ? InstallRequest.builder(this.selectedTargetId) : this.seed.toBuilder())
+            .directory(this.environment.path(this.directoryField.getText()).toAbsolutePath())
+            .assumeYes(true);
+        JavaSpec java = (this.seed == null ? JavaSpec.defaults() : this.seed.java()).withProvision(this.provisionJava.isSelected());
         builder.java(java);
         builder.version(this.selectedVersion);
         if (ClientTarget.ID.equals(this.selectedTargetId) && this.fullDownload.isSelected()) {
@@ -675,8 +692,7 @@ public final class InstallerWindow {
                 // An empty name is meaningful: it hands the naming back to the target.
                 builder.extra(MmcTarget.OPTION_INSTANCE_NAME, this.instanceNameField.getText().trim());
             }
-            builder.flag(MmcTarget.OPTION_REPLACE_JAVA_PATH,
-                    this.replaceJavaPathRow.isVisible() && this.replaceJavaPath.isSelected());
+            builder.flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, this.replaceJavaPathRow.isVisible() && this.replaceJavaPath.isSelected());
         }
         if (ServerTarget.ID.equals(this.selectedTargetId)) {
             builder.flag(ServerTarget.OPTION_PIN_JAVA, this.provisionJava.isSelected());
@@ -684,21 +700,19 @@ public final class InstallerWindow {
         }
         // The builder keeps the seed's target id, so switching modes in the window has to be applied.
         InstallRequest built = builder.build();
-        return this.selectedTargetId.equals(built.targetId())
-                ? built
-                : rebuild(built, this.selectedTargetId);
+        return this.selectedTargetId.equals(built.targetId()) ? built : rebuild(built, this.selectedTargetId);
     }
 
     private static InstallRequest rebuild(InstallRequest original, String targetId) {
         InstallRequest.Builder builder = InstallRequest.builder(targetId)
-                .version(original.version())
-                .directory(original.directory())
-                .offline(original.offline())
-                .dryRun(original.dryRun())
-                .force(original.force())
-                .assumeYes(original.assumeYes())
-                .java(original.java())
-                .jvmArgs(original.jvmArgs());
+            .version(original.version())
+            .directory(original.directory())
+            .offline(original.offline())
+            .dryRun(original.dryRun())
+            .force(original.force())
+            .assumeYes(original.assumeYes())
+            .java(original.java())
+            .jvmArgs(original.jvmArgs());
         for (Map.Entry<String, String> extra : original.extras().entrySet()) {
             builder.extra(extra.getKey(), extra.getValue());
         }
@@ -708,9 +722,7 @@ public final class InstallerWindow {
     private void succeeded(InstallResult result, Log log) {
         SwingUtilities.invokeLater(() -> {
             StringBuilder message = new StringBuilder();
-            message.append(result.isNoOp()
-                    ? "Everything was already in place"
-                    : "Installed into " + result.root());
+            message.append(result.isNoOp() ? "Everything was already in place" : "Installed into " + result.root());
             for (String note : result.notes()) {
                 message.append(System.lineSeparator()).append(note);
             }

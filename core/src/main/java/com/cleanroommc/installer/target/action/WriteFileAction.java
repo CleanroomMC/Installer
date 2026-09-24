@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.action;
 
 import com.cleanroommc.installer.target.ExitCode;
@@ -35,8 +40,7 @@ public final class WriteFileAction extends Action {
 
     @Override
     public String describe() {
-        return "WRITE " + destination() + " (" + this.content.length() + " chars"
-                + (this.executable ? ", executable)" : ")");
+        return "WRITE " + destination() + " (" + this.content.length() + " chars" + (this.executable ? ", executable)" : ")");
     }
 
     @Override
@@ -62,7 +66,9 @@ public final class WriteFileAction extends Action {
             permissions.add(PosixFilePermission.GROUP_EXECUTE);
             permissions.add(PosixFilePermission.OTHERS_EXECUTE);
             Files.setPosixFilePermissions(path, permissions);
-        } catch (UnsupportedOperationException windows) { }
+        } catch (UnsupportedOperationException windows) {
+            // Non-POSIX file systems have no execute bit to set
+        }
     }
 
 }

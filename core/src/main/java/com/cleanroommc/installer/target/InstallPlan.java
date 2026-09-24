@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target;
 
 import com.cleanroommc.installer.target.action.Action;
@@ -70,16 +75,22 @@ public final class InstallPlan {
 
     public String render() {
         StringBuilder builder = new StringBuilder();
-        builder.append(this.targetId).append(' ').append(this.versionId)
-                .append(System.lineSeparator())
-                .append("  into ").append(this.root)
-                .append(System.lineSeparator());
+        builder.append(this.targetId)
+            .append(' ')
+            .append(this.versionId)
+            .append(System.lineSeparator())
+            .append("  into ")
+            .append(this.root)
+            .append(System.lineSeparator());
         for (Action action : this.actions) {
             builder.append("  ").append(action.describe()).append(System.lineSeparator());
         }
-        builder.append("  ").append(this.actions.size()).append(" action(s), ")
-                .append(networkBytes() / 1024L / 1024L).append(" MiB to download")
-                .append(System.lineSeparator());
+        builder.append("  ")
+            .append(this.actions.size())
+            .append(" action(s), ")
+            .append(networkBytes() / 1024L / 1024L)
+            .append(" MiB to download")
+            .append(System.lineSeparator());
         for (String note : this.notes) {
             builder.append("  note: ").append(note).append(System.lineSeparator());
         }

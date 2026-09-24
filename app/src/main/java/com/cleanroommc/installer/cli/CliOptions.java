@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.cli;
 
 import com.cleanroommc.installer.java.JavaSpec;
@@ -187,25 +192,22 @@ public final class CliOptions {
     }
 
     public InstallRequest toRequest() {
-        JavaSpec java = JavaSpec.defaults()
-                .withPath(this.javaPath)
-                .withProvision(Boolean.TRUE.equals(this.provisionJava));
+        JavaSpec java = JavaSpec.defaults().withPath(this.javaPath).withProvision(Boolean.TRUE.equals(this.provisionJava));
         if (this.javaTarget > 0) {
-            java = java.withBounds(Math.min(java.minimum(), this.javaTarget),
-                    Math.max(java.maximum(), this.javaTarget), this.javaTarget);
+            java = java.withBounds(Math.min(java.minimum(), this.javaTarget), Math.max(java.maximum(), this.javaTarget), this.javaTarget);
         }
         if (this.javaVendor != null) {
             java = java.withDistro(this.javaVendor);
         }
         InstallRequest.Builder builder = InstallRequest.builder(this.mode)
-                .version(this.version)
-                .directory(this.directory)
-                .offline(this.offline)
-                .dryRun(this.dryRun)
-                .force(this.force)
-                .assumeYes(this.assumeYes)
-                .java(java)
-                .jvmArgs(this.jvmArgs);
+            .version(this.version)
+            .directory(this.directory)
+            .offline(this.offline)
+            .dryRun(this.dryRun)
+            .force(this.force)
+            .assumeYes(this.assumeYes)
+            .java(java)
+            .jvmArgs(this.jvmArgs);
         for (Map.Entry<String, String> extra : this.extras.entrySet()) {
             builder.extra(extra.getKey(), extra.getValue());
         }

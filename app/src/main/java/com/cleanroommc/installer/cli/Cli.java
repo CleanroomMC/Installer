@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.cli;
 
 import com.cleanroommc.installer.InstallerMeta;
@@ -103,8 +108,7 @@ public final class Cli {
     private int install(CliOptions options, Downloader downloader, Log log, CliProgress progress) throws InstallException {
         InstallTarget target = InstallTargets.byId(options.mode.equals("uninstall") ? "client" : options.mode);
         try (ProfileSource source = Sources.open(options.version, downloader, log, this.environment.installerCache(), progress)) {
-            InstallContext context = new InstallContext(source, downloader,
-                    new JavaResolver(this.environment, log), this.environment, log).listener(progress);
+            InstallContext context = new InstallContext(source, downloader, new JavaResolver(this.environment, log), this.environment, log).listener(progress);
             InstallRequest request = options.toRequest();
             if (request.directory() == null) {
                 request = request.toBuilder().directory(target.defaultDirectory(this.environment)).build();
@@ -138,8 +142,8 @@ public final class Cli {
     private void printResult(InstallResult result, boolean json, boolean removing) {
         if (json) {
             StringBuilder builder = new StringBuilder("{\"event\":\"result\",\"ok\":true,\"root\":")
-                    .append(CliProgress.quote(result.root().toString()))
-                    .append(",\"files\":[");
+                .append(CliProgress.quote(result.root().toString()))
+                .append(",\"files\":[");
             for (int i = 0; i < result.written().size(); i++) {
                 if (i > 0) {
                     builder.append(',');
@@ -166,8 +170,7 @@ public final class Cli {
 
     private void report(InstallException e, boolean json) {
         if (json) {
-            this.out.println("{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code()
-                    + ",\"message\":" + CliProgress.quote(e.getMessage()) + "}");
+            this.out.println("{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code() + ",\"message\":" + CliProgress.quote(e.getMessage()) + "}");
             return;
         }
         this.err.println(e.getMessage());
@@ -184,8 +187,7 @@ public final class Cli {
 
     /** Where a run's log goes when the user did not choose. */
     public static Path defaultLogFile(Environment environment) {
-        return environment.installerCache().resolve("logs")
-                .resolve("installer-" + System.currentTimeMillis() + ".log");
+        return environment.installerCache().resolve("logs").resolve("installer-" + System.currentTimeMillis() + ".log");
     }
 
 }

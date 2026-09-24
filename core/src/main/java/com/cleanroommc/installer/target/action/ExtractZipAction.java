@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.action;
 
 import com.cleanroommc.installer.target.ExitCode;
@@ -41,8 +46,8 @@ public final class ExtractZipAction extends Action {
 
     @Override
     public String describe() {
-        return "EXTRACT " + this.archive.getFileName() + " -> " + destination()
-                + (this.keptNames.isEmpty() ? "" : " (keeping " + String.join(", ", this.keptNames) + ")");
+        return "EXTRACT " + this.archive.getFileName() + " -> " + destination() +
+            (this.keptNames.isEmpty() ? "" : " (keeping " + String.join(", ", this.keptNames) + ")");
     }
 
     @Override
@@ -55,8 +60,7 @@ public final class ExtractZipAction extends Action {
                 ZipEntry entry = entries.nextElement();
                 Path target = root.resolve(entry.getName()).normalize();
                 if (!target.startsWith(root)) {
-                    throw new InstallException(ExitCode.VERIFICATION,
-                            this.archive + " contains an entry that escapes the destination: " + entry.getName());
+                    throw new InstallException(ExitCode.VERIFICATION, this.archive + " contains an entry that escapes the destination: " + entry.getName());
                 }
                 if (entry.isDirectory()) {
                     Files.createDirectories(target);

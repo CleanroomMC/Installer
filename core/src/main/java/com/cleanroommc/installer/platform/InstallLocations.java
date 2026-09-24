@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.platform;
 
 import java.io.IOException;
@@ -47,9 +52,9 @@ public final class InstallLocations {
     }
 
     public static boolean looksLikeMinecraft(Path directory) {
-        return Files.isRegularFile(directory.resolve("launcher_profiles.json"))
-                || Files.isRegularFile(directory.resolve("launcher_profiles_microsoft_store.json"))
-                || Files.isDirectory(directory.resolve("versions"));
+        return Files.isRegularFile(directory.resolve("launcher_profiles.json")) ||
+            Files.isRegularFile(directory.resolve("launcher_profiles_microsoft_store.json")) ||
+            Files.isDirectory(directory.resolve("versions"));
     }
 
     public static boolean looksLikeMmcInstance(Path directory) {
@@ -68,7 +73,6 @@ public final class InstallLocations {
     public static Path serverDefault(Environment environment) {
         return environment.workingDirectory();
     }
-
 
     public static List<DetectedLauncher> multiMcFamily(Environment environment) {
         List<DetectedLauncher> found = new ArrayList<>();
@@ -89,8 +93,7 @@ public final class InstallLocations {
 
     private static List<Path> launcherRoots(Environment environment, DetectedLauncher.Kind kind) {
         Set<Path> roots = new LinkedHashSet<>();
-        String windowsName = kind == DetectedLauncher.Kind.PRISM ? "PrismLauncher"
-                : kind == DetectedLauncher.Kind.POLY_MC ? "PolyMC" : "MultiMC";
+        String windowsName = kind == DetectedLauncher.Kind.PRISM ? "PrismLauncher" : kind == DetectedLauncher.Kind.POLY_MC ? "PolyMC" : "MultiMC";
         if (environment.windows()) {
             addIfNamed(roots, environment, environment.env("APPDATA"), windowsName);
             addIfNamed(roots, environment, environment.env("USERPROFILE"), windowsName);
@@ -101,10 +104,8 @@ public final class InstallLocations {
             }
         } else {
             String flatpak = kind == DetectedLauncher.Kind.PRISM
-                    ? ".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher"
-                    : kind == DetectedLauncher.Kind.POLY_MC
-                    ? ".var/app/org.polymc.PolyMC/data/PolyMC"
-                    : null;
+                ? ".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher"
+                : kind == DetectedLauncher.Kind.POLY_MC ? ".var/app/org.polymc.PolyMC/data/PolyMC" : null;
             addIfNamed(roots, environment, environment.env("XDG_DATA_HOME"), windowsName);
             roots.add(environment.home().resolve(".local/share").resolve(windowsName));
             if (kind == DetectedLauncher.Kind.MULTI_MC) {
@@ -151,7 +152,9 @@ public final class InstallLocations {
                     return line.substring(separator + 1).trim();
                 }
             }
-        } catch (IOException ignored) { }
+        } catch (IOException ignored) {
+            // An unreadable config reads as an unset key
+        }
         return null;
     }
 

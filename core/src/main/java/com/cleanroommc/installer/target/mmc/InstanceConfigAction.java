@@ -1,9 +1,14 @@
+/*
+ * Copyright (c) 2026 CleanroomMC contributors
+ * SPDX-License-Identifier: LGPL-3.0-only
+ */
+
 package com.cleanroommc.installer.target.mmc;
 
-import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
+import com.cleanroommc.installer.target.action.Action;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
