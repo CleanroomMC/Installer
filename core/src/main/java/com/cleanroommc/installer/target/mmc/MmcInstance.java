@@ -37,7 +37,7 @@ public final class MmcInstance {
         }
     }
 
-    private static String string(JsonObject object, String key) {
+    static String string(JsonObject object, String key) {
         JsonElement value = object == null ? null : object.get(key);
         return value != null && value.isJsonPrimitive() ? value.getAsString() : null;
     }

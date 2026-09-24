@@ -10,9 +10,14 @@ import com.cleanroommc.installer.platform.InstallLocations;
 import com.cleanroommc.installer.profile.InstallProfile;
 import com.cleanroommc.installer.target.*;
 import com.cleanroommc.installer.target.action.*;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,7 +25,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Installs Cleanroom into a MultiMC/Prism/PolyMC launcher, from the pack zip CleanroomGradle's
@@ -43,6 +51,7 @@ public final class MmcTarget extends AbstractInstallTarget {
     public static final String EMBEDDED_PACK = "mmc/pack.zip";
 
     private static final Set<String> INSTANCE_OWNED = Collections.singleton("instance.cfg");
+    private static final String FORGE_PATCH = "patches/net.minecraftforge.json";
 
     public static boolean updatesExistingInstance(Path directory) {
         return InstallLocations.looksLikeMmcInstance(directory);
@@ -164,7 +173,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         boolean embeddedPack = hasEmbeddedPack(context);
         plan.add(packAction(context, profile, pack, embeddedPack));
         plan.add(updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance));
-        if (embeddedPack) {
+        if (embeddedPack && packLoadsLocalUniversal(context, profile)) {
             plan.add(embeddedUniversalAction(context, profile, instance));
         }
         plan.add(new WriteFileAction(instance.resolve(".cleanroom-installer"),
@@ -210,6 +219,31 @@ public final class MmcTarget extends AbstractInstallTarget {
             return new CopyResourceAction(EMBEDDED_PACK, () -> context.source().open(EMBEDDED_PACK), pack);
         }
         return new DownloadAction(packUrl(context, profile), pack, null, 0L);
+    }
+
+    /**
+     * Only a patch that marks the universal jar {@code MMC-hint: local} reads it from the instance's libraries.
+     * Otherwise the launcher downloads it and a copy would sit unused.
+     */
+    private static boolean packLoadsLocalUniversal(InstallContext context, InstallProfile profile) {
+        try (ZipInputStream pack = new ZipInputStream(context.source().open(EMBEDDED_PACK))) {
+            ZipEntry entry;
+            while ((entry = pack.getNextEntry()) != null) {
+                if (!FORGE_PATCH.equals(entry.getName())) {
+                    continue;
+                }
+                JsonObject patch = JsonParser.parseReader(new InputStreamReader(pack, StandardCharsets.UTF_8)).getAsJsonObject();
+                for (JsonElement library : patch.getAsJsonArray("libraries")) {
+                    JsonObject object = library.getAsJsonObject();
+                    if ("local".equals(MmcInstance.string(object, "MMC-hint"))
+                            && Objects.equals(profile.path, MmcInstance.string(object, "name"))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        } catch (IOException | RuntimeException ignored) { }
+        return false;
     }
 
     private Action embeddedUniversalAction(InstallContext context, InstallProfile profile, Path instance) throws InstallException {
