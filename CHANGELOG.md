@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.4 - 2026-09-28
+
+## Feature
+
+- Keep compatibility with previous cleanroom jar spec *[commit by [@Rongmario](https://github.com/Rongmario) in [aa8cb15](https://github.com/CleanroomMC/Installer/commit/aa8cb154ea9c9475fe62bc3dad87ea214107ddc8)]*
+
+## First-time Contributors
+
+- **[@github-actions[bot]](https://github.com/github-actions[bot]) made their first contribution!**
+
+**Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.1.3...0.1.4
+
 ## 0.1.3 - 2026-09-24
 
 ## Bug Fix
