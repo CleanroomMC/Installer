@@ -130,8 +130,10 @@ public final class ServerTarget extends AbstractInstallTarget {
         }
 
         String mainClass = profile.serverMainClass != null ? profile.serverMainClass : version.mainClass;
+        // Spec 0 profiles carry no tweakers and the client list is never a fallback
+        List<String> tweakers = profile.serverTweakers == null || profile.serverTweakers.isEmpty() ? defaultTweakers() : profile.serverTweakers;
         List<String> gameArgs = new ArrayList<>();
-        for (String tweaker : profile.serverTweakers == null ? profile.tweakers : profile.serverTweakers) {
+        for (String tweaker : tweakers) {
             gameArgs.add("--tweakClass");
             gameArgs.add(tweaker);
         }
