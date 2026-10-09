@@ -5,6 +5,8 @@
 
 package com.cleanroommc.installer.target;
 
+import com.cleanroommc.installer.java.JavaResolution;
+import com.cleanroommc.installer.java.JavaSpec;
 import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.util.Cancellation;
 import com.cleanroommc.installer.util.ProgressListener;
@@ -19,6 +21,26 @@ public abstract class AbstractInstallTarget implements InstallTarget {
 
     protected static Set<Capability> capabilitySet(Capability... capabilities) {
         return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(capabilities)));
+    }
+
+    /**
+     * The Java a plan refers to, or null on a dry run that would have to download one.
+     */
+    protected static JavaResolution resolveJava(
+        InstallRequest request,
+        InstallContext context,
+        JavaSpec spec,
+        InstallPlan plan
+    ) throws InstallException {
+        boolean explicit = spec.path() != null && !spec.path().isEmpty();
+        if (request.dryRun() &&
+            !explicit &&
+            spec.allowProvision() &&
+            !context.javaResolver().hasLocalJava(spec, context.listener())) {
+            plan.note("Java " + spec.target() + " would be downloaded into " + context.env().javaCache());
+            return null;
+        }
+        return context.javaResolver().resolve(spec, context.listener());
     }
 
     @Override

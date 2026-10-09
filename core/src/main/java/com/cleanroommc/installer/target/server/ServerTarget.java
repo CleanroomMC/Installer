@@ -226,9 +226,11 @@ public final class ServerTarget extends AbstractInstallTarget {
             JavaSpec spec = request.java()
                 .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
             if (request.flag(OPTION_PIN_JAVA)) {
-                JavaResolution java = context.javaResolver().resolve(spec, context.listener());
-                javaCommand = java.executable().toString();
-                plan.note("Scripts pinned to " + javaCommand);
+                JavaResolution java = resolveJava(request, context, spec, plan);
+                if (java != null) {
+                    javaCommand = java.executable().toString();
+                    plan.note("Scripts pinned to " + javaCommand);
+                }
             }
             // Only the script this machine can actually run: a Linux box has no use for run.bat.
             if (context.env().windows()) {

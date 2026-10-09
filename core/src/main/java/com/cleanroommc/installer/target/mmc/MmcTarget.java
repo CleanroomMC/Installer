@@ -245,16 +245,18 @@ public final class MmcTarget extends AbstractInstallTarget {
             values.put("name", requestedName);
         }
         if (shouldReplaceJavaPath(request)) {
-            JavaResolution java = context.javaResolver()
-                .resolve(
-                    request.java()
-                        .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
-                    context.listener()
-                );
-            values.put("OverrideJava", "true");
-            values.put("OverrideJavaLocation", "true");
-            values.put("JavaPath", java.executable().toString());
-            plan.note("Instance java path set to " + java.executable());
+            JavaResolution java = resolveJava(
+                request,
+                context,
+                request.java().withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
+                plan
+            );
+            if (java != null) {
+                values.put("OverrideJava", "true");
+                values.put("OverrideJavaLocation", "true");
+                values.put("JavaPath", java.executable().toString());
+                plan.note("Instance java path set to " + java.executable());
+            }
         }
         if (!values.isEmpty()) {
             plan.add(new InstanceConfigAction(instance.resolve("instance.cfg"), values));

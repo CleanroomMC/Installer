@@ -59,7 +59,7 @@ public final class Help {
             .append(nl())
             .append("      --offline            use only what is already downloaded")
             .append(nl())
-            .append("      --dry-run            print what would happen, write nothing")
+            .append("      --dry-run            print what would happen, write nothing but the installer cache")
             .append(nl())
             .append("      --force              reinstall even if everything is already in place")
             .append(nl())

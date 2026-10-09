@@ -257,13 +257,15 @@ public final class ClientTarget extends AbstractInstallTarget {
             .withDistro(
                 request.java().distro() == null ? JavaDistro.match(profile.java.distro) : request.java().distro()
             );
-        JavaResolution java = context.javaResolver().resolve(spec, context.listener());
-        plan.note("Java " + java.major() + " at " + java.home() + " (" + java.origin().name().toLowerCase() + ")");
+        JavaResolution java = resolveJava(request, context, spec, plan);
+        if (java != null) {
+            plan.note("Java " + java.major() + " at " + java.home() + " (" + java.origin().name().toLowerCase() + ")");
+        }
 
         String name = request.extra(OPTION_PROFILE_NAME, profile.profileName() + " " + profile.cleanroomVersion());
         String key = "cleanroom-" + profile.cleanroomVersion();
         String jvmArgs = jvmArgs(request, profile);
-        String javaDir = java.home().toString();
+        String javaDir = java == null ? null : java.home().toString();
         String icon = profile.icon;
 
         List<Action> actions = new ArrayList<>();
