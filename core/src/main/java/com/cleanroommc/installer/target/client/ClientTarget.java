@@ -265,7 +265,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         String name = request.extra(OPTION_PROFILE_NAME, profile.profileName() + " " + profile.cleanroomVersion());
         String key = "cleanroom-" + profile.cleanroomVersion();
         String jvmArgs = jvmArgs(request, profile);
-        String javaDir = java == null ? null : java.home().toString();
+        String javaDir = java == null ? null : java.windowedExecutable().toString();
         String icon = profile.icon;
 
         List<Action> actions = new ArrayList<>();
