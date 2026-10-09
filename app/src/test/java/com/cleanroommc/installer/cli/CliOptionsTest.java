@@ -113,6 +113,14 @@ class CliOptionsTest {
         )
             .toRequest();
         assertThat(request.java().target()).isEqualTo(21);
+        assertThat(request.java().withProfileBounds(25, 25, 25).accepts(21)).isTrue();
+        assertThat(
+            CliOptions.parse(new String[] { "client" }, this.environment)
+                .toRequest()
+                .java()
+                .withProfileBounds(17, 21, 21)
+                .target()
+        ).isEqualTo(21);
         assertThat(request.java().distro()).isEqualTo(JavaDistro.TEMURIN);
         assertThat(request.java().allowProvision()).isTrue();
     }

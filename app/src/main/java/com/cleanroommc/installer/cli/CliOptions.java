@@ -225,11 +225,7 @@ public final class CliOptions {
             .withPath(this.javaPath)
             .withProvision(Boolean.TRUE.equals(this.provisionJava));
         if (this.javaTarget > 0) {
-            java = java.withBounds(
-                Math.min(java.minimum(), this.javaTarget),
-                Math.max(java.maximum(), this.javaTarget),
-                this.javaTarget
-            );
+            java = java.withVersion(this.javaTarget);
         }
         if (this.javaVendor != null) {
             java = java.withDistro(this.javaVendor);

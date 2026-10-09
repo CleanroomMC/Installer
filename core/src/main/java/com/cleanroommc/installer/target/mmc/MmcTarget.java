@@ -247,7 +247,8 @@ public final class MmcTarget extends AbstractInstallTarget {
         if (shouldReplaceJavaPath(request)) {
             JavaResolution java = context.javaResolver()
                 .resolve(
-                    request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
+                    request.java()
+                        .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
                     context.listener()
                 );
             values.put("OverrideJava", "true");

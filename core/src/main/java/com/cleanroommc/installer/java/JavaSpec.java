@@ -18,14 +18,28 @@ public final class JavaSpec {
     private final int target;
     private final JavaDistro distro;
     private final boolean allowProvision;
+    private final boolean versionChosen;
 
     public JavaSpec(String path, int minimum, int maximum, int target, JavaDistro distro, boolean allowProvision) {
+        this(path, minimum, maximum, target, distro, allowProvision, false);
+    }
+
+    private JavaSpec(
+        String path,
+        int minimum,
+        int maximum,
+        int target,
+        JavaDistro distro,
+        boolean allowProvision,
+        boolean versionChosen
+    ) {
         this.path = path;
         this.minimum = minimum;
         this.maximum = maximum;
         this.target = target;
         this.distro = distro;
         this.allowProvision = allowProvision;
+        this.versionChosen = versionChosen;
     }
 
     /**
@@ -74,15 +88,50 @@ public final class JavaSpec {
     }
 
     public JavaSpec withPath(String newPath) {
-        return new JavaSpec(newPath, this.minimum, this.maximum, this.target, this.distro, this.allowProvision);
+        return new JavaSpec(
+            newPath,
+            this.minimum,
+            this.maximum,
+            this.target,
+            this.distro,
+            this.allowProvision,
+            this.versionChosen
+        );
     }
 
     public JavaSpec withBounds(int newMinimum, int newMaximum, int newTarget) {
-        return new JavaSpec(this.path, newMinimum, newMaximum, newTarget, this.distro, this.allowProvision);
+        return new JavaSpec(
+            this.path,
+            newMinimum,
+            newMaximum,
+            newTarget,
+            this.distro,
+            this.allowProvision,
+            this.versionChosen
+        );
+    }
+
+    /**
+     * Pins the spec to one feature version the user asked for. {@link #withProfileBounds} leaves it alone afterwards.
+     */
+    public JavaSpec withVersion(int version) {
+        return new JavaSpec(this.path, version, version, version, this.distro, this.allowProvision, true);
+    }
+
+    public JavaSpec withProfileBounds(int profileMinimum, int profileMaximum, int profileRecommended) {
+        return this.versionChosen ? this : withBounds(profileMinimum, profileMaximum, profileRecommended);
     }
 
     public JavaSpec withDistro(JavaDistro newDistro) {
-        return new JavaSpec(this.path, this.minimum, this.maximum, this.target, newDistro, this.allowProvision);
+        return new JavaSpec(
+            this.path,
+            this.minimum,
+            this.maximum,
+            this.target,
+            newDistro,
+            this.allowProvision,
+            this.versionChosen
+        );
     }
 
     public JavaSpec withDistro(String newDistro) {
@@ -90,7 +139,7 @@ public final class JavaSpec {
     }
 
     public JavaSpec withProvision(boolean allow) {
-        return new JavaSpec(this.path, this.minimum, this.maximum, this.target, this.distro, allow);
+        return new JavaSpec(this.path, this.minimum, this.maximum, this.target, this.distro, allow, this.versionChosen);
     }
 
 }

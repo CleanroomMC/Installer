@@ -230,7 +230,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         LauncherProfiles profiles = new LauncherProfiles(profilesFile);
 
         JavaSpec spec = request.java()
-            .withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended)
+            .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended)
             .withDistro(
                 request.java().distro() == null ? JavaDistro.match(profile.java.distro) : request.java().distro()
             );

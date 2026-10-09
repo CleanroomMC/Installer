@@ -7,6 +7,7 @@ package com.cleanroommc.installer.target.server;
 
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolution;
+import com.cleanroommc.installer.java.JavaSpec;
 import com.cleanroommc.installer.maven.Coordinate;
 import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.Environment;
@@ -222,12 +223,10 @@ public final class ServerTarget extends AbstractInstallTarget {
 
         if (!request.flag(OPTION_NO_SCRIPTS)) {
             String javaCommand = "java";
+            JavaSpec spec = request.java()
+                .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
             if (request.flag(OPTION_PIN_JAVA)) {
-                JavaResolution java = context.javaResolver()
-                    .resolve(
-                        request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
-                        context.listener()
-                    );
+                JavaResolution java = context.javaResolver().resolve(spec, context.listener());
                 javaCommand = java.executable().toString();
                 plan.note("Scripts pinned to " + javaCommand);
             }
@@ -236,7 +235,7 @@ public final class ServerTarget extends AbstractInstallTarget {
                 String winArgs = root.relativize(argsDirectory.resolve("win_args.txt")).toString().replace('/', '\\');
                 plan.add(new WriteFileAction(
                     root.resolve("run.bat"),
-                    ArgFiles.runBat(javaCommand, winArgs, profile.java.minimum, profile.java.maximum)
+                    ArgFiles.runBat(javaCommand, winArgs, spec.minimum(), spec.maximum())
                 ));
             } else {
                 String unixArgs = root.relativize(argsDirectory.resolve("unix_args.txt"))
@@ -244,7 +243,7 @@ public final class ServerTarget extends AbstractInstallTarget {
                     .replace(File.separatorChar, '/');
                 plan.add(new WriteFileAction(
                     root.resolve("run.sh"),
-                    ArgFiles.runSh(javaCommand, unixArgs, profile.java.minimum, profile.java.maximum),
+                    ArgFiles.runSh(javaCommand, unixArgs, spec.minimum(), spec.maximum()),
                     true
                 ));
             }
