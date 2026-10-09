@@ -12,6 +12,11 @@ subprojects {
         repositoryUrl = 'https://github.com/CleanroomMC/Installer'
     }
 
+    formatJ {
+        // Arrow cases need Java 14
+        rule('switch.case-style', 'preserve')
+    }
+
     java {
         toolchain {
             vendor = JvmVendorSpec.AZUL
