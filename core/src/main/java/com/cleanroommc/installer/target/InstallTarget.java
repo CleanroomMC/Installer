@@ -39,7 +39,8 @@ public interface InstallTarget {
     InstallPlan plan(InstallRequest request, InstallContext context) throws InstallException;
 
     /**
-     * Execute a plan. Must be idempotent and must not leave partial files behind on failure.
+     * Execute a plan. Must be idempotent and must not leave a half-written file behind on failure.
+     * Files already written by a failed run stay, and running the plan again completes it.
      */
     InstallResult apply(InstallPlan plan, InstallContext context, ProgressListener listener) throws InstallException;
 

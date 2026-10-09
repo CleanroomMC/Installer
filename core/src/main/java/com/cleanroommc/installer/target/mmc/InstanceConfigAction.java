@@ -9,6 +9,7 @@ import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.target.action.Action;
+import com.cleanroommc.installer.util.Json;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -78,11 +79,7 @@ public final class InstanceConfigAction extends Action {
                     updated.add(value.getKey() + "=" + value.getValue());
                 }
             }
-            Path parent = config.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-            Files.write(config, join(updated).getBytes(StandardCharsets.UTF_8));
+            Json.writeString(config, join(updated));
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to update " + config, e);
         }

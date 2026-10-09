@@ -8,9 +8,9 @@ package com.cleanroommc.installer.target.action;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
+import com.cleanroommc.installer.util.Json;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -59,11 +59,7 @@ public final class WriteFileAction extends Action {
     @Override
     public void execute(InstallContext context) throws InstallException {
         try {
-            Path parent = destination().getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-            Files.write(destination(), this.content.getBytes(StandardCharsets.UTF_8));
+            Json.writeString(destination(), this.content);
             if (this.executable) {
                 makeExecutable(destination());
             }

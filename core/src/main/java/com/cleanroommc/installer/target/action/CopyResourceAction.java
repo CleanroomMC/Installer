@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 
 /**
  * Copy a file the installer holds.
@@ -45,7 +44,7 @@ public final class CopyResourceAction extends Action {
                 if (in == null) {
                     throw new IOException("missing: " + this.description);
                 }
-                Files.copy(in, destination(), StandardCopyOption.REPLACE_EXISTING);
+                copyAtomically(in, destination());
             }
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to write " + destination(), e);

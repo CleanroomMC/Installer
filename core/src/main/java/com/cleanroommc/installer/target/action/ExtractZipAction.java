@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -76,7 +75,7 @@ public final class ExtractZipAction extends Action {
                     Files.createDirectories(target.getParent());
                 }
                 try (InputStream in = zip.getInputStream(entry)) {
-                    Files.copy(in, target, StandardCopyOption.REPLACE_EXISTING);
+                    copyAtomically(in, target);
                 }
             }
         } catch (IOException e) {

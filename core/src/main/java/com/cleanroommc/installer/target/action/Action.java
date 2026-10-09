@@ -9,7 +9,11 @@ import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.target.InstallPlan;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Work in an {@link InstallPlan}.
@@ -20,6 +24,19 @@ public abstract class Action {
 
     protected Action(Path destination) {
         this.destination = destination;
+    }
+
+    /**
+     * Writes through a sibling temporary file, so a failure never leaves a half-written destination.
+     */
+    protected static void copyAtomically(InputStream in, Path destination) throws IOException {
+        Path temp = destination.resolveSibling(destination.getFileName() + ".tmp");
+        try {
+            Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(temp, destination, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temp);
+        }
     }
 
     public Path destination() {
