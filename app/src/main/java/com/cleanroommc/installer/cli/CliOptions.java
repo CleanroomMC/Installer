@@ -40,8 +40,6 @@ public final class CliOptions {
     public boolean offline;
     public boolean force;
     public boolean assumeYes;
-    // TODO
-    public boolean uninstall;
     public String version;
     public Path directory;
     public Path logFile;

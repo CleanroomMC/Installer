@@ -40,6 +40,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -52,6 +54,8 @@ public final class ClientTarget extends AbstractInstallTarget {
     public static final String OPTION_NO_PROFILE = "noProfile";
     public static final String OPTION_FULL = "full";
     public static final String OPTION_LAUNCHER_PROFILES = "launcherProfiles";
+
+    private static final String VERSION_MARKER = "Cleanroom-";
 
     static String jvmArgs(InstallRequest request, InstallProfile profile) {
         List<String> args = new ArrayList<>();
@@ -68,6 +72,25 @@ public final class ClientTarget extends AbstractInstallTarget {
             builder.append(arg);
         }
         return builder.toString();
+    }
+
+    // Version ids end in "Cleanroom-<version>", e.g. 1.12.2-Cleanroom-0.6.13-alpha
+    private static List<Path> cleanroomVersions(Path root) throws InstallException {
+        Path versions = root.resolve("versions");
+        if (!Files.isDirectory(versions)) {
+            return Collections.emptyList();
+        }
+        try (Stream<Path> entries = Files.list(versions)) {
+            return entries.filter(entry -> entry.getFileName().toString().contains(VERSION_MARKER))
+                .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new InstallException(ExitCode.TARGET, "Unable to read " + versions, e);
+        }
+    }
+
+    private static String versionOf(Path versionDirectory) {
+        String name = versionDirectory.getFileName().toString();
+        return name.substring(name.indexOf(VERSION_MARKER) + VERSION_MARKER.length());
     }
 
     private static void deleteRecursively(Path directory) throws IOException {
@@ -255,23 +278,48 @@ public final class ClientTarget extends AbstractInstallTarget {
     @Override
     public InstallResult uninstall(InstallRequest request, InstallContext context) throws InstallException {
         Path root = directory(request, context.env());
-        InstallProfile profile = context.profile();
-        String versionId = context.versionJson().id;
         InstallResult result = new InstallResult(root);
+        List<Path> installed = cleanroomVersions(root);
 
-        Path versionDirectory = root.resolve("versions").resolve(versionId);
-        try {
-            if (Files.isDirectory(versionDirectory)) {
-                deleteRecursively(versionDirectory);
-                result.note("Removed " + versionDirectory);
+        String version = request.version();
+        if (version == null) {
+            Set<String> versions = new TreeSet<>();
+            for (Path directory : installed) {
+                versions.add(versionOf(directory));
             }
-        } catch (IOException e) {
-            throw new InstallException(ExitCode.TARGET, "Unable to remove " + versionDirectory, e);
+            if (versions.isEmpty()) {
+                return result.noOp(true);
+            }
+            if (versions.size() > 1) {
+                throw new InstallException(
+                    ExitCode.USAGE,
+                    "Several Cleanroom versions are installed in " + root + ": " + String.join(", ", versions) +
+                        System.lineSeparator() + "Pass --version to choose the one to remove."
+                );
+            }
+            version = versions.iterator().next();
         }
 
-        LauncherProfiles profiles = new LauncherProfiles(LauncherProfiles.locate(root));
-        if (profiles.remove("cleanroom-" + profile.cleanroomVersion())) {
+        for (Path directory : installed) {
+            if (!versionOf(directory).equals(version)) {
+                continue;
+            }
+            try {
+                deleteRecursively(directory);
+            } catch (IOException e) {
+                throw new InstallException(ExitCode.TARGET, "Unable to remove " + directory, e);
+            }
+            result.note("Removed " + directory);
+        }
+
+        Path profilesFile = request.extra(OPTION_LAUNCHER_PROFILES) != null
+            ? context.env().path(request.extra(OPTION_LAUNCHER_PROFILES))
+            : LauncherProfiles.locate(root);
+        if (new LauncherProfiles(profilesFile).remove("cleanroom-" + version)) {
             result.note("Removed the launcher profile");
+        }
+        if (result.notes().isEmpty()) {
+            return result.noOp(true);
         }
         result.note(
             "Libraries under " + root.resolve("libraries") + " were left in place as other versions may use them"

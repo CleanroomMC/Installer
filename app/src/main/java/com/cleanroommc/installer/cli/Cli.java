@@ -19,6 +19,7 @@ import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.InstallResult;
 import com.cleanroommc.installer.target.InstallTarget;
 import com.cleanroommc.installer.target.InstallTargets;
+import com.cleanroommc.installer.target.client.ClientTarget;
 import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.installer.util.slf4j.LogBridge;
 import com.cleanroommc.installer.version.RemoteVersion;
@@ -121,7 +122,10 @@ public final class Cli {
 
     private int install(CliOptions options, Downloader downloader, Log log, CliProgress progress)
         throws InstallException {
-        InstallTarget target = InstallTargets.byId(options.mode.equals("uninstall") ? "client" : options.mode);
+        if ("uninstall".equals(options.mode)) {
+            return uninstall(options, downloader, log, progress);
+        }
+        InstallTarget target = InstallTargets.byId(options.mode);
         try (ProfileSource source = Sources.open(
             options.version,
             downloader,
@@ -137,13 +141,6 @@ public final class Cli {
                 log
             ).listener(progress);
             InstallRequest request = options.toRequest();
-
-            if ("uninstall".equals(options.mode)) {
-                InstallResult result = target.uninstall(request, context);
-                progress.done();
-                printResult(result, options.json, true);
-                return ExitCode.SUCCESS.code();
-            }
 
             target.validate(request, context);
             InstallPlan plan = target.plan(request, context);
@@ -163,6 +160,26 @@ public final class Cli {
         }
     }
 
+    private int uninstall(CliOptions options, Downloader downloader, Log log, CliProgress progress)
+        throws InstallException {
+        InstallRequest request = options.toRequest();
+        if (request.version() == null) {
+            request = request.toBuilder().version(Sources.pinnedVersion()).build();
+        }
+        // No profile source: what to remove is read from the game directory, never from a download
+        InstallContext context = new InstallContext(
+            null,
+            downloader,
+            new JavaResolver(this.environment, log),
+            this.environment,
+            log
+        ).listener(progress);
+        InstallResult result = InstallTargets.byId(ClientTarget.ID).uninstall(request, context);
+        progress.done();
+        printResult(result, options.json, true);
+        return ExitCode.SUCCESS.code();
+    }
+
     private void printResult(InstallResult result, boolean json, boolean removing) {
         if (json) {
             StringBuilder builder = new StringBuilder("{\"event\":\"result\",\"ok\":true,\"root\":")
@@ -178,7 +195,11 @@ public final class Cli {
             return;
         }
         if (removing) {
-            this.out.println("Removed Cleanroom from " + result.root() + ".");
+            this.out.println(
+                result.isNoOp()
+                    ? "No Cleanroom installation was found in " + result.root() + "."
+                    : "Removed Cleanroom from " + result.root() + "."
+            );
         } else if (result.isNoOp()) {
             this.out.println("Already installed; nothing to do.");
         } else {
