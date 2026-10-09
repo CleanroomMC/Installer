@@ -102,10 +102,12 @@ public final class Downloader {
                 "Offline mode: " + destination.getFileName() + " is missing and " + url + " cannot be fetched"
             );
         }
+        // Without a checksum, a resumed file cannot be told apart from a splice of two remote versions
+        boolean resumable = sha1 != null && !sha1.trim().isEmpty();
         IOException last = null;
         for (int attempt = 1; attempt <= this.attempts; attempt++) {
             try {
-                transfer(url, destination, size, listener);
+                transfer(url, destination, size, resumable, listener);
                 verify(url, destination, sha1, size);
                 return true;
             } catch (IOException e) {
@@ -185,14 +187,14 @@ public final class Downloader {
         }
     }
 
-    private void transfer(String url, Path destination, long expectedSize, ProgressListener listener)
+    private void transfer(String url, Path destination, long expectedSize, boolean resumable, ProgressListener listener)
         throws IOException {
         Path parent = destination.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
         }
         Path partial = destination.resolveSibling(destination.getFileName() + ".part");
-        long resumeFrom = Files.isRegularFile(partial) ? Files.size(partial) : 0L;
+        long resumeFrom = resumable && Files.isRegularFile(partial) ? Files.size(partial) : 0L;
         if (expectedSize > 0 && resumeFrom >= expectedSize) {
             // A partial file at or past the expected length is garbage, not a resume point.
             Files.deleteIfExists(partial);

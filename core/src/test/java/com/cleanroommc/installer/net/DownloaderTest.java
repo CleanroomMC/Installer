@@ -151,6 +151,29 @@ class DownloaderTest {
     }
 
     @Test
+    void aPartialFileIsOnlyResumedWhenAChecksumCanCatchASplice() throws Exception {
+        this.server.createContext("/ranged", exchange -> {
+            boolean ranged = exchange.getRequestHeaders().containsKey("Range");
+            byte[] body = ranged ? "room".getBytes(StandardCharsets.UTF_8) : BODY;
+            exchange.sendResponseHeaders(ranged ? 206 : 200, body.length);
+            try (OutputStream out = exchange.getResponseBody()) {
+                out.write(body);
+            }
+        });
+        Path file = this.directory.resolve("artifact.jar");
+        Path partial = this.directory.resolve("artifact.jar.part");
+
+        Files.write(partial, "clean".getBytes(StandardCharsets.UTF_8));
+        downloader().download(this.base + "/ranged", file, sha1(), 0, ProgressListener.NONE);
+        assertThat(Files.readAllBytes(file)).isEqualTo(BODY);
+
+        Files.delete(file);
+        Files.write(partial, "stale".getBytes(StandardCharsets.UTF_8));
+        downloader().download(this.base + "/ranged", file, null, 0, ProgressListener.NONE);
+        assertThat(Files.readAllBytes(file)).isEqualTo(BODY);
+    }
+
+    @Test
     void serverErrorsBecomeNetworkFailures() {
         Path file = this.directory.resolve("artifact.jar");
         InstallException failure = catchThrowableOfType(
