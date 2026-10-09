@@ -207,10 +207,18 @@ public final class ServerTarget extends AbstractInstallTarget {
             argsDirectory.resolve("win_args.txt"),
             ArgFiles.argsFile(profile.jvmArgs(), join(classpath, root, ";"), mainClass, gameArgs)
         ));
-        plan.add(new WriteFileAction(
-            root.resolve("user_jvm_args.txt"),
-            ArgFiles.userJvmArgs(request.extra(OPTION_MEMORY, DEFAULT_MEMORY))
-        ));
+        Path userJvmArgs = root.resolve("user_jvm_args.txt");
+        if (Files.exists(userJvmArgs)) {
+            plan.note(
+                "Kept the existing user_jvm_args.txt" +
+                    (request.extra(OPTION_MEMORY) != null ? "; --memory was not applied" : "")
+            );
+        } else {
+            plan.add(new WriteFileAction(
+                userJvmArgs,
+                ArgFiles.userJvmArgs(request.extra(OPTION_MEMORY, DEFAULT_MEMORY))
+            ));
+        }
 
         if (!request.flag(OPTION_NO_SCRIPTS)) {
             String javaCommand = "java";

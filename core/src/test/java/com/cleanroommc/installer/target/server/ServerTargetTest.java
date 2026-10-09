@@ -6,16 +6,26 @@
 package com.cleanroommc.installer.target.server;
 
 import com.cleanroommc.installer.maven.MavenLayout;
+import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.profile.Download;
+import com.cleanroommc.installer.profile.InstallProfile;
 import com.cleanroommc.installer.profile.Library;
 import com.cleanroommc.installer.profile.Rule;
+import com.cleanroommc.installer.profile.VersionJson;
+import com.cleanroommc.installer.source.ProfileSource;
+import com.cleanroommc.installer.target.InstallContext;
+import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.target.action.WriteFileAction;
+import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.platformutils.Platform;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -27,6 +37,35 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ServerTargetTest {
 
     @TempDir Path directory;
+
+    private static InstallContext context() {
+        InstallProfile profile = new InstallProfile();
+        profile.path = "com.cleanroommc:cleanroom:1.0.0:universal";
+        VersionJson version = new VersionJson();
+        version.id = "Cleanroom-1.0.0";
+        ProfileSource source = new ProfileSource() {
+
+            @Override
+            public InstallProfile profile() {
+                return profile;
+            }
+
+            @Override
+            public VersionJson versionJson() {
+                return version;
+            }
+
+            @Override
+            public InputStream open(String path) {
+                return null;
+            }
+
+            @Override
+            public void close() { }
+
+        };
+        return new InstallContext(source, null, null, new Environment(), Log.console());
+    }
 
     private static Download download(String url) {
         Download download = new Download();
@@ -92,6 +131,21 @@ class ServerTargetTest {
                 "io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar"
             )
         ));
+    }
+
+    @Test
+    void reinstallKeepsAnEditedUserJvmArgs() throws Exception {
+        Path userJvmArgs = this.directory.resolve("user_jvm_args.txt");
+        InstallRequest request = InstallRequest.builder(ServerTarget.ID)
+            .directory(this.directory)
+            .flag(ServerTarget.OPTION_NO_SCRIPTS, true)
+            .build();
+
+        assertThat(new ServerTarget().plan(request, context()).actions()).anyMatch(action -> action.destination()
+            .equals(userJvmArgs));
+        Files.write(userJvmArgs, "-Xmx12G".getBytes(StandardCharsets.UTF_8));
+        assertThat(new ServerTarget().plan(request, context()).actions()).noneMatch(action -> action.destination()
+            .equals(userJvmArgs));
     }
 
 }
