@@ -283,7 +283,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         if (embeddedPack) {
             return new CopyResourceAction(EMBEDDED_PACK, () -> context.source().open(EMBEDDED_PACK), pack);
         }
-        return new DownloadAction(packUrl(context, profile), pack, null, 0L);
+        return new DownloadAction(packUrl(context, profile), pack);
     }
 
     private Action embeddedUniversalAction(InstallContext context, InstallProfile profile, Path instance)

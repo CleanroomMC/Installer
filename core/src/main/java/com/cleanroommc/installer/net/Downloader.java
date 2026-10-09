@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -114,6 +115,22 @@ public final class Downloader {
             }
         }
         throw new InstallException(ExitCode.NETWORK, "Unable to download " + url, last);
+    }
+
+    /**
+     * Downloads an artifact from a Maven repository and verifies it against its {@code .sha1} sidecar.
+     * Offline, a cached copy is used as it is.
+     */
+    public boolean downloadVerified(String url, Path destination, ProgressListener listener) throws InstallException {
+        if (this.offline) {
+            return download(url, destination, null, 0L, listener);
+        }
+        // Some repositories append the file name after the hash
+        String sha1 = new String(fetch(url + ".sha1"), StandardCharsets.US_ASCII).trim().split("\\s+")[0];
+        if (sha1.isEmpty()) {
+            throw new InstallException(ExitCode.VERIFICATION, "Empty checksum at " + url + ".sha1");
+        }
+        return download(url, destination, sha1, 0L, listener);
     }
 
     /** Fetches a small resource into memory. Used for manifests and version indexes. */

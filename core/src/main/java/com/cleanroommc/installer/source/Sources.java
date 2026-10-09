@@ -95,7 +95,7 @@ public final class Sources {
         RemoteVersion version = requestedVersion == null ? index.latest() : index.byId(requestedVersion);
         Path jar = cache.resolve("installers").resolve("cleanroom-" + version.id() + "-installer.jar");
         listener.stage("Fetching Cleanroom " + version.id());
-        downloader.download(version.installerUrl(), jar, null, 0L, listener);
+        downloader.downloadVerified(version.installerUrl(), jar, listener);
         try {
             if (!Files.isRegularFile(jar)) {
                 throw new InstallException(ExitCode.NETWORK, "Failed to obtain " + version.installerUrl());

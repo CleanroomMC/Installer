@@ -19,11 +19,25 @@ public final class DownloadAction extends Action {
     private final String sha1;
     private final long size;
 
+    private final boolean sidecar;
+
     public DownloadAction(String url, Path destination, String sha1, long size) {
         super(destination);
         this.url = url;
         this.sha1 = sha1;
         this.size = size;
+        this.sidecar = false;
+    }
+
+    /**
+     * An artifact whose checksum is read from the {@code .sha1} file beside it in a Maven repository.
+     */
+    public DownloadAction(String url, Path destination) {
+        super(destination);
+        this.url = url;
+        this.sha1 = null;
+        this.size = 0L;
+        this.sidecar = true;
     }
 
     public String url() {
@@ -42,7 +56,11 @@ public final class DownloadAction extends Action {
 
     @Override
     public void execute(InstallContext context) throws InstallException {
-        context.downloader().download(this.url, destination(), this.sha1, this.size, context.listener());
+        if (this.sidecar) {
+            context.downloader().downloadVerified(this.url, destination(), context.listener());
+        } else {
+            context.downloader().download(this.url, destination(), this.sha1, this.size, context.listener());
+        }
     }
 
 }

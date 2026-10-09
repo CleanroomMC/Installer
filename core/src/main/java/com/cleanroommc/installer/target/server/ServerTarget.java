@@ -264,7 +264,7 @@ public final class ServerTarget extends AbstractInstallTarget {
         if (embedded) {
             return new CopyResourceAction(entry, () -> context.source().open(entry), destination);
         }
-        return new DownloadAction(InstallerMeta.CLEANROOM_REPO + universal.path(), destination, null, 0L);
+        return new DownloadAction(InstallerMeta.CLEANROOM_REPO + universal.path(), destination);
     }
 
     private Path directory(InstallRequest request, Environment environment) {

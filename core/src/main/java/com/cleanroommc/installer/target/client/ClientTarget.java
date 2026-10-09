@@ -234,7 +234,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         if (embedded) {
             actions.add(new CopyResourceAction(entry, () -> context.source().open(entry), destination));
         } else {
-            actions.add(new DownloadAction(InstallerMeta.CLEANROOM_REPO + coordinate.path(), destination, null, 0L));
+            actions.add(new DownloadAction(InstallerMeta.CLEANROOM_REPO + coordinate.path(), destination));
         }
         return actions;
     }

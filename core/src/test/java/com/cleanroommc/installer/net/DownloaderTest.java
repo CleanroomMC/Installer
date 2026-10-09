@@ -64,6 +64,14 @@ class DownloaderTest {
             "/truncated",
             exchange -> respond(exchange, "clean".getBytes(StandardCharsets.UTF_8))
         );
+        this.server.createContext(
+            "/good.sha1",
+            exchange -> respond(exchange, (sha1() + "\n").getBytes(StandardCharsets.UTF_8))
+        );
+        this.server.createContext(
+            "/truncated.sha1",
+            exchange -> respond(exchange, sha1().getBytes(StandardCharsets.UTF_8))
+        );
         this.server.createContext("/broken", exchange -> {
             exchange.sendResponseHeaders(500, -1);
             exchange.close();
@@ -122,6 +130,24 @@ class DownloaderTest {
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
         assertThat(failure.getMessage().contains("expected " + BODY.length)).isTrue();
+    }
+
+    @Test
+    void sidecarChecksumReplacesAStaleCopyAndRejectsAWrongBody() throws Exception {
+        Path file = this.directory.resolve("artifact.jar");
+        Files.write(file, "stale".getBytes(StandardCharsets.UTF_8));
+        assertThat(downloader().downloadVerified(this.base + "/good", file, ProgressListener.NONE)).isTrue();
+        assertThat(Files.readAllBytes(file)).isEqualTo(BODY);
+
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> downloader().downloadVerified(
+                this.base + "/truncated",
+                this.directory.resolve("other.jar"),
+                ProgressListener.NONE
+            )
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
     }
 
     @Test
