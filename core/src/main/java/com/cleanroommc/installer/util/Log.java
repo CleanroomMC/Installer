@@ -24,28 +24,12 @@ import java.util.Date;
  */
 public final class Log implements AutoCloseable {
 
-    public enum Level {
-
-        DEBUG,
-        INFO,
-        WARN,
-        ERROR
-
-    }
-
     private final SimpleDateFormat stamp = new SimpleDateFormat("HH:mm:ss.SSS");
     private final PrintStream console;
     private final Path file;
     private final Writer writer;
+
     private Level consoleLevel = Level.INFO;
-
-    public static Log toFile(Path file) {
-        return new Log(System.err, file);
-    }
-
-    public static Log console() {
-        return new Log(System.err, null);
-    }
 
     private Log(PrintStream console, Path file) {
         this.console = console;
@@ -56,12 +40,53 @@ public final class Log implements AutoCloseable {
                 if (file.getParent() != null) {
                     Files.createDirectories(file.getParent());
                 }
-                opened = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                opened = Files.newBufferedWriter(
+                    file,
+                    StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.APPEND
+                );
             } catch (IOException e) {
                 console.println("[WARN ] Unable to open log file " + file + ": " + e);
             }
         }
         this.writer = opened;
+    }
+
+    public static Log toFile(Path file) {
+        return new Log(System.err, file);
+    }
+
+    public static Log console() {
+        return new Log(System.err, null);
+    }
+
+    /** SLF4J-style {@code {}} placeholders, without the dependency. */
+    static String format(String message, Object[] args) {
+        if (args == null || args.length == 0) {
+            return message;
+        }
+        StringBuilder builder = new StringBuilder(message.length() + 32);
+        int argument = 0;
+        int index = 0;
+        while (index < message.length()) {
+            int placeholder = message.indexOf("{}", index);
+            if (placeholder < 0 || argument >= args.length) {
+                builder.append(message, index, message.length());
+                break;
+            }
+            builder.append(message, index, placeholder).append(args[argument++]);
+            index = placeholder + 2;
+        }
+        return builder.toString();
+    }
+
+    private static String pad(String level) {
+        StringBuilder builder = new StringBuilder(level);
+        while (builder.length() < 5) {
+            builder.append(' ');
+        }
+        return builder.toString();
     }
 
     public Path file() {
@@ -116,34 +141,6 @@ public final class Log implements AutoCloseable {
         }
     }
 
-    /** SLF4J-style {@code {}} placeholders, without the dependency. */
-    static String format(String message, Object[] args) {
-        if (args == null || args.length == 0) {
-            return message;
-        }
-        StringBuilder builder = new StringBuilder(message.length() + 32);
-        int argument = 0;
-        int index = 0;
-        while (index < message.length()) {
-            int placeholder = message.indexOf("{}", index);
-            if (placeholder < 0 || argument >= args.length) {
-                builder.append(message, index, message.length());
-                break;
-            }
-            builder.append(message, index, placeholder).append(args[argument++]);
-            index = placeholder + 2;
-        }
-        return builder.toString();
-    }
-
-    private static String pad(String level) {
-        StringBuilder builder = new StringBuilder(level);
-        while (builder.length() < 5) {
-            builder.append(' ');
-        }
-        return builder.toString();
-    }
-
     @Override
     public void close() {
         if (this.writer != null) {
@@ -153,6 +150,15 @@ public final class Log implements AutoCloseable {
                 // The log is best-effort
             }
         }
+    }
+
+    public enum Level {
+
+        DEBUG,
+        INFO,
+        WARN,
+        ERROR
+
     }
 
 }

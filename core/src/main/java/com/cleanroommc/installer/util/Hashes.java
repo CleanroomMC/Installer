@@ -16,6 +16,8 @@ public final class Hashes {
 
     private static final char[] HEX = "0123456789abcdef".toCharArray();
 
+    private Hashes() { }
+
     public static String sha1(Path path) throws IOException {
         return hash(path, "SHA-1");
     }
@@ -64,7 +66,5 @@ public final class Hashes {
         }
         return builder.toString();
     }
-
-    private Hashes() { }
 
 }

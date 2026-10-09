@@ -19,6 +19,14 @@ public final class Coordinate {
     private final String classifier;
     private final String extension;
 
+    public Coordinate(String group, String artifact, String version, String classifier, String extension) {
+        this.group = group;
+        this.artifact = artifact;
+        this.version = version;
+        this.classifier = classifier == null || classifier.isEmpty() ? null : classifier;
+        this.extension = extension == null || extension.isEmpty() ? "jar" : extension;
+    }
+
     public static Coordinate parse(String notation) {
         String remainder = notation;
         String extension = "jar";
@@ -32,14 +40,6 @@ public final class Coordinate {
             throw new IllegalArgumentException("Not a maven coordinate: " + notation);
         }
         return new Coordinate(parts[0], parts[1], parts[2], parts.length == 4 ? parts[3] : null, extension);
-    }
-
-    public Coordinate(String group, String artifact, String version, String classifier, String extension) {
-        this.group = group;
-        this.artifact = artifact;
-        this.version = version;
-        this.classifier = classifier == null || classifier.isEmpty() ? null : classifier;
-        this.extension = extension == null || extension.isEmpty() ? "jar" : extension;
     }
 
     public String group() {
@@ -90,7 +90,12 @@ public final class Coordinate {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder().append(this.group).append(':').append(this.artifact).append(':').append(this.version);
+        StringBuilder builder = new StringBuilder()
+            .append(this.group)
+            .append(':')
+            .append(this.artifact)
+            .append(':')
+            .append(this.version);
         if (this.classifier != null) {
             builder.append(':').append(this.classifier);
         }

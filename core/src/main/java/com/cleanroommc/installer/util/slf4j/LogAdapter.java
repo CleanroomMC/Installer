@@ -13,6 +13,10 @@ import org.slf4j.helpers.LegacyAbstractLogger;
 
 final class LogAdapter extends LegacyAbstractLogger {
 
+    LogAdapter(String name) {
+        this.name = name;
+    }
+
     private static String withThrown(String message, Throwable thrown) {
         return thrown == null ? message : message + ": {}";
     }
@@ -29,17 +33,19 @@ final class LogAdapter extends LegacyAbstractLogger {
         return extended;
     }
 
-    LogAdapter(String name) {
-        this.name = name;
-    }
-
     @Override
     protected String getFullyQualifiedCallerName() {
         return null;
     }
 
     @Override
-    protected void handleNormalizedLoggingCall(Level level, Marker marker, String message, Object[] arguments, Throwable thrown) {
+    protected void handleNormalizedLoggingCall(
+        Level level,
+        Marker marker,
+        String message,
+        Object[] arguments,
+        Throwable thrown
+    ) {
         Log log = LogBridge.target();
         if (log == null) {
             return;

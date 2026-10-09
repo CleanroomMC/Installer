@@ -14,6 +14,15 @@ public final class SwingProgress implements ProgressListener {
 
     private static final long PAINT_INTERVAL_MS = 50L;
 
+    private final ProgressWindow window;
+    private final AtomicBoolean cancelled = new AtomicBoolean();
+
+    private long lastPaint;
+
+    public SwingProgress(ProgressWindow window) {
+        this.window = window;
+    }
+
     static void run(Runnable action) {
         if (SwingUtilities.isEventDispatchThread()) {
             action.run();
@@ -24,15 +33,6 @@ public final class SwingProgress implements ProgressListener {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    private final ProgressWindow window;
-    private final AtomicBoolean cancelled = new AtomicBoolean();
-
-    private long lastPaint;
-
-    public SwingProgress(ProgressWindow window) {
-        this.window = window;
     }
 
     public void cancel() {

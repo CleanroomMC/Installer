@@ -24,6 +24,8 @@ public final class Json {
 
     public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
 
+    private Json() { }
+
     public static <T> T read(Path path, Class<T> type) throws IOException {
         try (Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
             return GSON.fromJson(reader, type);
@@ -60,7 +62,5 @@ public final class Json {
             Files.move(temp, path, StandardCopyOption.REPLACE_EXISTING);
         }
     }
-
-    private Json() { }
 
 }

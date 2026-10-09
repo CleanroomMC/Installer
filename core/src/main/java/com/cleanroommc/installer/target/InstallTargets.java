@@ -21,18 +21,21 @@ public final class InstallTargets {
 
     private static List<InstallTarget> cached;
 
+    private InstallTargets() { }
+
     public static synchronized List<InstallTarget> all() {
         if (cached == null) {
             List<InstallTarget> targets = new ArrayList<>();
-            for (InstallTarget target : ServiceLoader.load(InstallTarget.class, InstallTargets.class.getClassLoader())) {
+            for (InstallTarget target : ServiceLoader.load(
+                InstallTarget.class,
+                InstallTargets.class.getClassLoader()
+            )) {
                 targets.add(target);
             }
-            targets.sort(
-                Comparator.comparingInt(target -> {
-                    int index = ORDER.indexOf(target.id());
-                    return index < 0 ? ORDER.size() : index;
-                })
-            );
+            targets.sort(Comparator.comparingInt(target -> {
+                int index = ORDER.indexOf(target.id());
+                return index < 0 ? ORDER.size() : index;
+            }));
             cached = Collections.unmodifiableList(targets);
         }
         return cached;
@@ -57,7 +60,5 @@ public final class InstallTargets {
         }
         return builder.toString();
     }
-
-    private InstallTargets() { }
 
 }

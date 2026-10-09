@@ -45,6 +45,22 @@ public final class LauncherProfiles {
         return standard;
     }
 
+    private static JsonObject skeleton() {
+        JsonObject document = new JsonObject();
+        document.add("profiles", new JsonObject());
+        JsonObject settings = new JsonObject();
+        settings.addProperty("enableSnapshots", false);
+        settings.addProperty("enableAdvanced", false);
+        settings.addProperty("keepLauncherOpen", false);
+        document.add("settings", settings);
+        document.addProperty("version", 3);
+        return document;
+    }
+
+    static String readAll(Path path) throws IOException {
+        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+    }
+
     public Path file() {
         return this.file;
     }
@@ -66,7 +82,8 @@ public final class LauncherProfiles {
     /**
      * Inserts or updates one profile, preserving everything else in the file.
      */
-    public void merge(String key, String name, String versionId, String javaDir, String javaArgs, String icon) throws InstallException {
+    public void merge(String key, String name, String versionId, String javaDir, String javaArgs, String icon)
+        throws InstallException {
         JsonObject document = load();
         backup();
 
@@ -77,7 +94,9 @@ public final class LauncherProfiles {
         }
 
         String now = new SimpleDateFormat(ISO).format(new Date());
-        JsonObject profile = profiles.has(key) && profiles.get(key).isJsonObject() ? profiles.getAsJsonObject(key) : new JsonObject();
+        JsonObject profile = profiles.has(key) && profiles.get(key).isJsonObject()
+            ? profiles.getAsJsonObject(key)
+            : new JsonObject();
 
         if (!profile.has("created")) {
             profile.addProperty("created", now);
@@ -123,7 +142,11 @@ public final class LauncherProfiles {
             JsonObject document = Json.readObject(this.file);
             return document == null ? skeleton() : document;
         } catch (JsonSyntaxException | IOException e) {
-            throw new InstallException(ExitCode.TARGET, "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.", e);
+            throw new InstallException(
+                ExitCode.TARGET,
+                "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.",
+                e
+            );
         }
     }
 
@@ -149,22 +172,6 @@ public final class LauncherProfiles {
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to write " + this.file, e);
         }
-    }
-
-    private static JsonObject skeleton() {
-        JsonObject document = new JsonObject();
-        document.add("profiles", new JsonObject());
-        JsonObject settings = new JsonObject();
-        settings.addProperty("enableSnapshots", false);
-        settings.addProperty("enableAdvanced", false);
-        settings.addProperty("keepLauncherOpen", false);
-        document.add("settings", settings);
-        document.addProperty("version", 3);
-        return document;
-    }
-
-    static String readAll(Path path) throws IOException {
-        return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
     }
 
 }

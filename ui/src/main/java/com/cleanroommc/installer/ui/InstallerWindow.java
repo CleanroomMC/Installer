@@ -70,18 +70,6 @@ import javax.swing.event.DocumentListener;
  */
 public final class InstallerWindow {
 
-    public static int launch(Environment environment, InstallRequest seed) {
-        InstallerWindow window = new InstallerWindow(environment == null ? Environment.current() : environment, seed);
-        SwingProgress.run(window::build);
-        // Both of these block on purpose: the window must not be usable while an answer it depends
-        // on is still unknown, or the user installs without ever seeing the provisioning option, or
-        // picks a version out of a list that is still empty.
-        window.loadVersions();
-        window.detectJava();
-        CleanroomUI.showAndWait(window.frame);
-        return window.exitCode.get();
-    }
-
     private final Environment environment;
     private final InstallRequest seed;
     private final AtomicInteger exitCode = new AtomicInteger(ExitCode.SUCCESS.code());
@@ -120,6 +108,58 @@ public final class InstallerWindow {
         this.selectedVersion = fixedVersion();
     }
 
+    public static int launch(Environment environment, InstallRequest seed) {
+        InstallerWindow window = new InstallerWindow(environment == null ? Environment.current() : environment, seed);
+        SwingProgress.run(window::build);
+        // Both of these block on purpose: the window must not be usable while an answer it depends
+        // on is still unknown, or the user installs without ever seeing the provisioning option, or
+        // picks a version out of a list that is still empty.
+        window.loadVersions();
+        window.detectJava();
+        CleanroomUI.showAndWait(window.frame);
+        return window.exitCode.get();
+    }
+
+    private static ProgressWindow progressWindow() {
+        ProgressWindow[] holder = new ProgressWindow[1];
+        SwingProgress.run(() -> holder[0] = new ProgressWindow());
+        return holder[0];
+    }
+
+    /** A labelled text field, laid out like the option rows it sits next to. */
+    private static JPanel fieldRow(String label, JTextField field, String description) {
+        JPanel row = new JPanel();
+        row.setOpaque(false);
+        row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
+        row.setBorder(new EmptyBorder(6, 0, 6, 0));
+        JLabel caption = CleanroomUI.fieldLabel(label);
+        caption.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.add(caption);
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
+        row.add(field);
+        JLabel detail = CleanroomUI.statusLabel(description);
+        detail.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.add(detail);
+        return row;
+    }
+
+    private static InstallRequest rebuild(InstallRequest original, String targetId) {
+        InstallRequest.Builder builder = InstallRequest.builder(targetId)
+            .version(original.version())
+            .directory(original.directory())
+            .offline(original.offline())
+            .dryRun(original.dryRun())
+            .force(original.force())
+            .assumeYes(original.assumeYes())
+            .java(original.java())
+            .jvmArgs(original.jvmArgs());
+        for (Map.Entry<String, String> extra : original.extras().entrySet()) {
+            builder.extra(extra.getKey(), extra.getValue());
+        }
+        return builder.build();
+    }
+
     /**
      * The version this run is locked to, or null when the user gets to choose.
      * <p>
@@ -131,7 +171,10 @@ public final class InstallerWindow {
 
     private void build() {
         CleanroomUI.install();
-        this.screen = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getBounds();
+        this.screen = GraphicsEnvironment.getLocalGraphicsEnvironment()
+            .getDefaultScreenDevice()
+            .getDefaultConfiguration()
+            .getBounds();
         Rectangle screen = this.screen;
         float scale = CleanroomUI.uiScaleFor(screen);
         CleanroomUI.setUiScale(scale);
@@ -213,12 +256,6 @@ public final class InstallerWindow {
         SwingProgress.run(() -> revealProvisionJava(show));
     }
 
-    private static ProgressWindow progressWindow() {
-        ProgressWindow[] holder = new ProgressWindow[1];
-        SwingProgress.run(() -> holder[0] = new ProgressWindow());
-        return holder[0];
-    }
-
     private void revealProvisionJava(boolean show) {
         if (!show || this.provisionJavaRow.isVisible()) {
             return;
@@ -266,12 +303,11 @@ public final class InstallerWindow {
 
     private void applyVersions(List<RemoteVersion> versions, String failure) {
         if (versions.isEmpty()) {
-            this.versionStatus
-                .setText(
-                    failure == null
-                        ? "No releases were found. The newest release will be installed."
-                        : "Unable to list versions (" + failure + "). The newest release will be installed."
-                );
+            this.versionStatus.setText(
+                failure == null
+                    ? "No releases were found. The newest release will be installed."
+                    : "Unable to list versions (" + failure + "). The newest release will be installed."
+            );
             repack();
             return;
         }
@@ -318,7 +354,13 @@ public final class InstallerWindow {
         box.setRenderer(new DefaultListCellRenderer() {
 
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+            ) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof InstallTarget) {
                     setText("Install " + ((InstallTarget) value).displayName());
@@ -384,7 +426,13 @@ public final class InstallerWindow {
         this.versionBox.setRenderer(new DefaultListCellRenderer() {
 
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+            ) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof RemoteVersion) {
                     String id = ((RemoteVersion) value).id();
@@ -469,27 +517,48 @@ public final class InstallerWindow {
 
         this.fullDownload = new JCheckBox("Immediately Download Libraries");
         this.fullDownload.setOpaque(false);
-        this.fullDownloadRow = CleanroomUI.optionRow(this.fullDownload, "Requires internet now, but not later when running the instance for the first time");
+        this.fullDownloadRow = CleanroomUI.optionRow(
+            this.fullDownload,
+            "Requires internet now, but not later when running the instance for the first time"
+        );
         options.add(this.fullDownloadRow);
 
         this.provisionJava = new JCheckBox("Provision Java if None is Found", true);
         this.provisionJava.setOpaque(false);
-        this.provisionJavaRow = CleanroomUI.optionRow(this.provisionJava, "Cleanroom needs Java 25. The launcher's own Java is not suitable");
+        this.provisionJavaRow = CleanroomUI.optionRow(
+            this.provisionJava,
+            "Cleanroom needs Java 25. The launcher's own Java is not suitable"
+        );
         options.add(this.provisionJavaRow);
 
-        this.instanceNameField = new JTextField(this.seed == null ? "" : this.seed.extra(MmcTarget.OPTION_INSTANCE_NAME, ""));
+        this.instanceNameField = new JTextField(
+            this.seed == null ? "" : this.seed.extra(MmcTarget.OPTION_INSTANCE_NAME, "")
+        );
         CleanroomUI.installTextFieldFocus(this.instanceNameField);
-        this.instanceNameRow = fieldRow("Name", this.instanceNameField, "Leave empty for the default Cleanroom instance name");
+        this.instanceNameRow = fieldRow(
+            "Name",
+            this.instanceNameField,
+            "Leave empty for the default Cleanroom instance name"
+        );
         options.add(this.instanceNameRow);
 
         this.replaceJavaPath = new JCheckBox("Replace Java Path", false);
         this.replaceJavaPath.setOpaque(false);
-        this.replaceJavaPathRow = CleanroomUI.optionRow(this.replaceJavaPath, "Points the instance's java path to the one the installer found");
+        this.replaceJavaPathRow = CleanroomUI.optionRow(
+            this.replaceJavaPath,
+            "Points the instance's java path to the one the installer found"
+        );
         options.add(this.replaceJavaPathRow);
 
-        this.installScripts = new JCheckBox("Write Launch Scripts", this.seed == null || !this.seed.flag(ServerTarget.OPTION_NO_SCRIPTS));
+        this.installScripts = new JCheckBox(
+            "Write Launch Scripts",
+            this.seed == null || !this.seed.flag(ServerTarget.OPTION_NO_SCRIPTS)
+        );
         this.installScripts.setOpaque(false);
-        this.installScriptsRow = CleanroomUI.optionRow(this.installScripts, "Provides ready-made script with custom arguments support");
+        this.installScriptsRow = CleanroomUI.optionRow(
+            this.installScripts,
+            "Provides ready-made script with custom arguments support"
+        );
         options.add(this.installScriptsRow);
 
         this.fullDownloadRow.setVisible(ClientTarget.ID.equals(this.selectedTargetId));
@@ -545,24 +614,6 @@ public final class InstallerWindow {
         return this.environment.path(this.directoryField.getText());
     }
 
-    /** A labelled text field, laid out like the option rows it sits next to. */
-    private static JPanel fieldRow(String label, JTextField field, String description) {
-        JPanel row = new JPanel();
-        row.setOpaque(false);
-        row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
-        row.setBorder(new EmptyBorder(6, 0, 6, 0));
-        JLabel caption = CleanroomUI.fieldLabel(label);
-        caption.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(caption);
-        field.setAlignmentX(Component.LEFT_ALIGNMENT);
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, field.getPreferredSize().height));
-        row.add(field);
-        JLabel detail = CleanroomUI.statusLabel(description);
-        detail.setAlignmentX(Component.LEFT_ALIGNMENT);
-        row.add(detail);
-        return row;
-    }
-
     private String detectionText() {
         if (MmcTarget.ID.equals(this.selectedTargetId)) {
             Path directory = currentDirectory();
@@ -571,7 +622,8 @@ public final class InstallerWindow {
                 case CLEANROOM:
                     return "Existing " + existing.describe() + ". Repairs it or changes its version.";
                 case FORGE:
-                    return "Existing " + existing.describe() + ". Cleanroom will replace Forge in it." + System.lineSeparator() +
+                    return "Existing " + existing.describe() + ". Cleanroom will replace Forge in it." +
+                        System.lineSeparator() +
                         "Consult after installation: https://cleanroommc.com/wiki/end-user-guide/preparing-your-modpack";
                 case VANILLA:
                     return "Existing " + existing.describe() + ". Cleanroom will be added to it.";
@@ -593,7 +645,8 @@ public final class InstallerWindow {
                 : "No Minecraft installation detected here yet.";
         }
         if (ServerTarget.ID.equals(this.selectedTargetId) && ServerTarget.busyDirectory(currentDirectory())) {
-            return "This folder is not empty and holds no server installation." + System.lineSeparator() + "Installing here will add files to it.";
+            return "This folder is not empty and holds no server installation." + System.lineSeparator() +
+                "Installing here will add files to it.";
         }
         return "";
     }
@@ -641,12 +694,23 @@ public final class InstallerWindow {
 
         new Thread(
             () -> {
-                Log log = Log.toFile(this.environment.installerCache().resolve("logs").resolve("installer-" + System.currentTimeMillis() + ".log"));
+                Log log = Log.toFile(
+                    this.environment
+                        .installerCache()
+                        .resolve("logs")
+                        .resolve("installer-" + System.currentTimeMillis() + ".log")
+                );
                 LogBridge.attach(log);
                 try {
                     InstallTarget target = InstallTargets.byId(request.targetId());
                     Downloader downloader = new Downloader(log, request.offline());
-                    try (ProfileSource source = Sources.open(request.version(), downloader, log, this.environment.installerCache(), listener)) {
+                    try (ProfileSource source = Sources.open(
+                        request.version(),
+                        downloader,
+                        log,
+                        this.environment.installerCache(),
+                        listener
+                    )) {
                         InstallContext context = new InstallContext(
                             source,
                             downloader,
@@ -678,10 +742,14 @@ public final class InstallerWindow {
     }
 
     private InstallRequest request() {
-        InstallRequest.Builder builder = (this.seed == null ? InstallRequest.builder(this.selectedTargetId) : this.seed.toBuilder())
+        InstallRequest.Builder builder = (this.seed == null
+            ? InstallRequest.builder(this.selectedTargetId)
+            : this.seed.toBuilder())
             .directory(this.environment.path(this.directoryField.getText()).toAbsolutePath())
             .assumeYes(true);
-        JavaSpec java = (this.seed == null ? JavaSpec.defaults() : this.seed.java()).withProvision(this.provisionJava.isSelected());
+        JavaSpec java = (this.seed == null ? JavaSpec.defaults() : this.seed.java()).withProvision(
+            this.provisionJava.isSelected()
+        );
         builder.java(java);
         builder.version(this.selectedVersion);
         if (ClientTarget.ID.equals(this.selectedTargetId) && this.fullDownload.isSelected()) {
@@ -692,7 +760,10 @@ public final class InstallerWindow {
                 // An empty name is meaningful: it hands the naming back to the target.
                 builder.extra(MmcTarget.OPTION_INSTANCE_NAME, this.instanceNameField.getText().trim());
             }
-            builder.flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, this.replaceJavaPathRow.isVisible() && this.replaceJavaPath.isSelected());
+            builder.flag(
+                MmcTarget.OPTION_REPLACE_JAVA_PATH,
+                this.replaceJavaPathRow.isVisible() && this.replaceJavaPath.isSelected()
+            );
         }
         if (ServerTarget.ID.equals(this.selectedTargetId)) {
             builder.flag(ServerTarget.OPTION_PIN_JAVA, this.provisionJava.isSelected());
@@ -701,22 +772,6 @@ public final class InstallerWindow {
         // The builder keeps the seed's target id, so switching modes in the window has to be applied.
         InstallRequest built = builder.build();
         return this.selectedTargetId.equals(built.targetId()) ? built : rebuild(built, this.selectedTargetId);
-    }
-
-    private static InstallRequest rebuild(InstallRequest original, String targetId) {
-        InstallRequest.Builder builder = InstallRequest.builder(targetId)
-            .version(original.version())
-            .directory(original.directory())
-            .offline(original.offline())
-            .dryRun(original.dryRun())
-            .force(original.force())
-            .assumeYes(original.assumeYes())
-            .java(original.java())
-            .jvmArgs(original.jvmArgs());
-        for (Map.Entry<String, String> extra : original.extras().entrySet()) {
-            builder.extra(extra.getKey(), extra.getValue());
-        }
-        return builder.build();
     }
 
     private void succeeded(InstallResult result, Log log) {

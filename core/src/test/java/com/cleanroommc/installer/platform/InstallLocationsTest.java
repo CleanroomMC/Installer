@@ -23,8 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InstallLocationsTest {
 
-    @TempDir
-    Path home;
+    @TempDir Path home;
 
     @Test
     void findsTheLinuxGameDirectory() throws IOException {
@@ -70,7 +69,10 @@ class InstallLocationsTest {
         Path instances = this.home.resolve("elsewhere/instances");
         Files.createDirectories(instances);
         Files.createDirectories(root);
-        Files.write(root.resolve("prismlauncher.cfg"), ("InstanceDir=" + root.relativize(instances) + "\n").getBytes(StandardCharsets.UTF_8));
+        Files.write(
+            root.resolve("prismlauncher.cfg"),
+            ("InstanceDir=" + root.relativize(instances) + "\n").getBytes(StandardCharsets.UTF_8)
+        );
 
         List<DetectedLauncher> found = InstallLocations.multiMcFamily(env("linux"));
         assertThat(found).hasSize(1);

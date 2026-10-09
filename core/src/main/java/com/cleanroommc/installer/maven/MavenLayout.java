@@ -25,6 +25,8 @@ public final class MavenLayout {
 
     public static final String EMBEDDED_ROOT = "maven/";
 
+    private MavenLayout() { }
+
     public static Path file(Path librariesDirectory, String coordinate, Download download) {
         return librariesDirectory.resolve(download.path(coordinate).replace('/', File.separatorChar));
     }
@@ -89,7 +91,5 @@ public final class MavenLayout {
         }
         return new DownloadAction(download.url, destination, download.sha1, download.size);
     }
-
-    private MavenLayout() { }
 
 }

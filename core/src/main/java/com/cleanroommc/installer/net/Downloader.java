@@ -44,6 +44,38 @@ public final class Downloader {
         this.attempts = Math.max(1, attempts);
     }
 
+    private static long contentLength(HttpURLConnection connection, long resumeFrom) {
+        long length = connection.getContentLengthLong();
+        return length < 0 ? -1 : length + resumeFrom;
+    }
+
+    private static HttpURLConnection open(String url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+        connection.setReadTimeout(READ_TIMEOUT_MS);
+        connection.setRequestProperty("User-Agent", InstallerMeta.USER_AGENT);
+        connection.setInstanceFollowRedirects(true);
+        return connection;
+    }
+
+    private static byte[] readFully(InputStream in) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[BUFFER];
+        int read;
+        while ((read = in.read(chunk)) != -1) {
+            buffer.write(chunk, 0, read);
+        }
+        return buffer.toByteArray();
+    }
+
+    private static void sleepBackoff(int attempt) {
+        try {
+            Thread.sleep(Math.min(4000L, 250L * (1L << (attempt - 1))));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     public boolean offline() {
         return this.offline;
     }
@@ -53,7 +85,8 @@ public final class Downloader {
      *
      * @return true when bytes were transferred, false when the existing file was already correct
      */
-    public boolean download(String url, Path destination, String sha1, long size, ProgressListener listener) throws InstallException {
+    public boolean download(String url, Path destination, String sha1, long size, ProgressListener listener)
+        throws InstallException {
         try {
             if (!Hashes.corrupt(destination, sha1, size)) {
                 this.log.debug("Already present: {}", destination);
@@ -63,7 +96,10 @@ public final class Downloader {
             throw new InstallException(ExitCode.TARGET, "Unable to inspect " + destination, e);
         }
         if (this.offline) {
-            throw new InstallException(ExitCode.NETWORK, "Offline mode: " + destination.getFileName() + " is missing and " + url + " cannot be fetched");
+            throw new InstallException(
+                ExitCode.NETWORK,
+                "Offline mode: " + destination.getFileName() + " is missing and " + url + " cannot be fetched"
+            );
         }
         IOException last = null;
         for (int attempt = 1; attempt <= this.attempts; attempt++) {
@@ -132,7 +168,8 @@ public final class Downloader {
         }
     }
 
-    private void transfer(String url, Path destination, long expectedSize, ProgressListener listener) throws IOException {
+    private void transfer(String url, Path destination, long expectedSize, ProgressListener listener)
+        throws IOException {
         Path parent = destination.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
@@ -188,7 +225,10 @@ public final class Downloader {
             long actual = Files.size(destination);
             if (actual != size) {
                 Files.deleteIfExists(destination);
-                throw new InstallException(ExitCode.VERIFICATION, "Size mismatch for " + url + ": expected " + size + " bytes, got " + actual);
+                throw new InstallException(
+                    ExitCode.VERIFICATION,
+                    "Size mismatch for " + url + ": expected " + size + " bytes, got " + actual
+                );
             }
         }
         if (sha1 == null || sha1.trim().isEmpty()) {
@@ -199,41 +239,10 @@ public final class Downloader {
             Files.deleteIfExists(destination);
             throw new InstallException(
                 ExitCode.VERIFICATION,
-                "SHA-1 mismatch for " + url + System.lineSeparator() + "  expected " + sha1.trim() + System.lineSeparator() + "  actual   " + actual +
-                    System.lineSeparator() + "  saved to " + destination
+                "SHA-1 mismatch for " + url + System.lineSeparator() + "  expected " + sha1.trim() +
+                    System.lineSeparator() + "  actual   " + actual + System.lineSeparator() + "  saved to " +
+                    destination
             );
-        }
-    }
-
-    private static long contentLength(HttpURLConnection connection, long resumeFrom) {
-        long length = connection.getContentLengthLong();
-        return length < 0 ? -1 : length + resumeFrom;
-    }
-
-    private static HttpURLConnection open(String url) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-        connection.setReadTimeout(READ_TIMEOUT_MS);
-        connection.setRequestProperty("User-Agent", InstallerMeta.USER_AGENT);
-        connection.setInstanceFollowRedirects(true);
-        return connection;
-    }
-
-    private static byte[] readFully(InputStream in) throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        byte[] chunk = new byte[BUFFER];
-        int read;
-        while ((read = in.read(chunk)) != -1) {
-            buffer.write(chunk, 0, read);
-        }
-        return buffer.toByteArray();
-    }
-
-    private static void sleepBackoff(int attempt) {
-        try {
-            Thread.sleep(Math.min(4000L, 250L * (1L << (attempt - 1))));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         }
     }
 

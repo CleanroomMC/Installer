@@ -25,7 +25,10 @@ class CliOptionsTest {
 
     @Test
     void parsesAClientInstall() throws Exception {
-        CliOptions options = CliOptions.parse(new String[] { "client", "-d", "/tmp/mc", "-v", "0.6.11-alpha", "--full", "--yes" }, this.environment);
+        CliOptions options = CliOptions.parse(
+            new String[] { "client", "-d", "/tmp/mc", "-v", "0.6.11-alpha", "--full", "--yes" },
+            this.environment
+        );
         InstallRequest request = options.toRequest();
 
         assertThat(request.targetId()).isEqualTo("client");
@@ -47,19 +50,28 @@ class CliOptionsTest {
 
     @Test
     void flagsThatNeedAValueSaySo() {
-        InstallException failure = catchThrowableOfType(InstallException.class, () -> CliOptions.parse(new String[] { "client", "--dir" }, this.environment));
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> CliOptions.parse(new String[] { "client", "--dir" }, this.environment)
+        );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.USAGE);
         assertThat(failure.getMessage().contains("--dir needs a value")).isTrue();
     }
 
     @Test
     void contradictoryInterfaceFlagsAreRejected() {
-        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(new String[] { "--gui", "--no-gui" }, this.environment));
+        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(
+            new String[] { "--gui", "--no-gui" },
+            this.environment
+        ));
     }
 
     @Test
     void aSecondPositionalArgumentIsRejected() {
-        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(new String[] { "client", "server" }, this.environment));
+        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(
+            new String[] { "client", "server" },
+            this.environment
+        ));
     }
 
     @Test
@@ -72,15 +84,22 @@ class CliOptionsTest {
     @Test
     void guiOpensOnlyWithoutAModeAndWithADisplay() throws Exception {
         assertThat(CliOptions.parse(new String[0], this.environment).wantsGui(false)).isTrue();
-        assertThat(CliOptions.parse(new String[0], this.environment).wantsGui(true)).as("headless must not open a window").isFalse();
-        assertThat(CliOptions.parse(new String[] { "client" }, this.environment).wantsGui(false)).as("an explicit mode runs on the command line").isFalse();
+        assertThat(CliOptions.parse(new String[0], this.environment).wantsGui(true))
+            .as("headless must not open a window")
+            .isFalse();
+        assertThat(CliOptions.parse(new String[] { "client" }, this.environment).wantsGui(false))
+            .as("an explicit mode runs on the command line")
+            .isFalse();
         assertThat(CliOptions.parse(new String[] { "client", "--gui" }, this.environment).wantsGui(false)).isTrue();
         assertThat(CliOptions.parse(new String[] { "--help" }, this.environment).wantsGui(false)).isFalse();
     }
 
     @Test
     void mmcFlagsLandOnTheRightOptions() throws Exception {
-        InstallRequest request = CliOptions.parse(new String[] { "mmc", "--replace-java-path", "--instance-name", "Cleanroom Test" }, this.environment)
+        InstallRequest request = CliOptions.parse(
+            new String[] { "mmc", "--replace-java-path", "--instance-name", "Cleanroom Test" },
+            this.environment
+        )
             .toRequest();
         assertThat(request.flag(MmcTarget.OPTION_REPLACE_JAVA_PATH)).isTrue();
         assertThat(request.extra(MmcTarget.OPTION_INSTANCE_NAME)).isEqualTo("Cleanroom Test");
@@ -100,7 +119,11 @@ class CliOptionsTest {
 
     @Test
     void jvmArgumentsSplitOnWhitespace() throws Exception {
-        InstallRequest request = CliOptions.parse(new String[] { "client", "--jvm-args", "-Xmx6G  -XX:+UseZGC" }, this.environment).toRequest();
+        InstallRequest request = CliOptions.parse(
+            new String[] { "client", "--jvm-args", "-Xmx6G  -XX:+UseZGC" },
+            this.environment
+        )
+            .toRequest();
         assertThat(request.jvmArgs()).hasSize(2);
         assertThat(request.jvmArgs().get(0)).isEqualTo("-Xmx6G");
     }

@@ -17,8 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class MmcInstanceTest {
 
-    @TempDir
-    Path temp;
+    @TempDir Path temp;
+
+    private static void write(Path path, String content) throws IOException {
+        Files.write(path, content.getBytes(StandardCharsets.UTF_8));
+    }
 
     @Test
     void anEmptyDirectoryIsNoInstance() {
@@ -60,13 +63,19 @@ class MmcInstanceTest {
             "{\"uid\":\"net.minecraftforge\",\"libraries\":[" + "{\"name\":\"com.paulscode:codecjorbis:20101023\"}," +
                 "{\"name\":\"com.cleanroommc:cleanroom:0.5.0-alpha\"}]}"
         );
-        assertThat(MmcInstance.inspect(instance).kind()).as("the oldest pack zips are only recognisable by this library").isEqualTo(MmcInstance.Kind.CLEANROOM);
+        assertThat(MmcInstance.inspect(instance).kind())
+            .as("the oldest pack zips are only recognisable by this library")
+            .isEqualTo(MmcInstance.Kind.CLEANROOM);
     }
 
     @Test
     void aPatchWithNeitherANameNorTheLibraryIsForge() throws Exception {
         Path instance = instance(null, "14.23.5.2860");
-        patch(instance, "{\"uid\":\"net.minecraftforge\",\"libraries\":[" + "{\"name\":\"net.minecraftforge:forge:1.12.2-14.23.5.2860\"}]}");
+        patch(
+            instance,
+            "{\"uid\":\"net.minecraftforge\",\"libraries\":[" +
+                "{\"name\":\"net.minecraftforge:forge:1.12.2-14.23.5.2860\"}]}"
+        );
         assertThat(MmcInstance.inspect(instance).kind()).isEqualTo(MmcInstance.Kind.FORGE);
     }
 
@@ -74,7 +83,9 @@ class MmcInstanceTest {
     void aCachedNameIsNotSecondGuessed() throws Exception {
         Path instance = instance("Forge", "14.23.5.2860");
         patch(instance, "{\"uid\":\"net.minecraftforge\",\"name\":\"Cleanroom\"}");
-        assertThat(MmcInstance.inspect(instance).kind()).as("a pack that names itself Forge is Forge").isEqualTo(MmcInstance.Kind.FORGE);
+        assertThat(MmcInstance.inspect(instance).kind())
+            .as("a pack that names itself Forge is Forge")
+            .isEqualTo(MmcInstance.Kind.FORGE);
     }
 
     @Test
@@ -82,7 +93,10 @@ class MmcInstanceTest {
         Path instance = this.temp.resolve("vanilla");
         Files.createDirectories(instance);
         write(instance.resolve("instance.cfg"), "name=Plain\n");
-        write(instance.resolve("mmc-pack.json"), "{\"components\":[{\"uid\":\"net.minecraft\",\"version\":\"1.12.2\"}]}");
+        write(
+            instance.resolve("mmc-pack.json"),
+            "{\"components\":[{\"uid\":\"net.minecraft\",\"version\":\"1.12.2\"}]}"
+        );
         MmcInstance found = MmcInstance.inspect(instance);
         assertThat(found.kind()).isEqualTo(MmcInstance.Kind.VANILLA);
         assertThat(found.name()).isEqualTo("Plain");
@@ -102,9 +116,10 @@ class MmcInstanceTest {
         write(instance.resolve("instance.cfg"), "name=" + cachedName + " Pack\n");
         write(
             instance.resolve("mmc-pack.json"),
-            "{\"components\":[" + "{\"uid\":\"net.minecraft\",\"version\":\"1.12.2\"}," + "{\"uid\":\"net.minecraftforge\"," + (cachedName == null
-                    ? ""
-                    : "\"cachedName\":\"" + cachedName + "\",") + "\"version\":\"" + version + "\"}" + "]}"
+            "{\"components\":[" + "{\"uid\":\"net.minecraft\",\"version\":\"1.12.2\"}," +
+                "{\"uid\":\"net.minecraftforge\"," +
+                (cachedName == null ? "" : "\"cachedName\":\"" + cachedName + "\",") + "\"version\":\"" + version +
+                "\"}" + "]}"
         );
         return instance;
     }
@@ -112,10 +127,6 @@ class MmcInstanceTest {
     private void patch(Path instance, String content) throws IOException {
         Files.createDirectories(instance.resolve("patches"));
         write(instance.resolve("patches/net.minecraftforge.json"), content);
-    }
-
-    private static void write(Path path, String content) throws IOException {
-        Files.write(path, content.getBytes(StandardCharsets.UTF_8));
     }
 
 }

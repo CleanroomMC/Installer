@@ -82,8 +82,8 @@ public final class MmcTarget extends AbstractInstallTarget {
     }
 
     private static String packUrl(InstallContext context, InstallProfile profile) {
-        String directory = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" + InstallerMeta.CLEANROOM_ARTIFACT + "/" + profile.cleanroomVersion() +
-            "/";
+        String directory = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" +
+            InstallerMeta.CLEANROOM_ARTIFACT + "/" + profile.cleanroomVersion() + "/";
         String current = directory + packFileName(profile);
         if (context.downloader().exists(current)) {
             return current;
@@ -112,6 +112,34 @@ public final class MmcTarget extends AbstractInstallTarget {
         }
         notes.add("Kept the instance's own configuration");
         return notes;
+    }
+
+    /**
+     * Only a patch that marks the universal jar {@code MMC-hint: local} reads it from the instance's libraries.
+     * Otherwise the launcher downloads it and a copy would sit unused.
+     */
+    private static boolean packLoadsLocalUniversal(InstallContext context, InstallProfile profile) {
+        try (ZipInputStream pack = new ZipInputStream(context.source().open(EMBEDDED_PACK))) {
+            ZipEntry entry;
+            while ((entry = pack.getNextEntry()) != null) {
+                if (!FORGE_PATCH.equals(entry.getName())) {
+                    continue;
+                }
+                JsonObject patch = JsonParser.parseReader(new InputStreamReader(pack, StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+                for (JsonElement library : patch.getAsJsonArray("libraries")) {
+                    JsonObject object = library.getAsJsonObject();
+                    if ("local".equals(MmcInstance.string(object, "MMC-hint")) &&
+                        Objects.equals(profile.path, MmcInstance.string(object, "name"))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        } catch (IOException | RuntimeException ignored) {
+            // A pack without a readable Forge patch downloads the universal jar itself
+        }
+        return false;
     }
 
     @Override
@@ -147,7 +175,8 @@ public final class MmcTarget extends AbstractInstallTarget {
             throw new InstallException(
                 ExitCode.TARGET,
                 "No Prism, PolyMC or MultiMC installation was found." + System.lineSeparator() +
-                    "Pass --dir <path> to name an instances directory, a launcher folder, " + "or an instance to update."
+                    "Pass --dir <path> to name an instances directory, a launcher folder, " +
+                    "or an instance to update."
             );
         }
         if (updatesExistingInstance(directory)) {
@@ -158,8 +187,10 @@ public final class MmcTarget extends AbstractInstallTarget {
             if (existing.kind() == MmcInstance.Kind.FORGE && !request.assumeYes()) {
                 throw new InstallException(
                     ExitCode.TARGET,
-                    directory + " is a " + existing.describe() + "." + System.lineSeparator() + "Installing Cleanroom there replaces Forge, and mods built for Forge may " +
-                        "not load afterwards." + System.lineSeparator() + "Pass --yes to convert it anyway, or --dir to point elsewhere."
+                    directory + " is a " + existing.describe() + "." + System.lineSeparator() +
+                        "Installing Cleanroom there replaces Forge, and mods built for Forge may " +
+                        "not load afterwards." + System.lineSeparator() +
+                        "Pass --yes to convert it anyway, or --dir to point elsewhere."
                 );
             }
             return;
@@ -169,7 +200,8 @@ public final class MmcTarget extends AbstractInstallTarget {
         if (Files.exists(instance) && !request.assumeYes()) {
             throw new InstallException(
                 ExitCode.TARGET,
-                "Instance " + instance + " already exists. Pass --yes to overwrite it, " + "or --instance-name to use a different name."
+                "Instance " + instance + " already exists. Pass --yes to overwrite it, " +
+                    "or --instance-name to use a different name."
             );
         }
     }
@@ -177,23 +209,32 @@ public final class MmcTarget extends AbstractInstallTarget {
     @Override
     public InstallPlan plan(InstallRequest request, InstallContext context) throws InstallException {
         InstallProfile profile = context.profile();
-        String versionId = context.versionJson().id != null ? context.versionJson().id : InstallerMeta.versionId(profile.cleanroomVersion());
+        String versionId = context.versionJson().id != null
+            ? context.versionJson().id
+            : InstallerMeta.versionId(profile.cleanroomVersion());
         Path directory = directory(request, context.env());
         if (directory == null) {
             throw new InstallException(ExitCode.TARGET, "No Prism, PolyMC or MultiMC installation was found");
         }
         boolean updating = updatesExistingInstance(directory);
-        Path instance = updating ? directory : instances(request, context.env()).resolve(instanceName(request, context));
+        Path instance = updating
+            ? directory
+            : instances(request, context.env()).resolve(instanceName(request, context));
 
         InstallPlan plan = new InstallPlan(ID, versionId, instance);
         Path pack = context.cache().resolve("packs").resolve(packFileName(profile));
         boolean embeddedPack = hasEmbeddedPack(context);
         plan.add(packAction(context, profile, pack, embeddedPack));
-        plan.add(updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance));
+        plan.add(
+            updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance)
+        );
         if (embeddedPack && packLoadsLocalUniversal(context, profile)) {
             plan.add(embeddedUniversalAction(context, profile, instance));
         }
-        plan.add(new WriteFileAction(instance.resolve(".cleanroom-installer"), "Created by the Cleanroom Installer for " + versionId + System.lineSeparator()));
+        plan.add(new WriteFileAction(
+            instance.resolve(".cleanroom-installer"),
+            "Created by the Cleanroom Installer for " + versionId + System.lineSeparator()
+        ));
 
         Map<String, String> values = new LinkedHashMap<>();
         String requestedName = request.extra(OPTION_INSTANCE_NAME);
@@ -202,7 +243,10 @@ public final class MmcTarget extends AbstractInstallTarget {
         }
         if (shouldReplaceJavaPath(request)) {
             JavaResolution java = context.javaResolver()
-                .resolve(request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended), context.listener());
+                .resolve(
+                    request.java().withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
+                    context.listener()
+                );
             values.put("OverrideJava", "true");
             values.put("OverrideJavaLocation", "true");
             values.put("JavaPath", java.executable().toString());
@@ -238,33 +282,8 @@ public final class MmcTarget extends AbstractInstallTarget {
         return new DownloadAction(packUrl(context, profile), pack, null, 0L);
     }
 
-    /**
-     * Only a patch that marks the universal jar {@code MMC-hint: local} reads it from the instance's libraries.
-     * Otherwise the launcher downloads it and a copy would sit unused.
-     */
-    private static boolean packLoadsLocalUniversal(InstallContext context, InstallProfile profile) {
-        try (ZipInputStream pack = new ZipInputStream(context.source().open(EMBEDDED_PACK))) {
-            ZipEntry entry;
-            while ((entry = pack.getNextEntry()) != null) {
-                if (!FORGE_PATCH.equals(entry.getName())) {
-                    continue;
-                }
-                JsonObject patch = JsonParser.parseReader(new InputStreamReader(pack, StandardCharsets.UTF_8)).getAsJsonObject();
-                for (JsonElement library : patch.getAsJsonArray("libraries")) {
-                    JsonObject object = library.getAsJsonObject();
-                    if ("local".equals(MmcInstance.string(object, "MMC-hint")) && Objects.equals(profile.path, MmcInstance.string(object, "name"))) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        } catch (IOException | RuntimeException ignored) {
-            // A pack without a readable Forge patch downloads the universal jar itself
-        }
-        return false;
-    }
-
-    private Action embeddedUniversalAction(InstallContext context, InstallProfile profile, Path instance) throws InstallException {
+    private Action embeddedUniversalAction(InstallContext context, InstallProfile profile, Path instance)
+        throws InstallException {
         if (profile.path == null || profile.path.isEmpty()) {
             throw new InstallException(ExitCode.INTERNAL, "install_profile.json has no 'path' for the universal jar");
         }

@@ -20,6 +20,8 @@ import java.nio.file.Path;
 
 public final class Sources {
 
+    private Sources() { }
+
     public static Path ownJar() {
         try {
             Path path = JavaUtils.jarLocationOf(Sources.class).toPath();
@@ -55,7 +57,13 @@ public final class Sources {
      * @param requestedVersion the version the user asked for, or null for "whatever this jar carries,
      *                         else the latest release"
      */
-    public static ProfileSource open(String requestedVersion, Downloader downloader, Log log, Path cache, ProgressListener listener) throws InstallException {
+    public static ProfileSource open(
+        String requestedVersion,
+        Downloader downloader,
+        Log log,
+        Path cache,
+        ProgressListener listener
+    ) throws InstallException {
         Path own = ownJar();
         if (own != null) {
             JarProfileSource embedded = JarProfileSource.of(own);
@@ -65,15 +73,24 @@ public final class Sources {
                     log.info("Installing Cleanroom {} from this installer", embeddedVersion);
                     return embedded;
                 }
-                log.info("This installer carries Cleanroom {}, but {} was asked for", embeddedVersion, requestedVersion);
+                log.info(
+                    "This installer carries Cleanroom {}, but {} was asked for",
+                    embeddedVersion,
+                    requestedVersion
+                );
             }
             embedded.close();
         }
         return remote(requestedVersion, downloader, log, cache, listener);
     }
 
-    private static ProfileSource remote(String requestedVersion, Downloader downloader, Log log, Path cache, ProgressListener listener)
-        throws InstallException {
+    private static ProfileSource remote(
+        String requestedVersion,
+        Downloader downloader,
+        Log log,
+        Path cache,
+        ProgressListener listener
+    ) throws InstallException {
         VersionIndex index = new VersionIndex(downloader, log, cache);
         RemoteVersion version = requestedVersion == null ? index.latest() : index.byId(requestedVersion);
         Path jar = cache.resolve("installers").resolve("cleanroom-" + version.id() + "-installer.jar");
@@ -103,7 +120,5 @@ public final class Sources {
             // Quiet by contract
         }
     }
-
-    private Sources() { }
 
 }

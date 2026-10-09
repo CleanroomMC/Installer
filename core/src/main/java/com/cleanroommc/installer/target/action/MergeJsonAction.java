@@ -17,13 +17,6 @@ import java.nio.file.Path;
  */
 public final class MergeJsonAction extends Action {
 
-    @FunctionalInterface
-    public interface Merge {
-
-        void apply(JsonObject document, InstallContext context) throws InstallException;
-
-    }
-
     private final String description;
     private final Merge merge;
 
@@ -41,6 +34,13 @@ public final class MergeJsonAction extends Action {
     @Override
     public void execute(InstallContext context) throws InstallException {
         this.merge.apply(null, context);
+    }
+
+    @FunctionalInterface
+    public interface Merge {
+
+        void apply(JsonObject document, InstallContext context) throws InstallException;
+
     }
 
 }

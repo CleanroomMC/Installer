@@ -20,6 +20,8 @@ import java.util.Set;
  */
 public final class InstallLocations {
 
+    private InstallLocations() { }
+
     public static Path minecraft(Environment environment) {
         List<Path> candidates = minecraftCandidates(environment);
         for (Path candidate : candidates) {
@@ -58,7 +60,8 @@ public final class InstallLocations {
     }
 
     public static boolean looksLikeMmcInstance(Path directory) {
-        return Files.isRegularFile(directory.resolve("instance.cfg")) || Files.isRegularFile(directory.resolve("mmc-pack.json"));
+        return Files.isRegularFile(directory.resolve("instance.cfg")) ||
+            Files.isRegularFile(directory.resolve("mmc-pack.json"));
     }
 
     public static Path instancesOfLauncherRoot(Path directory) {
@@ -93,7 +96,9 @@ public final class InstallLocations {
 
     private static List<Path> launcherRoots(Environment environment, DetectedLauncher.Kind kind) {
         Set<Path> roots = new LinkedHashSet<>();
-        String windowsName = kind == DetectedLauncher.Kind.PRISM ? "PrismLauncher" : kind == DetectedLauncher.Kind.POLY_MC ? "PolyMC" : "MultiMC";
+        String windowsName = kind == DetectedLauncher.Kind.PRISM
+            ? "PrismLauncher"
+            : kind == DetectedLauncher.Kind.POLY_MC ? "PolyMC" : "MultiMC";
         if (environment.windows()) {
             addIfNamed(roots, environment, environment.env("APPDATA"), windowsName);
             addIfNamed(roots, environment, environment.env("USERPROFILE"), windowsName);
@@ -164,7 +169,5 @@ public final class InstallLocations {
         }
         target.add(environment.path(base, more));
     }
-
-    private InstallLocations() { }
 
 }

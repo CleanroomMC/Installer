@@ -26,13 +26,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class InstanceConfigActionTest {
 
-    @TempDir
-    Path temp;
+    @TempDir Path temp;
+
+    private static void write(ZipOutputStream zip, String name, String content) throws IOException {
+        zip.putNextEntry(new ZipEntry(name));
+        OutputStream out = zip;
+        out.write(content.getBytes(StandardCharsets.UTF_8));
+        zip.closeEntry();
+    }
 
     @Test
     void existingKeysAreReplacedAndTheRestSurvives() throws Exception {
         Path config = this.temp.resolve("instance.cfg");
-        Files.write(config, String.join("\n", "name=My Pack", "JavaPath=/old/java", "iconKey=default").getBytes(StandardCharsets.UTF_8));
+        Files.write(
+            config,
+            String.join("\n", "name=My Pack", "JavaPath=/old/java", "iconKey=default").getBytes(StandardCharsets.UTF_8)
+        );
 
         Map<String, String> values = new LinkedHashMap<>();
         values.put("JavaPath", "/new/java");
@@ -60,8 +69,12 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo("name=Mine");
-        assertThat(new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8)).isEqualTo("{}");
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo(
+            "name=Mine"
+        );
+        assertThat(new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8)).isEqualTo(
+            "{}"
+        );
     }
 
     @Test
@@ -74,14 +87,9 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo("name=Cleanroom");
-    }
-
-    private static void write(ZipOutputStream zip, String name, String content) throws IOException {
-        zip.putNextEntry(new ZipEntry(name));
-        OutputStream out = zip;
-        out.write(content.getBytes(StandardCharsets.UTF_8));
-        zip.closeEntry();
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo(
+            "name=Cleanroom"
+        );
     }
 
 }

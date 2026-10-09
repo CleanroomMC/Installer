@@ -13,6 +13,8 @@ import com.cleanroommc.installer.target.InstallTargets;
  */
 public final class Help {
 
+    private Help() { }
+
     public static String text() {
         StringBuilder builder = new StringBuilder();
         builder.append("Cleanroom Installer")
@@ -128,7 +130,5 @@ public final class Help {
     private static String nl() {
         return System.lineSeparator();
     }
-
-    private Help() { }
 
 }

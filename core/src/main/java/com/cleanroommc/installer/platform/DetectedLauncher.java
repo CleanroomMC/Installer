@@ -12,30 +12,6 @@ import java.nio.file.Path;
  */
 public final class DetectedLauncher {
 
-    public enum Kind {
-
-        PRISM("Prism Launcher", "prismlauncher.cfg"),
-        POLY_MC("PolyMC", "polymc.cfg"),
-        MULTI_MC("MultiMC", "multimc.cfg");
-
-        private final String displayName;
-        private final String configName;
-
-        Kind(String displayName, String configName) {
-            this.displayName = displayName;
-            this.configName = configName;
-        }
-
-        public String displayName() {
-            return this.displayName;
-        }
-
-        public String configName() {
-            return this.configName;
-        }
-
-    }
-
     private final Kind kind;
     private final Path root;
     private final Path instances;
@@ -61,6 +37,30 @@ public final class DetectedLauncher {
     @Override
     public String toString() {
         return this.kind.displayName() + " (" + this.instances + ")";
+    }
+
+    public enum Kind {
+
+        PRISM("Prism Launcher", "prismlauncher.cfg"),
+        POLY_MC("PolyMC", "polymc.cfg"),
+        MULTI_MC("MultiMC", "multimc.cfg");
+
+        private final String displayName;
+        private final String configName;
+
+        Kind(String displayName, String configName) {
+            this.displayName = displayName;
+            this.configName = configName;
+        }
+
+        public String displayName() {
+            return this.displayName;
+        }
+
+        public String configName() {
+            return this.configName;
+        }
+
     }
 
 }

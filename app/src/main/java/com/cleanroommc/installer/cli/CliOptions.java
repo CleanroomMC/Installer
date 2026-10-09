@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public final class CliOptions {
 
+    private static final List<String> BOOLEAN_MODES = Arrays.asList("help", "version", "list-versions", "uninstall");
+
     public String mode;
     public boolean help;
     public boolean showVersion;
@@ -49,8 +51,6 @@ public final class CliOptions {
     public Boolean provisionJava;
     public List<String> jvmArgs = new ArrayList<>();
     public Map<String, String> extras = new LinkedHashMap<>();
-
-    private static final List<String> BOOLEAN_MODES = Arrays.asList("help", "version", "list-versions", "uninstall");
 
     public static CliOptions parse(String[] args, Environment environment) throws InstallException {
         CliOptions options = new CliOptions();
@@ -177,43 +177,6 @@ public final class CliOptions {
         return options;
     }
 
-    public boolean wantsGui(boolean headless) {
-        if (this.noGui || this.help || this.showVersion) {
-            return false;
-        }
-        if (this.gui) {
-            return true;
-        }
-        return this.mode == null && !headless;
-    }
-
-    public boolean isInstallMode() {
-        return this.mode != null && !BOOLEAN_MODES.contains(this.mode);
-    }
-
-    public InstallRequest toRequest() {
-        JavaSpec java = JavaSpec.defaults().withPath(this.javaPath).withProvision(Boolean.TRUE.equals(this.provisionJava));
-        if (this.javaTarget > 0) {
-            java = java.withBounds(Math.min(java.minimum(), this.javaTarget), Math.max(java.maximum(), this.javaTarget), this.javaTarget);
-        }
-        if (this.javaVendor != null) {
-            java = java.withDistro(this.javaVendor);
-        }
-        InstallRequest.Builder builder = InstallRequest.builder(this.mode)
-            .version(this.version)
-            .directory(this.directory)
-            .offline(this.offline)
-            .dryRun(this.dryRun)
-            .force(this.force)
-            .assumeYes(this.assumeYes)
-            .java(java)
-            .jvmArgs(this.jvmArgs);
-        for (Map.Entry<String, String> extra : this.extras.entrySet()) {
-            builder.extra(extra.getKey(), extra.getValue());
-        }
-        return builder.build();
-    }
-
     static List<String> splitArgs(String value) {
         List<String> args = new ArrayList<>();
         for (String part : value.trim().split("\\s+")) {
@@ -241,6 +204,49 @@ public final class CliOptions {
 
     private static InstallException usage(String message) {
         return new InstallException(ExitCode.USAGE, message);
+    }
+
+    public boolean wantsGui(boolean headless) {
+        if (this.noGui || this.help || this.showVersion) {
+            return false;
+        }
+        if (this.gui) {
+            return true;
+        }
+        return this.mode == null && !headless;
+    }
+
+    public boolean isInstallMode() {
+        return this.mode != null && !BOOLEAN_MODES.contains(this.mode);
+    }
+
+    public InstallRequest toRequest() {
+        JavaSpec java = JavaSpec.defaults()
+            .withPath(this.javaPath)
+            .withProvision(Boolean.TRUE.equals(this.provisionJava));
+        if (this.javaTarget > 0) {
+            java = java.withBounds(
+                Math.min(java.minimum(), this.javaTarget),
+                Math.max(java.maximum(), this.javaTarget),
+                this.javaTarget
+            );
+        }
+        if (this.javaVendor != null) {
+            java = java.withDistro(this.javaVendor);
+        }
+        InstallRequest.Builder builder = InstallRequest.builder(this.mode)
+            .version(this.version)
+            .directory(this.directory)
+            .offline(this.offline)
+            .dryRun(this.dryRun)
+            .force(this.force)
+            .assumeYes(this.assumeYes)
+            .java(java)
+            .jvmArgs(this.jvmArgs);
+        for (Map.Entry<String, String> extra : this.extras.entrySet()) {
+            builder.extra(extra.getKey(), extra.getValue());
+        }
+        return builder.build();
     }
 
 }

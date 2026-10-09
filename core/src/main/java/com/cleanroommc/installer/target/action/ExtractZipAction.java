@@ -60,7 +60,10 @@ public final class ExtractZipAction extends Action {
                 ZipEntry entry = entries.nextElement();
                 Path target = root.resolve(entry.getName()).normalize();
                 if (!target.startsWith(root)) {
-                    throw new InstallException(ExitCode.VERIFICATION, this.archive + " contains an entry that escapes the destination: " + entry.getName());
+                    throw new InstallException(
+                        ExitCode.VERIFICATION,
+                        this.archive + " contains an entry that escapes the destination: " + entry.getName()
+                    );
                 }
                 if (entry.isDirectory()) {
                     Files.createDirectories(target);

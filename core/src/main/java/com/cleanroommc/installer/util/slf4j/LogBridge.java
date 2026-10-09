@@ -11,6 +11,8 @@ public final class LogBridge {
 
     private static volatile Log target;
 
+    private LogBridge() { }
+
     public static void attach(Log log) {
         target = log;
     }
@@ -22,7 +24,5 @@ public final class LogBridge {
     public static Log target() {
         return target;
     }
-
-    private LogBridge() { }
 
 }

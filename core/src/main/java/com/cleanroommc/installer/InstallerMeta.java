@@ -32,6 +32,8 @@ public final class InstallerMeta {
     /** Cleanroom targets this and only this. Used for vanilla artifact coordinates, not for ids. */
     public static final String MINECRAFT_VERSION = "1.12.2";
 
+    private InstallerMeta() { }
+
     /**
      * The version id written to {@code versions/<id>/}. Cleanroom is always Minecraft
      * {@link #MINECRAFT_VERSION}, so no Minecraft version appears in the id.
@@ -39,7 +41,5 @@ public final class InstallerMeta {
     public static String versionId(String cleanroomVersion) {
         return "Cleanroom-" + cleanroomVersion;
     }
-
-    private InstallerMeta() { }
 
 }

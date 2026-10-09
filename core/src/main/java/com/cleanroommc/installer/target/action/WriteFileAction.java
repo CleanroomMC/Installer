@@ -34,13 +34,26 @@ public final class WriteFileAction extends Action {
         this.executable = executable;
     }
 
+    private static void makeExecutable(Path path) throws IOException {
+        try {
+            Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+            permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            permissions.add(PosixFilePermission.GROUP_EXECUTE);
+            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+            Files.setPosixFilePermissions(path, permissions);
+        } catch (UnsupportedOperationException windows) {
+            // Non-POSIX file systems have no execute bit to set
+        }
+    }
+
     public String content() {
         return this.content;
     }
 
     @Override
     public String describe() {
-        return "WRITE " + destination() + " (" + this.content.length() + " chars" + (this.executable ? ", executable)" : ")");
+        return "WRITE " + destination() + " (" + this.content.length() + " chars" +
+            (this.executable ? ", executable)" : ")");
     }
 
     @Override
@@ -56,18 +69,6 @@ public final class WriteFileAction extends Action {
             }
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to write " + destination(), e);
-        }
-    }
-
-    private static void makeExecutable(Path path) throws IOException {
-        try {
-            Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
-            permissions.add(PosixFilePermission.OWNER_EXECUTE);
-            permissions.add(PosixFilePermission.GROUP_EXECUTE);
-            permissions.add(PosixFilePermission.OTHERS_EXECUTE);
-            Files.setPosixFilePermissions(path, permissions);
-        } catch (UnsupportedOperationException windows) {
-            // Non-POSIX file systems have no execute bit to set
         }
     }
 

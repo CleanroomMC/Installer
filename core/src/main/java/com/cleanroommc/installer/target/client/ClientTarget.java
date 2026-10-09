@@ -53,6 +53,34 @@ public final class ClientTarget extends AbstractInstallTarget {
     public static final String OPTION_FULL = "full";
     public static final String OPTION_LAUNCHER_PROFILES = "launcherProfiles";
 
+    static String jvmArgs(InstallRequest request, InstallProfile profile) {
+        List<String> args = new ArrayList<>();
+        if (!request.jvmArgs().isEmpty()) {
+            args.addAll(request.jvmArgs());
+        } else {
+            args.addAll(profile.jvmArgs());
+        }
+        StringBuilder builder = new StringBuilder();
+        for (String arg : args) {
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append(arg);
+        }
+        return builder.toString();
+    }
+
+    private static void deleteRecursively(Path directory) throws IOException {
+        List<Path> paths = new ArrayList<>();
+        try (Stream<Path> walk = Files.walk(directory)) {
+            walk.forEach(paths::add);
+        }
+        Collections.reverse(paths);
+        for (Path path : paths) {
+            Files.deleteIfExists(path);
+        }
+    }
+
     @Override
     public String id() {
         return ID;
@@ -84,17 +112,22 @@ public final class ClientTarget extends AbstractInstallTarget {
         if (InstallLocations.looksLikeMmcInstance(directory)) {
             throw new InstallException(
                 ExitCode.TARGET,
-                directory + " is a MultiMC/Prism instance, not a Minecraft installation." + System.lineSeparator() + "Use the 'mmc' mode for those."
+                directory + " is a MultiMC/Prism instance, not a Minecraft installation." + System.lineSeparator() +
+                    "Use the 'mmc' mode for those."
             );
         }
         if (!Files.isDirectory(directory)) {
             if (!request.assumeYes()) {
-                throw new InstallException(ExitCode.TARGET, directory + " does not exist. Pass --yes to create it, or --dir to point somewhere else.");
+                throw new InstallException(
+                    ExitCode.TARGET,
+                    directory + " does not exist. Pass --yes to create it, or --dir to point somewhere else."
+                );
             }
         } else if (!InstallLocations.looksLikeMinecraft(directory) && !request.assumeYes()) {
             throw new InstallException(
                 ExitCode.TARGET,
-                directory + " does not look like a Minecraft installation (no launcher_profiles.json, no versions/)." + System.lineSeparator() + "Pass --yes to install there anyway, or --dir to point elsewhere."
+                directory + " does not look like a Minecraft installation (no launcher_profiles.json, no versions/)." +
+                    System.lineSeparator() + "Pass --yes to install there anyway, or --dir to point elsewhere."
             );
         }
         if (Files.isDirectory(directory) && !Files.isWritable(directory)) {
@@ -117,12 +150,21 @@ public final class ClientTarget extends AbstractInstallTarget {
             return plan;
         }
 
-        plan.add(new WriteFileAction(root.resolve("versions").resolve(versionId).resolve(versionId + ".json"), Json.GSON.toJson(version) + "\n"));
+        plan.add(new WriteFileAction(
+            root.resolve("versions").resolve(versionId).resolve(versionId + ".json"),
+            Json.GSON.toJson(version) + "\n"
+        ));
 
         plan.addAll(universalActions(profile, libraries, context));
 
         if (request.flag(OPTION_FULL)) {
-            plan.addAll(MavenLayout.actions(version.libraries(), libraries, context.source(), Platform.current(), true));
+            plan.addAll(MavenLayout.actions(
+                version.libraries(),
+                libraries,
+                context.source(),
+                Platform.current(),
+                true
+            ));
         }
 
         if (!request.flag(OPTION_NO_PROFILE)) {
@@ -137,7 +179,9 @@ public final class ClientTarget extends AbstractInstallTarget {
             return false;
         }
         Coordinate universal = Coordinate.parse(profile.path);
-        if (!Files.isRegularFile(root.resolve("libraries").resolve(universal.path().replace('/', File.separatorChar)))) {
+        if (!Files.isRegularFile(
+            root.resolve("libraries").resolve(universal.path().replace('/', File.separatorChar))
+        )) {
             return false;
         }
         if (request.flag(OPTION_NO_PROFILE)) {
@@ -149,7 +193,8 @@ public final class ClientTarget extends AbstractInstallTarget {
         return new LauncherProfiles(profilesFile).alreadyHas("cleanroom-" + profile.cleanroomVersion(), versionId);
     }
 
-    private List<Action> universalActions(InstallProfile profile, Path libraries, InstallContext context) throws InstallException {
+    private List<Action> universalActions(InstallProfile profile, Path libraries, InstallContext context)
+        throws InstallException {
         List<Action> actions = new ArrayList<>();
         if (profile.path == null || profile.path.isEmpty()) {
             throw new InstallException(ExitCode.INTERNAL, "install_profile.json has no 'path' for the universal jar");
@@ -171,8 +216,14 @@ public final class ClientTarget extends AbstractInstallTarget {
         return actions;
     }
 
-    private List<Action> profileActions(InstallRequest request, InstallContext context, InstallProfile profile, String versionId, Path root, InstallPlan plan)
-        throws InstallException {
+    private List<Action> profileActions(
+        InstallRequest request,
+        InstallContext context,
+        InstallProfile profile,
+        String versionId,
+        Path root,
+        InstallPlan plan
+    ) throws InstallException {
         Path profilesFile = request.extra(OPTION_LAUNCHER_PROFILES) != null
             ? context.env().path(request.extra(OPTION_LAUNCHER_PROFILES))
             : LauncherProfiles.locate(root);
@@ -180,7 +231,9 @@ public final class ClientTarget extends AbstractInstallTarget {
 
         JavaSpec spec = request.java()
             .withBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended)
-            .withDistro(request.java().distro() == null ? JavaDistro.match(profile.java.distro) : request.java().distro());
+            .withDistro(
+                request.java().distro() == null ? JavaDistro.match(profile.java.distro) : request.java().distro()
+            );
         JavaResolution java = context.javaResolver().resolve(spec, context.listener());
         plan.note("Java " + java.major() + " at " + java.home() + " (" + java.origin().name().toLowerCase() + ")");
 
@@ -191,27 +244,12 @@ public final class ClientTarget extends AbstractInstallTarget {
         String icon = profile.icon;
 
         List<Action> actions = new ArrayList<>();
-        actions.add(
-            new MergeJsonAction(profilesFile, "profile '" + name + "'", (document, ctx) -> profiles.merge(key, name, versionId, javaDir, jvmArgs, icon))
-        );
+        actions.add(new MergeJsonAction(
+            profilesFile,
+            "profile '" + name + "'",
+            (document, ctx) -> profiles.merge(key, name, versionId, javaDir, jvmArgs, icon)
+        ));
         return actions;
-    }
-
-    static String jvmArgs(InstallRequest request, InstallProfile profile) {
-        List<String> args = new ArrayList<>();
-        if (!request.jvmArgs().isEmpty()) {
-            args.addAll(request.jvmArgs());
-        } else {
-            args.addAll(profile.jvmArgs());
-        }
-        StringBuilder builder = new StringBuilder();
-        for (String arg : args) {
-            if (builder.length() > 0) {
-                builder.append(' ');
-            }
-            builder.append(arg);
-        }
-        return builder.toString();
     }
 
     @Override
@@ -235,19 +273,10 @@ public final class ClientTarget extends AbstractInstallTarget {
         if (profiles.remove("cleanroom-" + profile.cleanroomVersion())) {
             result.note("Removed the launcher profile");
         }
-        result.note("Libraries under " + root.resolve("libraries") + " were left in place as other versions may use them");
+        result.note(
+            "Libraries under " + root.resolve("libraries") + " were left in place as other versions may use them"
+        );
         return result;
-    }
-
-    private static void deleteRecursively(Path directory) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        try (Stream<Path> walk = Files.walk(directory)) {
-            walk.forEach(paths::add);
-        }
-        Collections.reverse(paths);
-        for (Path path : paths) {
-            Files.deleteIfExists(path);
-        }
     }
 
     private Path directory(InstallRequest request, Environment environment) {

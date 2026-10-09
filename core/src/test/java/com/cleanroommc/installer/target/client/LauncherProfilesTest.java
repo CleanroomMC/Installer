@@ -25,20 +25,31 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class LauncherProfilesTest {
 
-    @TempDir
-    Path directory;
+    @TempDir Path directory;
 
     @Test
     void preservesUnknownKeysAndOtherProfiles() throws Exception {
-        Path file = write("{\"profiles\":{\"vanilla\":{\"name\":\"Vanilla\",\"custom\":42}}," + "\"selectedUser\":{\"account\":\"abc\"},\"version\":3}");
+        Path file = write(
+            "{\"profiles\":{\"vanilla\":{\"name\":\"Vanilla\",\"custom\":42}}," +
+                "\"selectedUser\":{\"account\":\"abc\"},\"version\":3}"
+        );
 
-        new LauncherProfiles(file).merge("cleanroom-1.0", "Cleanroom 1.0", "Cleanroom-1.0", "/opt/java", "-Xmx4G", null);
+        new LauncherProfiles(file).merge(
+            "cleanroom-1.0",
+            "Cleanroom 1.0",
+            "Cleanroom-1.0",
+            "/opt/java",
+            "-Xmx4G",
+            null
+        );
 
         JsonObject document = Json.readObject(file);
         assertThat(document.has("selectedUser")).as("unrelated top-level keys must survive").isTrue();
         assertThat(document.get("version").getAsInt()).isEqualTo(3);
         JsonObject vanilla = document.getAsJsonObject("profiles").getAsJsonObject("vanilla");
-        assertThat(vanilla.get("custom").getAsInt()).as("unknown keys inside other profiles must survive").isEqualTo(42);
+        assertThat(vanilla.get("custom").getAsInt())
+            .as("unknown keys inside other profiles must survive")
+            .isEqualTo(42);
 
         JsonObject ours = document.getAsJsonObject("profiles").getAsJsonObject("cleanroom-1.0");
         assertThat(ours.get("name").getAsString()).isEqualTo("Cleanroom 1.0");
@@ -74,7 +85,9 @@ class LauncherProfilesTest {
 
         JsonObject document = Json.readObject(file);
         assertThat(document.getAsJsonObject("profiles").size()).isEqualTo(1);
-        assertThat(document.getAsJsonObject("profiles").getAsJsonObject("cleanroom-1.0").get("lastVersionId").getAsString()).isEqualTo("new-id");
+        assertThat(
+            document.getAsJsonObject("profiles").getAsJsonObject("cleanroom-1.0").get("lastVersionId").getAsString()
+        ).isEqualTo("new-id");
     }
 
     @Test
@@ -106,7 +119,10 @@ class LauncherProfilesTest {
     void aCorruptFileFailsLoudlyInsteadOfBeingOverwritten() throws Exception {
         Path file = write("{ this is not json");
         LauncherProfiles profiles = new LauncherProfiles(file);
-        InstallException failure = catchThrowableOfType(InstallException.class, () -> profiles.merge("cleanroom-1.0", "Cleanroom", "id", null, null, null));
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> profiles.merge("cleanroom-1.0", "Cleanroom", "id", null, null, null)
+        );
         assertThat(failure.getMessage().contains(file.toString())).isTrue();
         assertThat(new String(Files.readAllBytes(file), StandardCharsets.UTF_8)).isEqualTo("{ this is not json");
     }

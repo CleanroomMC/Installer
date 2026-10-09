@@ -30,6 +30,14 @@ public final class InstanceConfigAction extends Action {
         this.values = new LinkedHashMap<>(values);
     }
 
+    private static String join(List<String> lines) {
+        StringBuilder builder = new StringBuilder();
+        for (String line : lines) {
+            builder.append(line).append(System.lineSeparator());
+        }
+        return builder.toString();
+    }
+
     @Override
     public String describe() {
         StringBuilder builder = new StringBuilder("CONFIGURE ").append(destination()).append(" (");
@@ -48,7 +56,9 @@ public final class InstanceConfigAction extends Action {
     public void execute(InstallContext context) throws InstallException {
         Path config = destination();
         try {
-            List<String> lines = Files.isRegularFile(config) ? Files.readAllLines(config, StandardCharsets.UTF_8) : new ArrayList<>();
+            List<String> lines = Files.isRegularFile(config)
+                ? Files.readAllLines(config, StandardCharsets.UTF_8)
+                : new ArrayList<>();
             List<String> updated = new ArrayList<>(lines.size() + this.values.size());
             Set<String> written = new LinkedHashSet<>();
             for (String line : lines) {
@@ -76,14 +86,6 @@ public final class InstanceConfigAction extends Action {
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to update " + config, e);
         }
-    }
-
-    private static String join(List<String> lines) {
-        StringBuilder builder = new StringBuilder();
-        for (String line : lines) {
-            builder.append(line).append(System.lineSeparator());
-        }
-        return builder.toString();
     }
 
 }

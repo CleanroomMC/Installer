@@ -56,16 +56,6 @@ public final class InstallProfile {
     public String serverJarPath;
     public Map<String, String> repositories = new LinkedHashMap<>();
 
-    public static final class Java {
-
-        public int minimum = 25;
-        // Cleanroom does not support feature releases past this one yet.
-        public int maximum = 25;
-        public int recommended = 25;
-        public String distro = "zulu";
-
-    }
-
     /**
      * The Cleanroom version. Profiles written before spec 1 have no explicit field for it, so it is
      * derived from the universal jar's coordinate.
@@ -90,6 +80,16 @@ public final class InstallProfile {
 
     public List<String> jvmArgs() {
         return this.jvmArgs == null ? new ArrayList<String>() : this.jvmArgs;
+    }
+
+    public static final class Java {
+
+        public int minimum = 25;
+        // Cleanroom does not support feature releases past this one yet.
+        public int maximum = 25;
+        public int recommended = 25;
+        public String distro = "zulu";
+
     }
 
 }

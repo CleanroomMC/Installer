@@ -20,6 +20,8 @@ import java.awt.GraphicsEnvironment;
  */
 public final class Main {
 
+    private Main() { }
+
     public static void main(String[] args) {
         Environment environment = Environment.current();
         boolean headless = GraphicsEnvironment.isHeadless();
@@ -52,7 +54,5 @@ public final class Main {
             return Integer.MIN_VALUE;
         }
     }
-
-    private Main() { }
 
 }

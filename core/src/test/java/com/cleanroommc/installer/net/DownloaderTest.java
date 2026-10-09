@@ -33,17 +33,37 @@ class DownloaderTest {
     private static final byte[] BODY = "cleanroom".getBytes(StandardCharsets.UTF_8);
     private static final String BODY_SHA1 = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
 
-    @TempDir
-    Path directory;
+    @TempDir Path directory;
 
     private HttpServer server;
     private String base;
+
+    private static String sha1() throws IOException {
+        return Hashes.hash(temp(), "SHA-1");
+    }
+
+    private static Path temp() throws IOException {
+        Path file = Files.createTempFile("downloader", ".bin");
+        Files.write(file, BODY);
+        file.toFile().deleteOnExit();
+        return file;
+    }
+
+    private static void respond(HttpExchange exchange, byte[] body) throws IOException {
+        exchange.sendResponseHeaders(200, body.length);
+        try (OutputStream out = exchange.getResponseBody()) {
+            out.write(body);
+        }
+    }
 
     @BeforeEach
     void startServer() throws IOException {
         this.server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         this.server.createContext("/good", exchange -> respond(exchange, BODY));
-        this.server.createContext("/truncated", exchange -> respond(exchange, "clean".getBytes(StandardCharsets.UTF_8)));
+        this.server.createContext(
+            "/truncated",
+            exchange -> respond(exchange, "clean".getBytes(StandardCharsets.UTF_8))
+        );
         this.server.createContext("/broken", exchange -> {
             exchange.sendResponseHeaders(500, -1);
             exchange.close();
@@ -80,7 +100,13 @@ class DownloaderTest {
         Path file = this.directory.resolve("artifact.jar");
         InstallException failure = catchThrowableOfType(
             InstallException.class,
-            () -> downloader().download(this.base + "/good", file, "0000000000000000000000000000000000000000", 0, ProgressListener.NONE)
+            () -> downloader().download(
+                this.base + "/good",
+                file,
+                "0000000000000000000000000000000000000000",
+                0,
+                ProgressListener.NONE
+            )
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
         assertThat(failure.getMessage().contains("/good")).as("the message must name the URL").isTrue();
@@ -129,24 +155,6 @@ class DownloaderTest {
 
     private Downloader downloader() {
         return new Downloader(Log.console(), false, 1);
-    }
-
-    private static String sha1() throws IOException {
-        return Hashes.hash(temp(), "SHA-1");
-    }
-
-    private static Path temp() throws IOException {
-        Path file = Files.createTempFile("downloader", ".bin");
-        Files.write(file, BODY);
-        file.toFile().deleteOnExit();
-        return file;
-    }
-
-    private static void respond(HttpExchange exchange, byte[] body) throws IOException {
-        exchange.sendResponseHeaders(200, body.length);
-        try (OutputStream out = exchange.getResponseBody()) {
-            out.write(body);
-        }
     }
 
 }

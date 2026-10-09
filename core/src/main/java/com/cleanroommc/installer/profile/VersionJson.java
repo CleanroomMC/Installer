@@ -28,23 +28,6 @@ public final class VersionJson {
     public String inheritsFrom;
     public List<Library> libraries;
 
-    public static final class AssetIndex {
-
-        public String id;
-        public String sha1;
-        public long size;
-        public long totalSize;
-        public String url;
-
-    }
-
-    public static final class JavaVersion {
-
-        public String component;
-        public int majorVersion;
-
-    }
-
     public List<Library> applicable(Platform platform) {
         List<Library> applicable = new ArrayList<>();
         if (this.libraries == null) {
@@ -60,6 +43,23 @@ public final class VersionJson {
 
     public List<Library> libraries() {
         return this.libraries == null ? new ArrayList<Library>() : this.libraries;
+    }
+
+    public static final class AssetIndex {
+
+        public String id;
+        public String sha1;
+        public long size;
+        public long totalSize;
+        public String url;
+
+    }
+
+    public static final class JavaVersion {
+
+        public String component;
+        public int majorVersion;
+
     }
 
 }

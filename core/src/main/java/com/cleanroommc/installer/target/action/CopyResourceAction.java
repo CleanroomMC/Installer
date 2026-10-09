@@ -20,13 +20,6 @@ import java.nio.file.StandardCopyOption;
  */
 public final class CopyResourceAction extends Action {
 
-    @FunctionalInterface
-    public interface ResourceSupplier {
-
-        InputStream open() throws IOException;
-
-    }
-
     private final String description;
     private final ResourceSupplier source;
 
@@ -57,6 +50,13 @@ public final class CopyResourceAction extends Action {
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to write " + destination(), e);
         }
+    }
+
+    @FunctionalInterface
+    public interface ResourceSupplier {
+
+        InputStream open() throws IOException;
+
     }
 
 }

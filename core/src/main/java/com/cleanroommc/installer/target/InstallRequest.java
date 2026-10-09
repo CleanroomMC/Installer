@@ -117,6 +117,7 @@ public final class InstallRequest {
     public static final class Builder {
 
         private final String targetId;
+
         private String version;
         private Path directory;
         private boolean offline;
@@ -124,6 +125,7 @@ public final class InstallRequest {
         private boolean force;
         private boolean assumeYes;
         private JavaSpec java = JavaSpec.defaults();
+
         private final List<String> jvmArgs = new ArrayList<>();
         private final Map<String, String> extras = new LinkedHashMap<>();
 

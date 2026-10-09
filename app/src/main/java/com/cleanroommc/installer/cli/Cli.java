@@ -44,6 +44,16 @@ public final class Cli {
         this.err = err;
     }
 
+    static String implementationVersion() {
+        String version = Cli.class.getPackage().getImplementationVersion();
+        return version == null ? "(dev)" : version;
+    }
+
+    /** Where a run's log goes when the user did not choose. */
+    public static Path defaultLogFile(Environment environment) {
+        return environment.installerCache().resolve("logs").resolve("installer-" + System.currentTimeMillis() + ".log");
+    }
+
     public int run(String[] args) {
         CliOptions options;
         try {
@@ -105,10 +115,23 @@ public final class Cli {
         return ExitCode.SUCCESS.code();
     }
 
-    private int install(CliOptions options, Downloader downloader, Log log, CliProgress progress) throws InstallException {
+    private int install(CliOptions options, Downloader downloader, Log log, CliProgress progress)
+        throws InstallException {
         InstallTarget target = InstallTargets.byId(options.mode.equals("uninstall") ? "client" : options.mode);
-        try (ProfileSource source = Sources.open(options.version, downloader, log, this.environment.installerCache(), progress)) {
-            InstallContext context = new InstallContext(source, downloader, new JavaResolver(this.environment, log), this.environment, log).listener(progress);
+        try (ProfileSource source = Sources.open(
+            options.version,
+            downloader,
+            log,
+            this.environment.installerCache(),
+            progress
+        )) {
+            InstallContext context = new InstallContext(
+                source,
+                downloader,
+                new JavaResolver(this.environment, log),
+                this.environment,
+                log
+            ).listener(progress);
             InstallRequest request = options.toRequest();
             if (request.directory() == null) {
                 request = request.toBuilder().directory(target.defaultDirectory(this.environment)).build();
@@ -170,7 +193,10 @@ public final class Cli {
 
     private void report(InstallException e, boolean json) {
         if (json) {
-            this.out.println("{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code() + ",\"message\":" + CliProgress.quote(e.getMessage()) + "}");
+            this.out.println(
+                "{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code() + ",\"message\":" +
+                    CliProgress.quote(e.getMessage()) + "}"
+            );
             return;
         }
         this.err.println(e.getMessage());
@@ -178,16 +204,6 @@ public final class Cli {
         if (cause != null && cause.getMessage() != null) {
             this.err.println("  caused by: " + cause.getMessage());
         }
-    }
-
-    static String implementationVersion() {
-        String version = Cli.class.getPackage().getImplementationVersion();
-        return version == null ? "(dev)" : version;
-    }
-
-    /** Where a run's log goes when the user did not choose. */
-    public static Path defaultLogFile(Environment environment) {
-        return environment.installerCache().resolve("logs").resolve("installer-" + System.currentTimeMillis() + ".log");
     }
 
 }

@@ -16,14 +16,6 @@ import java.nio.file.Path;
  */
 public final class JavaResolution implements JavaInstall {
 
-    public enum Origin {
-
-        EXPLICIT,
-        LOCATED,
-        PROVISIONED
-
-    }
-
     private final JavaInstall install;
     private final Origin origin;
 
@@ -85,6 +77,14 @@ public final class JavaResolution implements JavaInstall {
     @Override
     public String toString() {
         return "Java " + major() + " at " + home() + " (" + this.origin.name().toLowerCase() + ")";
+    }
+
+    public enum Origin {
+
+        EXPLICIT,
+        LOCATED,
+        PROVISIONED
+
     }
 
 }

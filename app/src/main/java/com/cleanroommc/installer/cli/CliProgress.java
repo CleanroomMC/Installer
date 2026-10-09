@@ -17,6 +17,7 @@ public final class CliProgress implements ProgressListener {
     private final PrintStream out;
     private final boolean json;
     private final boolean quiet;
+
     private String stage = "";
     private String detail = "";
     private int lastWidth;
@@ -26,6 +27,40 @@ public final class CliProgress implements ProgressListener {
         this.out = out;
         this.json = json;
         this.quiet = quiet;
+    }
+
+    static String quote(String value) {
+        if (value == null) {
+            return "null";
+        }
+        StringBuilder builder = new StringBuilder("\"");
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            switch (c) {
+                case '"':
+                    builder.append("\\\"");
+                    break;
+                case '\\':
+                    builder.append("\\\\");
+                    break;
+                case '\n':
+                    builder.append("\\n");
+                    break;
+                case '\r':
+                    builder.append("\\r");
+                    break;
+                case '\t':
+                    builder.append("\\t");
+                    break;
+                default:
+                    if (c < 0x20) {
+                        builder.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        builder.append(c);
+                    }
+            }
+        }
+        return builder.append('"').toString();
     }
 
     @Override
@@ -48,11 +83,10 @@ public final class CliProgress implements ProgressListener {
     @Override
     public void progress(long done, long total) {
         if (this.json) {
-            this.out
-                .println(
-                    "{\"event\":\"progress\",\"stage\":" + quote(this.stage) + ",\"detail\":" + quote(this.detail) + ",\"done\":" + done + ",\"total\":" + total +
-                        "}"
-                );
+            this.out.println(
+                "{\"event\":\"progress\",\"stage\":" + quote(this.stage) + ",\"detail\":" + quote(this.detail) +
+                    ",\"done\":" + done + ",\"total\":" + total + "}"
+            );
             return;
         }
         if (this.quiet) {
@@ -92,40 +126,6 @@ public final class CliProgress implements ProgressListener {
             this.out.print(blank.append('\r'));
             this.lastWidth = 0;
         }
-    }
-
-    static String quote(String value) {
-        if (value == null) {
-            return "null";
-        }
-        StringBuilder builder = new StringBuilder("\"");
-        for (int i = 0; i < value.length(); i++) {
-            char c = value.charAt(i);
-            switch (c) {
-                case '"':
-                    builder.append("\\\"");
-                    break;
-                case '\\':
-                    builder.append("\\\\");
-                    break;
-                case '\n':
-                    builder.append("\\n");
-                    break;
-                case '\r':
-                    builder.append("\\r");
-                    break;
-                case '\t':
-                    builder.append("\\t");
-                    break;
-                default:
-                    if (c < 0x20) {
-                        builder.append(String.format("\\u%04x", (int) c));
-                    } else {
-                        builder.append(c);
-                    }
-            }
-        }
-        return builder.append('"').toString();
     }
 
 }

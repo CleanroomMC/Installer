@@ -18,22 +18,21 @@ import java.nio.file.Path;
 
 public final class MmcInstance {
 
-    public enum Kind {
-
-        NONE,
-        VANILLA,
-        FORGE,
-        CLEANROOM;
-
-        public boolean exists() {
-            return this != NONE;
-        }
-
-    }
-
     private static final String LOADER_UID = "net.minecraftforge";
     private static final String CLEANROOM_NAME = "Cleanroom";
     private static final String CLEANROOM_LIBRARY = "com.cleanroommc:cleanroom:";
+
+    private final Kind kind;
+    private final String name;
+    private final String loaderVersion;
+    private final String minecraftVersion;
+
+    private MmcInstance(Kind kind, String name, String loaderVersion, String minecraftVersion) {
+        this.kind = kind;
+        this.name = name;
+        this.loaderVersion = loaderVersion;
+        this.minecraftVersion = minecraftVersion;
+    }
 
     private static JsonObject readObject(Path path) {
         try {
@@ -65,18 +64,6 @@ public final class MmcInstance {
         return null;
     }
 
-    private final Kind kind;
-    private final String name;
-    private final String loaderVersion;
-    private final String minecraftVersion;
-
-    private MmcInstance(Kind kind, String name, String loaderVersion, String minecraftVersion) {
-        this.kind = kind;
-        this.name = name;
-        this.loaderVersion = loaderVersion;
-        this.minecraftVersion = minecraftVersion;
-    }
-
     public static MmcInstance inspect(Path directory) {
         Path pack = directory.resolve("mmc-pack.json");
         if (!Files.isRegularFile(pack) && !Files.isRegularFile(directory.resolve("instance.cfg"))) {
@@ -87,7 +74,9 @@ public final class MmcInstance {
         String minecraft = null;
         if (Files.isRegularFile(pack)) {
             JsonObject root = readObject(pack);
-            JsonArray components = root != null && root.get("components") != null && root.get("components").isJsonArray()
+            JsonArray components = root != null &&
+                root.get("components") != null &&
+                root.get("components").isJsonArray()
                 ? root.getAsJsonArray("components")
                 : new JsonArray();
             for (JsonElement element : components) {
@@ -106,7 +95,12 @@ public final class MmcInstance {
         if (loader == null) {
             return new MmcInstance(Kind.VANILLA, name, null, minecraft);
         }
-        return new MmcInstance(isCleanroom(directory, loader) ? Kind.CLEANROOM : Kind.FORGE, name, string(loader, "version"), minecraft);
+        return new MmcInstance(
+            isCleanroom(directory, loader) ? Kind.CLEANROOM : Kind.FORGE,
+            name,
+            string(loader, "version"),
+            minecraft
+        );
     }
 
     private static boolean isCleanroom(Path directory, JsonObject loader) {
@@ -174,6 +168,19 @@ public final class MmcInstance {
 
     private String versionOrUnknown() {
         return this.loaderVersion == null ? "(unknown version)" : this.loaderVersion;
+    }
+
+    public enum Kind {
+
+        NONE,
+        VANILLA,
+        FORGE,
+        CLEANROOM;
+
+        public boolean exists() {
+            return this != NONE;
+        }
+
     }
 
 }

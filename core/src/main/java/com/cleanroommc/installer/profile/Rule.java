@@ -16,12 +16,21 @@ public final class Rule {
     public Os os;
     public Map<String, Boolean> features;
 
-    public static final class Os {
+    public static String osName(Platform platform) {
+        if (platform.isWindows()) {
+            return "windows";
+        }
+        if (platform.isMacOS()) {
+            return "osx";
+        }
+        return "linux";
+    }
 
-        public String name;
-        public String arch;
-        public String version;
-
+    public static String archName(Platform platform) {
+        if (platform.isArm()) {
+            return platform.is64Bit() ? "arm64" : "arm32";
+        }
+        return platform.is64Bit() ? "x64" : "x86";
     }
 
     public boolean allow() {
@@ -48,21 +57,12 @@ public final class Rule {
         return true;
     }
 
-    public static String osName(Platform platform) {
-        if (platform.isWindows()) {
-            return "windows";
-        }
-        if (platform.isMacOS()) {
-            return "osx";
-        }
-        return "linux";
-    }
+    public static final class Os {
 
-    public static String archName(Platform platform) {
-        if (platform.isArm()) {
-            return platform.is64Bit() ? "arm64" : "arm32";
-        }
-        return platform.is64Bit() ? "x64" : "x86";
+        public String name;
+        public String arch;
+        public String version;
+
     }
 
 }

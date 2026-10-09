@@ -31,8 +31,14 @@ public final class JarProfileSource implements ProfileSource {
 
     private final ZipFile zip;
     private final Path location;
+
     private InstallProfile profile;
     private VersionJson versionJson;
+
+    private JarProfileSource(ZipFile zip, Path location) {
+        this.zip = zip;
+        this.location = location;
+    }
 
     public static JarProfileSource of(Path jar) throws InstallException {
         try {
@@ -40,11 +46,6 @@ public final class JarProfileSource implements ProfileSource {
         } catch (IOException e) {
             throw new InstallException(ExitCode.INTERNAL, "Unable to read installer jar " + jar, e);
         }
-    }
-
-    private JarProfileSource(ZipFile zip, Path location) {
-        this.zip = zip;
-        this.location = location;
     }
 
     public Path location() {
@@ -86,7 +87,10 @@ public final class JarProfileSource implements ProfileSource {
     private <T> T read(String entryName, Class<T> type) throws InstallException {
         try (InputStream in = open(entryName)) {
             if (in == null) {
-                throw new InstallException(ExitCode.INTERNAL, this.location + " has no " + entryName + "; it is not a version-pinned installer jar");
+                throw new InstallException(
+                    ExitCode.INTERNAL,
+                    this.location + " has no " + entryName + "; it is not a version-pinned installer jar"
+                );
             }
             try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
                 return Json.read(reader, type);

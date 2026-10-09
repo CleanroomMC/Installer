@@ -22,19 +22,22 @@ import java.nio.file.Path;
  */
 public interface ThemeStore {
 
-    boolean dark();
-
-    void dark(boolean dark);
-
     static ThemeStore get() {
         return FileThemeStore.INSTANCE;
     }
 
+    boolean dark();
+
+    void dark(boolean dark);
+
     final class FileThemeStore implements ThemeStore {
 
-        static final FileThemeStore INSTANCE = new FileThemeStore(Environment.current().installerCache().resolve("ui.json"));
+        static final FileThemeStore INSTANCE = new FileThemeStore(
+            Environment.current().installerCache().resolve("ui.json")
+        );
 
         private final Path file;
+
         private Boolean cached;
 
         FileThemeStore(Path file) {

@@ -47,6 +47,42 @@ public final class VersionIndex {
         this.cacheFile = cacheDirectory.resolve("versions.txt");
     }
 
+    public static String installerUrl(String version) {
+        return InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" +
+            InstallerMeta.CLEANROOM_ARTIFACT + "/" + version + "/" + InstallerMeta.CLEANROOM_ARTIFACT + "-" + version +
+            "-installer.jar";
+    }
+
+    static List<String> parseMavenMetadata(Reader reader) throws InstallException {
+        XMLInputFactory factory = XMLInputFactory.newFactory();
+        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+        factory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+        List<String> versions = new ArrayList<>();
+        try {
+            XMLStreamReader xml = factory.createXMLStreamReader(reader);
+            boolean inVersions = false;
+            while (xml.hasNext()) {
+                int event = xml.next();
+                if (event == XMLStreamConstants.START_ELEMENT) {
+                    if ("versions".equals(xml.getLocalName())) {
+                        inVersions = true;
+                    } else if (inVersions && "version".equals(xml.getLocalName())) {
+                        String version = xml.getElementText().trim();
+                        if (!version.isEmpty()) {
+                            versions.add(version);
+                        }
+                    }
+                } else if (event == XMLStreamConstants.END_ELEMENT && "versions".equals(xml.getLocalName())) {
+                    inVersions = false;
+                }
+            }
+            xml.close();
+        } catch (XMLStreamException e) {
+            throw new InstallException(ExitCode.NETWORK, "Unable to parse maven metadata", e);
+        }
+        return versions;
+    }
+
     public List<RemoteVersion> all() throws InstallException {
         return all(true);
     }
@@ -91,50 +127,21 @@ public final class VersionIndex {
                 return version;
             }
         }
-        throw new InstallException(ExitCode.USAGE, "No such Cleanroom version: " + id + ". Run 'list-versions' to see what is available.");
-    }
-
-    public static String installerUrl(String version) {
-        return InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" + InstallerMeta.CLEANROOM_ARTIFACT + "/" + version + "/" + InstallerMeta.CLEANROOM_ARTIFACT +
-            "-" + version + "-installer.jar";
+        throw new InstallException(
+            ExitCode.USAGE,
+            "No such Cleanroom version: " + id + ". Run 'list-versions' to see what is available."
+        );
     }
 
     private List<String> fromMavenMetadata() throws InstallException {
-        String url = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" + InstallerMeta.CLEANROOM_ARTIFACT +
-            "/maven-metadata.xml";
+        String url = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" +
+            InstallerMeta.CLEANROOM_ARTIFACT + "/maven-metadata.xml";
         byte[] xml = this.downloader.fetch(url);
-        List<String> versions = parseMavenMetadata(new InputStreamReader(new ByteArrayInputStream(xml), StandardCharsets.UTF_8));
+        List<String> versions = parseMavenMetadata(new InputStreamReader(
+            new ByteArrayInputStream(xml),
+            StandardCharsets.UTF_8
+        ));
         Collections.reverse(versions);
-        return versions;
-    }
-
-    static List<String> parseMavenMetadata(Reader reader) throws InstallException {
-        XMLInputFactory factory = XMLInputFactory.newFactory();
-        factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-        factory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
-        List<String> versions = new ArrayList<>();
-        try {
-            XMLStreamReader xml = factory.createXMLStreamReader(reader);
-            boolean inVersions = false;
-            while (xml.hasNext()) {
-                int event = xml.next();
-                if (event == XMLStreamConstants.START_ELEMENT) {
-                    if ("versions".equals(xml.getLocalName())) {
-                        inVersions = true;
-                    } else if (inVersions && "version".equals(xml.getLocalName())) {
-                        String version = xml.getElementText().trim();
-                        if (!version.isEmpty()) {
-                            versions.add(version);
-                        }
-                    }
-                } else if (event == XMLStreamConstants.END_ELEMENT && "versions".equals(xml.getLocalName())) {
-                    inVersions = false;
-                }
-            }
-            xml.close();
-        } catch (XMLStreamException e) {
-            throw new InstallException(ExitCode.NETWORK, "Unable to parse maven metadata", e);
-        }
         return versions;
     }
 
@@ -155,7 +162,9 @@ public final class VersionIndex {
 
     private List<String> staleCache() {
         try {
-            return Files.isRegularFile(this.cacheFile) ? Files.readAllLines(this.cacheFile, StandardCharsets.UTF_8) : null;
+            return Files.isRegularFile(this.cacheFile)
+                ? Files.readAllLines(this.cacheFile, StandardCharsets.UTF_8)
+                : null;
         } catch (IOException e) {
             return null;
         }

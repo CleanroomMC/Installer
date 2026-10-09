@@ -22,19 +22,6 @@ public final class Library {
     public List<Rule> rules;
     public Extract extract;
 
-    public static final class Downloads {
-
-        public Download artifact;
-        public Map<String, Download> classifiers;
-
-    }
-
-    public static final class Extract {
-
-        public List<String> exclude;
-
-    }
-
     public boolean allowed(Platform platform) {
         if (this.rules == null || this.rules.isEmpty()) {
             return true;
@@ -72,6 +59,19 @@ public final class Library {
             return null;
         }
         return this.downloads.classifiers.get(classifier);
+    }
+
+    public static final class Downloads {
+
+        public Download artifact;
+        public Map<String, Download> classifiers;
+
+    }
+
+    public static final class Extract {
+
+        public List<String> exclude;
+
     }
 
 }

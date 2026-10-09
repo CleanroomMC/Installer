@@ -17,8 +17,13 @@ import java.util.Set;
 
 public abstract class AbstractInstallTarget implements InstallTarget {
 
+    protected static Set<Capability> capabilitySet(Capability... capabilities) {
+        return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(capabilities)));
+    }
+
     @Override
-    public InstallResult apply(InstallPlan plan, InstallContext context, ProgressListener listener) throws InstallException {
+    public InstallResult apply(InstallPlan plan, InstallContext context, ProgressListener listener)
+        throws InstallException {
         context.listener(listener);
         InstallResult result = new InstallResult(plan.root());
         List<Action> actions = plan.actions();
@@ -42,10 +47,6 @@ public abstract class AbstractInstallTarget implements InstallTarget {
             result.note(note);
         }
         return result;
-    }
-
-    protected static Set<Capability> capabilitySet(Capability... capabilities) {
-        return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(capabilities)));
     }
 
 }
