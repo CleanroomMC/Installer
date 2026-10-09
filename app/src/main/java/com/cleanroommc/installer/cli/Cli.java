@@ -64,13 +64,17 @@ public final class Cli {
             return e.exitCode().code();
         }
 
-        if (options.help || options.mode == null || "help".equals(options.mode)) {
+        if (options.help || "help".equals(options.mode)) {
             this.out.print(Help.text());
-            return options.mode == null && !options.help ? ExitCode.USAGE.code() : ExitCode.SUCCESS.code();
+            return ExitCode.SUCCESS.code();
         }
         if (options.showVersion || "version".equals(options.mode)) {
             this.out.println(InstallerMeta.NAME + " " + implementationVersion());
             return ExitCode.SUCCESS.code();
+        }
+        if (options.mode == null) {
+            this.out.print(Help.text());
+            return ExitCode.USAGE.code();
         }
 
         Log log = options.logFile != null ? Log.toFile(options.logFile) : Log.console();
