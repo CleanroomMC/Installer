@@ -17,14 +17,6 @@ public final class InstallerMeta {
     /** Where release artifacts live. {@code repo.cleanroommc.com/releases} mirrors this host. */
     public static final String CLEANROOM_REPO = "https://maven.cleanroommc.com/";
 
-    public static final String MAVEN_CENTRAL = "https://repo.maven.apache.org/maven2/";
-
-    public static final String MOJANG_LIBRARIES = "https://libraries.minecraft.net/";
-
-    public static final String VERSION_MANIFEST = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json";
-
-    public static final String GITHUB_RELEASES = "https://api.github.com/repos/CleanroomMC/Cleanroom/releases";
-
     public static final String CLEANROOM_GROUP = "com.cleanroommc";
 
     public static final String CLEANROOM_ARTIFACT = "cleanroom";

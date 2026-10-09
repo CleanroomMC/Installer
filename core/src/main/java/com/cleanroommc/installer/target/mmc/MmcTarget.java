@@ -14,7 +14,6 @@ import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.platform.InstallLocations;
 import com.cleanroommc.installer.profile.InstallProfile;
 import com.cleanroommc.installer.target.AbstractInstallTarget;
-import com.cleanroommc.installer.target.Capability;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
@@ -161,11 +160,6 @@ public final class MmcTarget extends AbstractInstallTarget {
     public Path defaultDirectory(Environment environment) {
         List<DetectedLauncher> launchers = InstallLocations.multiMcFamily(environment);
         return launchers.isEmpty() ? environment.workingDirectory() : launchers.get(0).instances();
-    }
-
-    @Override
-    public Set<Capability> capabilities() {
-        return capabilitySet(Capability.DRY_RUN, Capability.NEEDS_NETWORK);
     }
 
     @Override

@@ -110,7 +110,9 @@ public final class Cli {
         } catch (InstallException e) {
             progress.done();
             report(e, options.json);
-            log.error(e, "Install failed");
+            if (e.exitCode() != ExitCode.USAGE) {
+                log.error(e, "Install failed");
+            }
             return e.exitCode().code();
         } catch (RuntimeException e) {
             progress.done();

@@ -11,17 +11,9 @@ import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.util.Cancellation;
 import com.cleanroommc.installer.util.ProgressListener;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 public abstract class AbstractInstallTarget implements InstallTarget {
-
-    protected static Set<Capability> capabilitySet(Capability... capabilities) {
-        return Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(capabilities)));
-    }
 
     /**
      * The Java a plan refers to, or null on a dry run that would have to download one.

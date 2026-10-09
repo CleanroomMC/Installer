@@ -6,7 +6,6 @@
 package com.cleanroommc.installer.source;
 
 import com.cleanroommc.installer.net.Downloader;
-import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.installer.util.ProgressListener;
@@ -96,13 +95,6 @@ public final class Sources {
         Path jar = cache.resolve("installers").resolve("cleanroom-" + version.id() + "-installer.jar");
         listener.stage("Fetching Cleanroom " + version.id());
         downloader.downloadVerified(version.installerUrl(), jar, listener);
-        try {
-            if (!Files.isRegularFile(jar)) {
-                throw new InstallException(ExitCode.NETWORK, "Failed to obtain " + version.installerUrl());
-            }
-        } catch (RuntimeException e) {
-            throw new InstallException(ExitCode.NETWORK, "Failed to obtain " + version.installerUrl(), e);
-        }
         return JarProfileSource.of(jar);
     }
 

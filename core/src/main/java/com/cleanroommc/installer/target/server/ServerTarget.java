@@ -16,7 +16,6 @@ import com.cleanroommc.installer.profile.Download;
 import com.cleanroommc.installer.profile.InstallProfile;
 import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.target.AbstractInstallTarget;
-import com.cleanroommc.installer.target.Capability;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
@@ -37,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -115,11 +113,6 @@ public final class ServerTarget extends AbstractInstallTarget {
     @Override
     public Path defaultDirectory(Environment environment) {
         return InstallLocations.serverDefault(environment);
-    }
-
-    @Override
-    public Set<Capability> capabilities() {
-        return capabilitySet(Capability.DRY_RUN, Capability.NEEDS_NETWORK);
     }
 
     @Override

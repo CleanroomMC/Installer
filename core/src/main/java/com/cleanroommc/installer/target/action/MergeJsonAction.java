@@ -8,8 +8,6 @@ package com.cleanroommc.installer.target.action;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
 
-import com.google.gson.JsonObject;
-
 import java.nio.file.Path;
 
 /**
@@ -33,13 +31,13 @@ public final class MergeJsonAction extends Action {
 
     @Override
     public void execute(InstallContext context) throws InstallException {
-        this.merge.apply(null, context);
+        this.merge.apply(context);
     }
 
     @FunctionalInterface
     public interface Merge {
 
-        void apply(JsonObject document, InstallContext context) throws InstallException;
+        void apply(InstallContext context) throws InstallException;
 
     }
 

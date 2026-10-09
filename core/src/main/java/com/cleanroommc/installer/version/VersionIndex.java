@@ -29,9 +29,8 @@ import javax.xml.stream.XMLStreamReader;
 /**
  * The list of installable Cleanroom versions, for the generic installer jar.
  * <p>
- * Maven metadata first: it is the same host the artifacts come from, so it can never list a version
- * whose files are missing. The rest of the ecosystem reads GitHub releases, so that stays as a
- * fallback for the case where the repository is unreachable.
+ * Read from the Maven metadata of the host the artifacts come from, so it never lists a version
+ * whose files are missing. A cached copy is used when the repository is unreachable.
  */
 public final class VersionIndex {
 

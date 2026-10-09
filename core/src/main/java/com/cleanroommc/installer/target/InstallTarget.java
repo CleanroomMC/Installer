@@ -10,7 +10,6 @@ import com.cleanroommc.installer.util.ProgressListener;
 
 import java.nio.file.Path;
 import java.util.ServiceLoader;
-import java.util.Set;
 
 /**
  * Target for the installer to install into.
@@ -26,8 +25,6 @@ public interface InstallTarget {
     String description();
 
     Path defaultDirectory(Environment environment);
-
-    Set<Capability> capabilities();
 
     void validate(InstallRequest request, InstallContext context) throws InstallException;
 
