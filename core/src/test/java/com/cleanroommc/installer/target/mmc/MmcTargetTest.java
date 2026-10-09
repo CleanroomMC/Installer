@@ -31,6 +31,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class MmcTargetTest {
 
@@ -100,6 +101,29 @@ class MmcTargetTest {
         ).isTrue();
     }
 
+    @Test
+    void launcherOptionPicksAmongTheDetectedLaunchers() throws Exception {
+        Path prism = Files.createDirectories(directory.resolve("home/.local/share/PrismLauncher/instances"));
+        Path polyMc = Files.createDirectories(directory.resolve("home/.local/share/PolyMC/instances"));
+        InstallContext context = context("{\"name\":\"" + UNIVERSAL + "\",\"downloads\":{}}");
+
+        assertThat(
+            new MmcTarget().plan(InstallRequest.builder(MmcTarget.ID).build(), context).root().getParent()
+        ).isEqualTo(prism);
+        assertThat(
+            new MmcTarget()
+                .plan(InstallRequest.builder(MmcTarget.ID).extra(MmcTarget.OPTION_LAUNCHER, "polymc").build(), context)
+                .root()
+                .getParent()
+        ).isEqualTo(polyMc);
+        assertThatThrownBy(() -> new MmcTarget().validate(
+            InstallRequest.builder(MmcTarget.ID).extra(MmcTarget.OPTION_LAUNCHER, "multimc").build(),
+            context
+        ))
+            .isInstanceOf(InstallException.class)
+            .hasMessageContaining("No multimc installation was found");
+    }
+
     private InstallRequest request() {
         return InstallRequest.builder(MmcTarget.ID).directory(directory.resolve("instances")).build();
     }
@@ -124,6 +148,31 @@ class MmcTargetTest {
             "universal".getBytes(StandardCharsets.UTF_8)
         );
         Environment environment = new Environment() {
+
+            @Override
+            public String env(String name) {
+                return null;
+            }
+
+            @Override
+            public Path home() {
+                return directory.resolve("home");
+            }
+
+            @Override
+            public Path workingDirectory() {
+                return directory.resolve("work");
+            }
+
+            @Override
+            public boolean windows() {
+                return false;
+            }
+
+            @Override
+            public boolean macOs() {
+                return false;
+            }
 
             @Override
             public Path installerCache() {

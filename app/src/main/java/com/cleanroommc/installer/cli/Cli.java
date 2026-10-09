@@ -137,9 +137,6 @@ public final class Cli {
                 log
             ).listener(progress);
             InstallRequest request = options.toRequest();
-            if (request.directory() == null) {
-                request = request.toBuilder().directory(target.defaultDirectory(this.environment)).build();
-            }
 
             if ("uninstall".equals(options.mode)) {
                 InstallResult result = target.uninstall(request, context);

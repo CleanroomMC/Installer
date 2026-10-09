@@ -172,10 +172,13 @@ public final class MmcTarget extends AbstractInstallTarget {
     public void validate(InstallRequest request, InstallContext context) throws InstallException {
         Path directory = directory(request, context.env());
         if (directory == null) {
+            String wanted = request.extra(OPTION_LAUNCHER);
             throw new InstallException(
                 ExitCode.TARGET,
-                "No Prism, PolyMC or MultiMC installation was found." + System.lineSeparator() +
-                    "Pass --dir <path> to name an instances directory, a launcher folder, " +
+                (wanted == null
+                        ? "No Prism, PolyMC or MultiMC installation was found."
+                        : "No " + wanted + " installation was found.") +
+                    System.lineSeparator() + "Pass --dir <path> to name an instances directory, a launcher folder, " +
                     "or an instance to update."
             );
         }
@@ -299,7 +302,8 @@ public final class MmcTarget extends AbstractInstallTarget {
         }
         String wanted = request.extra(OPTION_LAUNCHER);
         for (DetectedLauncher launcher : InstallLocations.multiMcFamily(environment)) {
-            if (wanted == null || launcher.kind().name().equalsIgnoreCase(wanted.replace('-', '_'))) {
+            if (wanted == null ||
+                launcher.kind().name().replace("_", "").equalsIgnoreCase(wanted.replaceAll("[-_]", ""))) {
                 return launcher.instances();
             }
         }
