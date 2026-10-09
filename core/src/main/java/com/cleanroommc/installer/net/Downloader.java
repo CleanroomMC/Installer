@@ -8,6 +8,7 @@ package com.cleanroommc.installer.net;
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallException;
+import com.cleanroommc.installer.util.Cancellation;
 import com.cleanroommc.installer.util.Hashes;
 import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.installer.util.ProgressListener;
@@ -188,7 +189,8 @@ public final class Downloader {
     }
 
     private void transfer(String url, Path destination, long expectedSize, boolean resumable, ProgressListener listener)
-        throws IOException {
+        throws IOException,
+        InstallException {
         Path parent = destination.getParent();
         if (parent != null) {
             Files.createDirectories(parent);
@@ -227,6 +229,7 @@ public final class Downloader {
                 byte[] buffer = new byte[BUFFER];
                 int read;
                 while ((read = in.read(buffer)) != -1) {
+                    Cancellation.check(listener);
                     out.write(buffer, 0, read);
                     if (listener != null) {
                         listener.progress(done.addAndGet(read), total);

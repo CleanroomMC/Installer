@@ -174,6 +174,34 @@ class DownloaderTest {
     }
 
     @Test
+    void cancellingStopsATransferInProgress() {
+        Path file = this.directory.resolve("artifact.jar");
+        ProgressListener cancelled = new ProgressListener() {
+
+            @Override
+            public void stage(String name) { }
+
+            @Override
+            public void detail(String message) { }
+
+            @Override
+            public void progress(long done, long total) { }
+
+            @Override
+            public boolean cancelled() {
+                return true;
+            }
+
+        };
+        InstallException failure = catchThrowableOfType(
+            InstallException.class,
+            () -> downloader().download(this.base + "/good", file, null, 0, cancelled)
+        );
+        assertThat(failure.exitCode()).isEqualTo(ExitCode.CANCELLED);
+        assertThat(Files.exists(file)).isFalse();
+    }
+
+    @Test
     void serverErrorsBecomeNetworkFailures() {
         Path file = this.directory.resolve("artifact.jar");
         InstallException failure = catchThrowableOfType(
