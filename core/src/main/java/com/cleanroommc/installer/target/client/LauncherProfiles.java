@@ -18,7 +18,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 public final class LauncherProfiles {
 
@@ -33,16 +36,19 @@ public final class LauncherProfiles {
         this.file = file;
     }
 
-    public static Path locate(Path gameDirectory) {
-        Path standard = gameDirectory.resolve(FILE);
-        if (Files.isRegularFile(standard)) {
-            return standard;
+    /**
+     * Every profile file of the game directory. The Microsoft Store launcher reads its own file,
+     * which can sit next to the standard one.
+     */
+    public static List<Path> locate(Path gameDirectory) {
+        List<Path> files = new ArrayList<>();
+        for (String name : new String[] { FILE, MICROSOFT_STORE_FILE }) {
+            Path file = gameDirectory.resolve(name);
+            if (Files.isRegularFile(file)) {
+                files.add(file);
+            }
         }
-        Path store = gameDirectory.resolve(MICROSOFT_STORE_FILE);
-        if (Files.isRegularFile(store)) {
-            return store;
-        }
-        return standard;
+        return files.isEmpty() ? Collections.singletonList(gameDirectory.resolve(FILE)) : files;
     }
 
     private static JsonObject skeleton() {

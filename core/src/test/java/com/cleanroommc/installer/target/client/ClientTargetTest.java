@@ -30,6 +30,8 @@ class ClientTargetTest {
     @Test
     void uninstallRemovesTheInstalledVersionAndItsProfile() throws Exception {
         Path version = install("0.6.13-alpha");
+        Path store = this.directory.resolve(LauncherProfiles.MICROSOFT_STORE_FILE);
+        Files.copy(this.directory.resolve(LauncherProfiles.FILE), store);
         Path vanilla = Files.createDirectories(this.directory.resolve("versions/1.12.2"));
 
         InstallResult removed = new ClientTarget().uninstall(request(null), this.context);
@@ -41,6 +43,9 @@ class ClientTargetTest {
             "cleanroom-0.6.13-alpha",
             "1.12.2-Cleanroom-0.6.13-alpha"
         )).isFalse();
+        assertThat(new LauncherProfiles(store).alreadyHas("cleanroom-0.6.13-alpha", "1.12.2-Cleanroom-0.6.13-alpha"))
+            .as("the Microsoft Store launcher reads its own profile file")
+            .isFalse();
         assertThat(new ClientTarget().uninstall(request(null), this.context).isNoOp()).isTrue();
     }
 

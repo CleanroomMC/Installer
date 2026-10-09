@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -86,6 +85,11 @@ public final class ClientTarget extends AbstractInstallTarget {
         } catch (IOException e) {
             throw new InstallException(ExitCode.TARGET, "Unable to read " + versions, e);
         }
+    }
+
+    private static List<Path> profileFiles(InstallRequest request, Environment environment, Path root) {
+        String chosen = request.extra(OPTION_LAUNCHER_PROFILES);
+        return chosen != null ? Collections.singletonList(environment.path(chosen)) : LauncherProfiles.locate(root);
     }
 
     private static String versionOf(Path versionDirectory) {
@@ -168,7 +172,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");
 
-        if (!request.force() && alreadyInstalled(request, root, versionId, profile)) {
+        if (!request.force() && alreadyInstalled(request, context.env(), root, versionId, profile)) {
             // Re-running an install that is already complete should cost nothing and change nothing
             return plan;
         }
@@ -196,7 +200,13 @@ public final class ClientTarget extends AbstractInstallTarget {
         return plan;
     }
 
-    private boolean alreadyInstalled(InstallRequest request, Path root, String versionId, InstallProfile profile) {
+    private boolean alreadyInstalled(
+        InstallRequest request,
+        Environment environment,
+        Path root,
+        String versionId,
+        InstallProfile profile
+    ) {
         Path versionFile = root.resolve("versions").resolve(versionId).resolve(versionId + ".json");
         if (!Files.isRegularFile(versionFile)) {
             return false;
@@ -210,10 +220,12 @@ public final class ClientTarget extends AbstractInstallTarget {
         if (request.flag(OPTION_NO_PROFILE)) {
             return true;
         }
-        Path profilesFile = request.extra(OPTION_LAUNCHER_PROFILES) != null
-            ? Paths.get(request.extra(OPTION_LAUNCHER_PROFILES))
-            : LauncherProfiles.locate(root);
-        return new LauncherProfiles(profilesFile).alreadyHas("cleanroom-" + profile.cleanroomVersion(), versionId);
+        for (Path profilesFile : profileFiles(request, environment, root)) {
+            if (!new LauncherProfiles(profilesFile).alreadyHas("cleanroom-" + profile.cleanroomVersion(), versionId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private List<Action> universalActions(InstallProfile profile, Path libraries, InstallContext context)
@@ -247,11 +259,6 @@ public final class ClientTarget extends AbstractInstallTarget {
         Path root,
         InstallPlan plan
     ) throws InstallException {
-        Path profilesFile = request.extra(OPTION_LAUNCHER_PROFILES) != null
-            ? context.env().path(request.extra(OPTION_LAUNCHER_PROFILES))
-            : LauncherProfiles.locate(root);
-        LauncherProfiles profiles = new LauncherProfiles(profilesFile);
-
         JavaSpec spec = request.java()
             .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended)
             .withDistro(
@@ -269,11 +276,20 @@ public final class ClientTarget extends AbstractInstallTarget {
         String icon = profile.icon;
 
         List<Action> actions = new ArrayList<>();
-        actions.add(new MergeJsonAction(
-            profilesFile,
-            "profile '" + name + "'",
-            (document, ctx) -> profiles.merge(key, name, versionId, javaDir, jvmArgs, icon)
-        ));
+        for (Path profilesFile : profileFiles(request, context.env(), root)) {
+            actions.add(new MergeJsonAction(
+                profilesFile,
+                "profile '" + name + "'",
+                (document, ctx) -> new LauncherProfiles(profilesFile).merge(
+                    key,
+                    name,
+                    versionId,
+                    javaDir,
+                    jvmArgs,
+                    icon
+                )
+            ));
+        }
         return actions;
     }
 
@@ -314,11 +330,10 @@ public final class ClientTarget extends AbstractInstallTarget {
             result.note("Removed " + directory);
         }
 
-        Path profilesFile = request.extra(OPTION_LAUNCHER_PROFILES) != null
-            ? context.env().path(request.extra(OPTION_LAUNCHER_PROFILES))
-            : LauncherProfiles.locate(root);
-        if (new LauncherProfiles(profilesFile).remove("cleanroom-" + version)) {
-            result.note("Removed the launcher profile");
+        for (Path profilesFile : profileFiles(request, context.env(), root)) {
+            if (new LauncherProfiles(profilesFile).remove("cleanroom-" + version)) {
+                result.note("Removed the launcher profile from " + profilesFile.getFileName());
+            }
         }
         if (result.notes().isEmpty()) {
             return result.noOp(true);
