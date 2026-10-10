@@ -3,11 +3,11 @@
 Double-click/execute it for a window. Run it with arguments for command-line interaction.
 
 ```
-java -jar cleanroom-installer.jar                      # Graphical installer
-java -jar cleanroom-installer.jar client               # Add a profile to the Minecraft launcher
-java -jar cleanroom-installer.jar server -d ./server   # Set up a dedicated server
-java -jar cleanroom-installer.jar mmc                  # Create a Prism/PolyMC/MultiMC instance
-java -jar cleanroom-installer.jar --help
+java -jar installer.jar                      # Graphical installer
+java -jar installer.jar client               # Add a profile to the Minecraft launcher
+java -jar installer.jar server -d ./server   # Set up a dedicated server
+java -jar installer.jar mmc                  # Create a Prism/PolyMC/MultiMC instance
+java -jar installer.jar --help
 ```
 
 ## Exit Codes
