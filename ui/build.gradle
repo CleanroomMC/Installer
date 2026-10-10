@@ -4,16 +4,7 @@ dependencies {
     api project(':core')
 }
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            artifactId = 'installer-ui'
-            from components.java
-            pom {
-                name = 'Installer UI'
-                description = 'The Cleanroom installer window and its Swing look and feel'
-            }
-        }
-    }
+// Conventions registers a publication for every module, and this one is only used inside the shaded installer
+tasks.withType(AbstractPublishToMaven).configureEach {
+    enabled = false
 }
-
