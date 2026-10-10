@@ -43,7 +43,7 @@ public final class JavaSpec {
     }
 
     /**
-     * Fixme: Cleanroom is pinned to Java 25 for now
+     * The bounds used until an install profile is read. The profile then replaces them.
      */
     public static JavaSpec defaults() {
         return new JavaSpec(null, 25, 25, 25, JavaDistro.ZULU, false);

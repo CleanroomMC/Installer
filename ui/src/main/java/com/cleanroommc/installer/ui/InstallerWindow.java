@@ -527,7 +527,8 @@ public final class InstallerWindow {
         this.provisionJava.setOpaque(false);
         this.provisionJavaRow = CleanroomUI.optionRow(
             this.provisionJava,
-            "Cleanroom needs Java 25. The launcher's own Java is not suitable"
+            "Cleanroom needs " + (this.seed == null ? JavaSpec.defaults() : this.seed.java()).requirement() +
+                ". The launcher's own Java is not suitable"
         );
         options.add(this.provisionJavaRow);
 

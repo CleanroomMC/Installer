@@ -78,7 +78,9 @@ public final class Help {
             .append(nl())
             .append("      --java <path>        use this Java installation")
             .append(nl())
-            .append("      --java-version <n>   Java feature version to target (default 25)")
+            .append(
+                "      --java-version <n>   Java feature version to use (default: what the Cleanroom version asks for)"
+            )
             .append(nl())
             .append("      --java-vendor <name> preferred vendor, e.g. zulu, temurin")
             .append(nl())
