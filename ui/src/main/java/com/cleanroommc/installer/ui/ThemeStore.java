@@ -20,7 +20,7 @@ import java.nio.file.Path;
  * The relauncher keeps this in the game's config directory. The installer has no game directory to
  * write into, so it uses its own file under the shared Cleanroom home.
  */
-public interface ThemeStore {
+interface ThemeStore {
 
     static ThemeStore get() {
         return FileThemeStore.INSTANCE;

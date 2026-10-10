@@ -11,7 +11,7 @@ publishing {
             from components.java
             pom {
                 name = 'Installer UI'
-                description = 'Swing look and feel shared with CleanroomRelauncher, plus the Cleanroom installer window'
+                description = 'The Cleanroom installer window and its Swing look and feel'
             }
         }
     }

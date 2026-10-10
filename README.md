@@ -73,7 +73,7 @@ The installer does not read `mainClass`, `tweakers`, `serverJarPath` and `reposi
 | Module | Contains                                                                    |
 |--------|-----------------------------------------------------------------------------|
 | `core` | Profiles, downloads, targets, Java resolution, directory detection          |
-| `ui`   | Swing LaF shared with CleanroomRelauncher, plus the installer's own window. |
+| `ui`   | The installer's window and its Swing look and feel                          |
 | `app`  | Entry point, the command line, and the shaded jar.                          |
 
 ## Adding a Mode

@@ -32,7 +32,7 @@ import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-public class ProgressWindow {
+class ProgressWindow {
 
     private static final int WINDOW_WIDTH = 560;
     private static final int WINDOW_HEIGHT = 280;
@@ -44,7 +44,7 @@ public class ProgressWindow {
     private final JProgressBar progressBar;
     private final JLabel percentLabel;
 
-    public ProgressWindow() {
+    ProgressWindow() {
         CleanroomUI.install();
         Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
             .getDefaultScreenDevice()

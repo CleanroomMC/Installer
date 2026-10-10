@@ -111,7 +111,7 @@ import javax.swing.plaf.basic.BasicProgressBarUI;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.plaf.basic.ComboPopup;
 
-public final class CleanroomUI {
+final class CleanroomUI {
 
     private static final int MAX_CONTENT_WIDTH = 720;
 
@@ -760,13 +760,6 @@ public final class CleanroomUI {
         return label;
     }
 
-    /** Field label with spacing so it never sits flush against the control below. */
-    static JLabel fieldLabelAbove(String text) {
-        JLabel label = fieldLabel(text);
-        label.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
-        return label;
-    }
-
     static JLabel statusLabel(String text) {
         JLabel label = subtitle(text);
         label.setFont(uiRegular(12f));
@@ -812,11 +805,6 @@ public final class CleanroomUI {
         public void setText(String text) {
             this.plain = text == null ? "" : text;
             rewrap();
-        }
-
-        /** The text as it was handed over, without the markup the lines are drawn with. */
-        String plainText() {
-            return this.plain;
         }
 
         private void rewrap() {

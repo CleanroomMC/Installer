@@ -10,7 +10,7 @@ import com.cleanroommc.installer.util.ProgressListener;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.SwingUtilities;
 
-public final class SwingProgress implements ProgressListener {
+final class SwingProgress implements ProgressListener {
 
     private static final long PAINT_INTERVAL_MS = 50L;
 
@@ -19,7 +19,7 @@ public final class SwingProgress implements ProgressListener {
 
     private long lastPaint;
 
-    public SwingProgress(ProgressWindow window) {
+    SwingProgress(ProgressWindow window) {
         this.window = window;
     }
 
