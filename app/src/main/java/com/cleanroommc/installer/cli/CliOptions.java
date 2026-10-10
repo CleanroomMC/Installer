@@ -100,7 +100,6 @@ public final class CliOptions {
                 case "--yes":
                     options.assumeYes = true;
                     break;
-                case "-v":
                 case "--version":
                     options.version = value(args, index++, arg);
                     break;

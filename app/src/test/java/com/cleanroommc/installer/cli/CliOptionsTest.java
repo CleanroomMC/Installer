@@ -26,7 +26,7 @@ class CliOptionsTest {
     @Test
     void parsesAClientInstall() throws Exception {
         CliOptions options = CliOptions.parse(
-            new String[] { "client", "-d", "/tmp/mc", "-v", "0.6.11-alpha", "--full", "--yes" },
+            new String[] { "client", "-d", "/tmp/mc", "--version", "0.6.11-alpha", "--full", "--yes" },
             this.environment
         );
         InstallRequest request = options.toRequest();
