@@ -110,7 +110,9 @@ public final class Help {
             .append(nl())
             .append("      --no-server-jar      skip the vanilla server jar")
             .append(nl())
-            .append("      --pin-java           write the resolved Java path into the scripts")
+            .append(
+                "      --pin-java           write the resolved Java path into the scripts (always done for a provisioned Java)"
+            )
             .append(nl())
             .append(nl())
             .append("mmc:")

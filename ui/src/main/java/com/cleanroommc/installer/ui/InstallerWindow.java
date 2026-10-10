@@ -767,7 +767,6 @@ public final class InstallerWindow {
             );
         }
         if (ServerTarget.ID.equals(this.selectedTargetId)) {
-            builder.flag(ServerTarget.OPTION_PIN_JAVA, this.provisionJava.isSelected());
             builder.flag(ServerTarget.OPTION_NO_SCRIPTS, !this.installScripts.isSelected());
         }
         // The builder keeps the seed's target id, so switching modes in the window has to be applied.

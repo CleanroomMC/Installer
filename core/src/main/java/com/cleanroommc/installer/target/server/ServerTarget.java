@@ -218,9 +218,11 @@ public final class ServerTarget extends AbstractInstallTarget {
             String javaCommand = "java";
             JavaSpec spec = request.java()
                 .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
-            if (request.flag(OPTION_PIN_JAVA)) {
+            boolean pin = request.flag(OPTION_PIN_JAVA);
+            if (pin || spec.allowProvision()) {
                 JavaResolution java = resolveJava(request, context, spec, plan);
-                if (java != null) {
+                // A provisioned Java is not on the PATH, so the scripts cannot find it by name
+                if (java != null && (pin || java.origin() == JavaResolution.Origin.PROVISIONED)) {
                     javaCommand = java.executable().toString();
                     plan.note("Scripts pinned to " + javaCommand);
                 }
