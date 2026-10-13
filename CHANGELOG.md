@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 - 2026-10-13
+
+## Bug Fix
+
+- **client**: Pass -XstartOnFirstThread in the launcher profile on macOS *[commit by [@Rongmario](https://github.com/Rongmario) in [bbf46c1](https://github.com/CleanroomMC/Installer/commit/bbf46c1f3994acda618cc3fdb1c28e72726d06c0)]*
+
+**Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.2.0...0.2.1
+
 ## 0.2.0 - 2026-10-10
 
 > [!WARNING]
