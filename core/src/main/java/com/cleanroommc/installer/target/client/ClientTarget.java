@@ -62,6 +62,10 @@ public final class ClientTarget extends AbstractInstallTarget {
         } else {
             args.addAll(profile.jvmArgs());
         }
+        // SDL only brings up its Cocoa video driver on the process main thread
+        if (Platform.current().isMacOS() && !args.contains("-XstartOnFirstThread")) {
+            args.add("-XstartOnFirstThread");
+        }
         StringBuilder builder = new StringBuilder();
         for (String arg : args) {
             if (builder.length() > 0) {
