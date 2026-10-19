@@ -62,10 +62,13 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -79,6 +82,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
 import javax.swing.JList;
@@ -114,6 +118,8 @@ import javax.swing.plaf.basic.ComboPopup;
 final class CleanroomUI {
 
     private static final int MAX_CONTENT_WIDTH = 720;
+
+    private static final Set<String> THEME_KEYS = new LinkedHashSet<>();
 
     private static boolean darkTheme;
     private static float uiScale = 1f;
@@ -455,43 +461,67 @@ final class CleanroomUI {
     }
 
     private static void installThemeDefaults() {
-        UIManager.put("Panel.background", BACKGROUND);
-        UIManager.put("OptionPane.background", SURFACE);
-        UIManager.put("OptionPane.messageForeground", TEXT);
-        UIManager.put("Label.foreground", TEXT);
-        UIManager.put("Button.background", CONTROL);
-        UIManager.put("Button.foreground", TEXT);
-        UIManager.put("ToggleButton.background", CONTROL);
-        UIManager.put("ToggleButton.foreground", TEXT);
-        UIManager.put("TextField.background", CONTROL);
-        UIManager.put("TextField.foreground", TEXT);
-        UIManager.put("TextField.caretForeground", PRIMARY);
-        UIManager.put("TextField.selectionBackground", PRIMARY);
-        UIManager.put("TextField.selectionForeground", Color.WHITE);
-        UIManager.put("TextField.inactiveForeground", DISABLED_TEXT);
-        UIManager.put("TextField.inactiveBackground", CONTROL);
-        UIManager.put("ComboBox.background", CONTROL);
-        UIManager.put("ComboBox.foreground", TEXT);
-        UIManager.put("ComboBox.selectionBackground", PRIMARY);
-        UIManager.put("ComboBox.selectionForeground", Color.WHITE);
-        UIManager.put("ComboBox.disabledBackground", SURFACE);
-        UIManager.put("ComboBox.disabledForeground", DISABLED_TEXT);
-        UIManager.put("List.background", CONTROL);
-        UIManager.put("List.foreground", TEXT);
-        UIManager.put("List.selectionBackground", PRIMARY);
-        UIManager.put("List.selectionForeground", Color.WHITE);
-        UIManager.put("CheckBox.background", SURFACE);
-        UIManager.put("CheckBox.foreground", TEXT);
-        UIManager.put("ScrollPane.background", BACKGROUND);
-        UIManager.put("Viewport.background", BACKGROUND);
-        UIManager.put("ProgressBar.background", CONTROL);
-        UIManager.put("ProgressBar.foreground", PRIMARY);
-        UIManager.put("ProgressBar.selectionBackground", TEXT);
-        UIManager.put("ProgressBar.selectionForeground", TEXT);
-        UIManager.put("ToolTip.background", CONTROL_HOVER);
-        UIManager.put("ToolTip.foreground", TEXT);
-        UIManager.put("ToolTip.border", BorderFactory.createLineBorder(BORDER));
-        UIManager.put("ToolTip.font", uiRegular(12f));
+        themeDefault("Panel.background", BACKGROUND);
+        themeDefault("OptionPane.background", SURFACE);
+        themeDefault("OptionPane.messageForeground", TEXT);
+        themeDefault("Label.foreground", TEXT);
+        themeDefault("Button.background", CONTROL);
+        themeDefault("Button.foreground", TEXT);
+        themeDefault("ToggleButton.background", CONTROL);
+        themeDefault("ToggleButton.foreground", TEXT);
+        themeDefault("TextField.background", CONTROL);
+        themeDefault("TextField.foreground", TEXT);
+        themeDefault("TextField.caretForeground", PRIMARY);
+        themeDefault("TextField.selectionBackground", PRIMARY);
+        themeDefault("TextField.selectionForeground", Color.WHITE);
+        themeDefault("TextField.inactiveForeground", DISABLED_TEXT);
+        themeDefault("TextField.inactiveBackground", CONTROL);
+        themeDefault("ComboBox.background", CONTROL);
+        themeDefault("ComboBox.foreground", TEXT);
+        themeDefault("ComboBox.selectionBackground", PRIMARY);
+        themeDefault("ComboBox.selectionForeground", Color.WHITE);
+        themeDefault("ComboBox.disabledBackground", SURFACE);
+        themeDefault("ComboBox.disabledForeground", DISABLED_TEXT);
+        themeDefault("List.background", CONTROL);
+        themeDefault("List.foreground", TEXT);
+        themeDefault("List.selectionBackground", PRIMARY);
+        themeDefault("List.selectionForeground", Color.WHITE);
+        themeDefault("CheckBox.background", SURFACE);
+        themeDefault("CheckBox.foreground", TEXT);
+        themeDefault("ScrollPane.background", BACKGROUND);
+        themeDefault("Viewport.background", BACKGROUND);
+        themeDefault("ProgressBar.background", CONTROL);
+        themeDefault("ProgressBar.foreground", PRIMARY);
+        themeDefault("ProgressBar.selectionBackground", TEXT);
+        themeDefault("ProgressBar.selectionForeground", TEXT);
+        themeDefault("ToolTip.background", CONTROL_HOVER);
+        themeDefault("ToolTip.foreground", TEXT);
+        themeDefault("ToolTip.border", BorderFactory.createLineBorder(BORDER));
+        themeDefault("ToolTip.font", uiRegular(12f));
+    }
+
+    private static void themeDefault(String key, Object value) {
+        THEME_KEYS.add(key);
+        UIManager.put(key, value);
+    }
+
+    /**
+     * Shows the chooser with the platform look and feel's own defaults.
+     * The palette only reaches part of the chooser, which leaves light text on its white file list.
+     */
+    static File chooseDirectory(Component parent, File start) {
+        Map<String, Object> palette = new HashMap<>();
+        for (String key : THEME_KEYS) {
+            palette.put(key, UIManager.get(key));
+            UIManager.put(key, null);
+        }
+        try {
+            JFileChooser chooser = new JFileChooser(start);
+            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            return chooser.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION ? chooser.getSelectedFile() : null;
+        } finally {
+            palette.forEach(UIManager::put);
+        }
     }
 
     static void primary(AbstractButton button) {

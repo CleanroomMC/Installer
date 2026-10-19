@@ -53,7 +53,6 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -653,10 +652,9 @@ public final class InstallerWindow {
     }
 
     private void chooseDirectory() {
-        JFileChooser chooser = new JFileChooser(new File(this.directoryField.getText()));
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        if (chooser.showOpenDialog(this.frame) == JFileChooser.APPROVE_OPTION) {
-            this.directoryField.setText(chooser.getSelectedFile().getAbsolutePath());
+        File directory = CleanroomUI.chooseDirectory(this.frame, new File(this.directoryField.getText()));
+        if (directory != null) {
+            this.directoryField.setText(directory.getAbsolutePath());
         }
     }
 
