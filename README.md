@@ -11,6 +11,97 @@ java -jar installer.jar mmc                  # Create a Prism/PolyMC/MultiMC ins
 java -jar installer.jar --help
 ```
 
+## Usage
+
+### Modes
+
+| Mode            | Does                                                                                    |
+|-----------------|-----------------------------------------------------------------------------------------|
+| `client`        | Writes the Cleanroom version into `.minecraft` and adds a launcher profile              |
+| `server`        | Sets up a dedicated server in a directory                                               |
+| `mmc`           | Creates a MultiMC based (PolyMC/PrismLauncher etc) instance, or updates an existing one |
+| `list-versions` | Prints the installable Cleanroom versions, newest first                                 |
+| `uninstall`     | Removes a Cleanroom version installed by `client`                                       |
+| `version`       | Prints the installer's own version                                                      |
+
+Every mode installs the newest Cleanroom version unless `--version <id>` names one. `--dir` overrides the detected install directory.
+
+### Client
+
+- Writes `versions/<id>/<id>.json` and the Cleanroom universal jar.
+- Leaves the other libraries for the launcher to download. `--full` downloads them all now, for an offline-ready install.
+- Adds or updates one profile in `launcher_profiles.json`. Every other profile and key is kept, and a timestamped backup is taken first.
+- Re-running a complete install changes nothing. `--force` reinstalls anyway.
+- `uninstall` removes one installed version. Pass `--version` when more than one is installed.
+
+| Option                       | Effect                                                 |
+|------------------------------|--------------------------------------------------------|
+| `--profile-name <s>`         | Launcher profile name                                  |
+| `--no-profile`               | Leaves `launcher_profiles.json` alone                  |
+| `--launcher-profiles <path>` | Profile file to write, when it is not in `--dir`       |
+| `--jvm-args "<args>"`        | JVM arguments for the launcher profile                 |
+| `--full`                     | Downloads every library now                            |
+
+### Server
+
+- Downloads the libraries and the vanilla server jar.
+- Writes `unix_args.txt` and `win_args.txt`, and the launch script this machine can run (`run.sh` or `run.bat`).
+- Writes `user_jvm_args.txt` once. A reinstall keeps the existing file and ignores `--memory`.
+
+| Option            | Effect                                                                    |
+|-------------------|---------------------------------------------------------------------------|
+| `--memory <size>` | Heap size written to a new `user_jvm_args.txt`, e.g. `6G`                 |
+| `--no-scripts`    | Skips the launch script                                                   |
+| `--no-server-jar` | Skips the vanilla server jar                                              |
+| `--starter-jar`   | Writes `server.jar`, for hosts that only take a jar path                  |
+| `--pin-java`      | Writes the Java path into the scripts, always done for a provisioned Java |
+
+### MMC
+
+`--dir` decides what happens.
+
+| `--dir` points at                      | Result                                                           |
+|----------------------------------------|------------------------------------------------------------------|
+| A launcher or its instances directory  | Creates a new instance                                           |
+| An existing Cleanroom instance         | Repairs it, or moves it to the requested version                 |
+| An existing Forge instance             | Replaces Forge with Cleanroom, after a prompt unless `--yes`     |
+| An existing vanilla instance           | Installs Cleanroom into it                                       |
+
+An update keeps the instance's `instance.cfg` settings, except the keys the installer sets.
+
+| Option                  | Effect                                              |
+|-------------------------|-----------------------------------------------------|
+| `--instance-name <s>`   | Name for a new instance                             |
+| `--launcher <name>`     | `prism`, `polymc` or `multimc`                      |
+| `--replace-java-path`   | Points the instance at the Java the installer found |
+
+### Java
+
+The installer looks for a Java that matches the version's install profile.
+
+| Option                 | Effect                                                    |
+|------------------------|-----------------------------------------------------------|
+| `--java <path>`        | Uses this Java installation                               |
+| `--java-version <n>`   | Java feature version to use                               |
+| `--java-vendor <name>` | Preferred vendor, e.g. `zulu`, `temurin`                  |
+| `--provision-java`     | Downloads a Java runtime when none is found               |
+| `--no-provision-java`  | Never downloads one                                       |
+
+### General
+
+| Option                   | Effect                                                     |
+|--------------------------|------------------------------------------------------------|
+| `--gui` / `--no-gui`     | Forces the window or the command line                      |
+| `--offline`              | Uses only what is already downloaded                       |
+| `--dry-run`              | Prints the plan, writes nothing but the installer cache    |
+| `--force`                | Reinstalls even when everything is in place                |
+| `-y`, `--yes`            | Skips the safety checks on the install directory           |
+| `--json`                 | Machine-readable output, see [JSON Output](#json-output)   |
+| `--quiet` / `--verbose`  | Less or more logging                                       |
+| `--log-file <path>`      | Where to write the log                                     |
+
+The installer does not update itself, update mods, or check for newer Cleanroom versions on its own.
+
 ## Exit Codes
 
 | Code | Meaning                                         |
@@ -83,7 +174,7 @@ The installer does not read `mainClass`, `tweakers`, `serverJarPath` and `reposi
 
 ## Compatibility
 
-- Two paths inside an installer jar are load-bearing and must not move: `/version.json` and `/maven/com/cleanroommc/cleanroom/<version>/cleanroom-<version>-universal.jar`.
+- Two paths inside the installer jar are set in stone: `/version.json` and `/maven/com/cleanroommc/cleanroom/<version>/cleanroom-<version>-universal.jar`.
   - CleanroomRelauncher reads both directly out of published installer jars.
 - `version.json` is written self-contained, with no `inheritsFrom`.
 - Inheriting from `1.12.2` would cause the launcher to merge parent libraries which ends up adding LWJGL 2 onto the classpath. (Previous installer/zip did this.)
