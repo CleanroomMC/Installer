@@ -18,10 +18,7 @@ public abstract class AbstractInstallTarget implements InstallTarget {
     /**
      * The Java a plan refers to, or null on a dry run that would have to download one.
      */
-    protected static JavaResolution resolveJava(
-        InstallRequest request,
-        InstallContext context,
-        JavaSpec spec,
+    protected static JavaResolution resolveJava(InstallRequest request, InstallContext context, JavaSpec spec,
         InstallPlan plan
     ) throws InstallException {
         boolean explicit = spec.path() != null && !spec.path().isEmpty();

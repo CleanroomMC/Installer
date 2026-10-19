@@ -26,9 +26,7 @@ public final class InstallTargets {
     public static synchronized List<InstallTarget> all() {
         if (cached == null) {
             List<InstallTarget> targets = new ArrayList<>();
-            for (InstallTarget target : ServiceLoader.load(
-                InstallTarget.class,
-                InstallTargets.class.getClassLoader()
+            for (InstallTarget target : ServiceLoader.load(InstallTarget.class, InstallTargets.class.getClassLoader()
             )) {
                 targets.add(target);
             }

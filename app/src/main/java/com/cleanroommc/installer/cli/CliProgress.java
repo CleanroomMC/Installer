@@ -83,9 +83,8 @@ public final class CliProgress implements ProgressListener {
     @Override
     public void progress(long done, long total) {
         if (this.json) {
-            this.out.println(
-                "{\"event\":\"progress\",\"stage\":" + quote(this.stage) + ",\"detail\":" + quote(this.detail) +
-                    ",\"done\":" + done + ",\"total\":" + total + "}"
+            this.out.println("{\"event\":\"progress\",\"stage\":" + quote(this.stage) + ",\"detail\":" +
+                    quote(this.detail) + ",\"done\":" + done + ",\"total\":" + total + "}"
             );
             return;
         }

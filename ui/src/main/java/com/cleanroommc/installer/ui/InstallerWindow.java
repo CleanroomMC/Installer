@@ -304,8 +304,7 @@ public final class InstallerWindow {
 
     private void applyVersions(List<RemoteVersion> versions, String failure) {
         if (versions.isEmpty()) {
-            this.versionStatus.setText(
-                failure == null
+            this.versionStatus.setText(failure == null
                     ? "No releases were found. The newest release will be installed."
                     : "Unable to list versions (" + failure + "). The newest release will be installed."
             );
@@ -355,11 +354,7 @@ public final class InstallerWindow {
         box.setRenderer(new DefaultListCellRenderer() {
 
             @Override
-            public Component getListCellRendererComponent(
-                JList<?> list,
-                Object value,
-                int index,
-                boolean isSelected,
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                 boolean cellHasFocus
             ) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -407,8 +402,7 @@ public final class InstallerWindow {
             JLabel version = new JLabel("Cleanroom " + fixed);
             version.setAlignmentX(Component.LEFT_ALIGNMENT);
             select.add(version);
-            this.versionStatus = CleanroomUI.wrappingStatusLabel(
-                fixed.equals(this.seedVersion)
+            this.versionStatus = CleanroomUI.wrappingStatusLabel(fixed.equals(this.seedVersion)
                     ? "Asked for on the command line. Drop --version to choose a version here."
                     : "This installer only installs this version."
             );
@@ -427,11 +421,7 @@ public final class InstallerWindow {
         this.versionBox.setRenderer(new DefaultListCellRenderer() {
 
             @Override
-            public Component getListCellRendererComponent(
-                JList<?> list,
-                Object value,
-                int index,
-                boolean isSelected,
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                 boolean cellHasFocus
             ) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -518,58 +508,50 @@ public final class InstallerWindow {
 
         this.fullDownload = new JCheckBox("Immediately Download Libraries");
         this.fullDownload.setOpaque(false);
-        this.fullDownloadRow = CleanroomUI.optionRow(
-            this.fullDownload,
+        this.fullDownloadRow = CleanroomUI.optionRow(this.fullDownload,
             "Requires internet now, but not later when running the instance for the first time"
         );
         options.add(this.fullDownloadRow);
 
         this.provisionJava = new JCheckBox("Provision Java if None is Found", true);
         this.provisionJava.setOpaque(false);
-        this.provisionJavaRow = CleanroomUI.optionRow(
-            this.provisionJava,
+        this.provisionJavaRow = CleanroomUI.optionRow(this.provisionJava,
             "Cleanroom needs " + (this.seed == null ? JavaSpec.defaults() : this.seed.java()).requirement() +
                 ". The launcher's own Java is not suitable"
         );
         options.add(this.provisionJavaRow);
 
-        this.instanceNameField = new JTextField(
-            this.seed == null ? "" : this.seed.extra(MmcTarget.OPTION_INSTANCE_NAME, "")
+        this.instanceNameField = new JTextField(this.seed == null
+                ? ""
+                : this.seed.extra(MmcTarget.OPTION_INSTANCE_NAME, "")
         );
         CleanroomUI.installTextFieldFocus(this.instanceNameField);
-        this.instanceNameRow = fieldRow(
-            "Name",
-            this.instanceNameField,
+        this.instanceNameRow = fieldRow("Name", this.instanceNameField,
             "Leave empty for the default Cleanroom instance name"
         );
         options.add(this.instanceNameRow);
 
         this.replaceJavaPath = new JCheckBox("Replace Java Path", false);
         this.replaceJavaPath.setOpaque(false);
-        this.replaceJavaPathRow = CleanroomUI.optionRow(
-            this.replaceJavaPath,
+        this.replaceJavaPathRow = CleanroomUI.optionRow(this.replaceJavaPath,
             "Points the instance's java path to the one the installer found"
         );
         options.add(this.replaceJavaPathRow);
 
-        this.installScripts = new JCheckBox(
-            "Write Launch Scripts",
+        this.installScripts = new JCheckBox("Write Launch Scripts",
             this.seed == null || !this.seed.flag(ServerTarget.OPTION_NO_SCRIPTS)
         );
         this.installScripts.setOpaque(false);
-        this.installScriptsRow = CleanroomUI.optionRow(
-            this.installScripts,
+        this.installScriptsRow = CleanroomUI.optionRow(this.installScripts,
             "Provides ready-made script with custom arguments support"
         );
         options.add(this.installScriptsRow);
 
-        this.starterJar = new JCheckBox(
-            "Write server.jar",
+        this.starterJar = new JCheckBox("Write server.jar",
             this.seed != null && this.seed.flag(ServerTarget.OPTION_STARTER_JAR)
         );
         this.starterJar.setOpaque(false);
-        this.starterJarRow = CleanroomUI.optionRow(
-            this.starterJar,
+        this.starterJarRow = CleanroomUI.optionRow(this.starterJar,
             "For server hosts that only take a jar path. It ignores user_jvm_args.txt"
         );
         options.add(this.starterJarRow);
@@ -706,10 +688,8 @@ public final class InstallerWindow {
         progress.show();
         SwingProgress listener = new SwingProgress(progress);
 
-        new Thread(
-            () -> {
-                Log log = Log.toFile(
-                    this.environment
+        new Thread(() -> {
+                Log log = Log.toFile(this.environment
                         .installerCache()
                         .resolve("logs")
                         .resolve("installer-" + System.currentTimeMillis() + ".log")
@@ -718,19 +698,11 @@ public final class InstallerWindow {
                 try {
                     InstallTarget target = InstallTargets.byId(request.targetId());
                     Downloader downloader = new Downloader(log, request.offline());
-                    try (ProfileSource source = Sources.open(
-                        request.version(),
-                        downloader,
-                        log,
-                        this.environment.installerCache(),
-                        listener
+                    try (ProfileSource source = Sources.open(request.version(), downloader, log,
+                        this.environment.installerCache(), listener
                     )) {
-                        InstallContext context = new InstallContext(
-                            source,
-                            downloader,
-                            new JavaResolver(this.environment, log),
-                            this.environment,
-                            log
+                        InstallContext context = new InstallContext(source, downloader,
+                            new JavaResolver(this.environment, log), this.environment, log
                         ).listener(listener);
                         target.validate(request, context);
                         InstallPlan plan = target.plan(request, context);
@@ -761,9 +733,9 @@ public final class InstallerWindow {
             : this.seed.toBuilder())
             .directory(this.environment.path(this.directoryField.getText()).toAbsolutePath())
             .assumeYes(true);
-        JavaSpec java = (this.seed == null ? JavaSpec.defaults() : this.seed.java()).withProvision(
-            this.provisionJava.isSelected()
-        );
+        JavaSpec java = (this.seed == null
+            ? JavaSpec.defaults()
+            : this.seed.java()).withProvision(this.provisionJava.isSelected());
         builder.java(java);
         builder.version(this.selectedVersion);
         if (ClientTarget.ID.equals(this.selectedTargetId) && this.fullDownload.isSelected()) {
@@ -774,8 +746,7 @@ public final class InstallerWindow {
                 // An empty name is meaningful: it hands the naming back to the target.
                 builder.extra(MmcTarget.OPTION_INSTANCE_NAME, this.instanceNameField.getText().trim());
             }
-            builder.flag(
-                MmcTarget.OPTION_REPLACE_JAVA_PATH,
+            builder.flag(MmcTarget.OPTION_REPLACE_JAVA_PATH,
                 this.replaceJavaPathRow.isVisible() && this.replaceJavaPath.isSelected()
             );
         }

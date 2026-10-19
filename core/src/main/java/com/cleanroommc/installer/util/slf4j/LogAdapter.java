@@ -39,11 +39,7 @@ final class LogAdapter extends LegacyAbstractLogger {
     }
 
     @Override
-    protected void handleNormalizedLoggingCall(
-        Level level,
-        Marker marker,
-        String message,
-        Object[] arguments,
+    protected void handleNormalizedLoggingCall(Level level, Marker marker, String message, Object[] arguments,
         Throwable thrown
     ) {
         Log log = LogBridge.target();

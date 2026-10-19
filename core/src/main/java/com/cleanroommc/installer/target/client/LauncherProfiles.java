@@ -148,10 +148,8 @@ public final class LauncherProfiles {
             JsonObject document = Json.readObject(this.file);
             return document == null ? skeleton() : document;
         } catch (JsonSyntaxException | IOException e) {
-            throw new InstallException(
-                ExitCode.TARGET,
-                "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.",
-                e
+            throw new InstallException(ExitCode.TARGET,
+                "Unable to read " + this.file + ". Move it aside and re-run to start from a fresh one.", e
             );
         }
     }

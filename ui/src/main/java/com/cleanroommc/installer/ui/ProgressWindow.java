@@ -70,12 +70,7 @@ class ProgressWindow {
                 g.setColor(CleanroomUI.BACKGROUND);
                 g.fill(new RoundRectangle2D.Float(0, 0, getWidth() - 1, getHeight() - 1, CORNER_RADIUS, CORNER_RADIUS));
                 g.setColor(CleanroomUI.BORDER);
-                g.draw(new RoundRectangle2D.Float(
-                    0.5f,
-                    0.5f,
-                    getWidth() - 2,
-                    getHeight() - 2,
-                    CORNER_RADIUS,
+                g.draw(new RoundRectangle2D.Float(0.5f, 0.5f, getWidth() - 2, getHeight() - 2, CORNER_RADIUS,
                     CORNER_RADIUS
                 ));
                 g.dispose();
@@ -85,8 +80,8 @@ class ProgressWindow {
         panel.setOpaque(false);
         panel.setBorder(BorderFactory.createEmptyBorder(28, 32, 28, 32));
 
-        ImageIcon rawIcon = new ImageIcon(
-            Toolkit.getDefaultToolkit().getImage(ProgressWindow.class.getResource("/cleanroom.png"))
+        ImageIcon rawIcon = new ImageIcon(Toolkit.getDefaultToolkit()
+                .getImage(ProgressWindow.class.getResource("/cleanroom.png"))
         );
         frame.setIconImage(rawIcon.getImage());
 
@@ -178,12 +173,7 @@ class ProgressWindow {
     }
 
     private void applyRoundedShape() {
-        frame.setShape(new RoundRectangle2D.Double(
-            0,
-            0,
-            frame.getWidth(),
-            frame.getHeight(),
-            CORNER_RADIUS,
+        frame.setShape(new RoundRectangle2D.Double(0, 0, frame.getWidth(), frame.getHeight(), CORNER_RADIUS,
             CORNER_RADIUS
         ));
     }

@@ -77,14 +77,11 @@ class ServerTargetTest {
     void universalJarAppearsOnlyOnceOnTheClasspath() {
         Path universal = Paths.get("libraries/com/cleanroommc/cleanroom/1.0.0/cleanroom-1.0.0-universal.jar");
         Path dependency = Paths.get("libraries/example/dependency/1.0/dependency-1.0.jar");
-        List<Action> actions = Arrays.asList(
-            new WriteFileAction(universal, "universal"),
+        List<Action> actions = Arrays.asList(new WriteFileAction(universal, "universal"),
             new WriteFileAction(dependency, "dependency")
         );
 
-        assertThat(ServerTarget.classpathDestinations(actions, universal)).isEqualTo(Arrays.asList(
-            universal,
-            dependency
+        assertThat(ServerTarget.classpathDestinations(actions, universal)).isEqualTo(Arrays.asList(universal, dependency
         ));
     }
 
@@ -95,8 +92,7 @@ class ServerTargetTest {
         clientNative.side = "client";
         clientNative.natives = Collections.singletonMap("linux", "natives-linux");
         clientNative.downloads = new Library.Downloads();
-        clientNative.downloads.classifiers = Collections.singletonMap(
-            "natives-linux",
+        clientNative.downloads.classifiers = Collections.singletonMap("natives-linux",
             download("https://example.invalid/lwjgl-natives-linux.jar")
         );
 
@@ -106,8 +102,7 @@ class ServerTargetTest {
         sidelessMappedNative.name = "example:sideless-native:1.0";
         sidelessMappedNative.natives = Collections.singletonMap(os, sidelessClassifier);
         sidelessMappedNative.downloads = new Library.Downloads();
-        sidelessMappedNative.downloads.classifiers = Collections.singletonMap(
-            sidelessClassifier,
+        sidelessMappedNative.downloads.classifiers = Collections.singletonMap(sidelessClassifier,
             download("https://example.invalid/sideless-native.jar")
         );
 
@@ -116,21 +111,17 @@ class ServerTargetTest {
         sidelessNative.downloads = new Library.Downloads();
         sidelessNative.downloads.artifact = download("https://example.invalid/netty-native-epoll.jar");
 
-        List<Action> actions = MavenLayout.actions(
-            Arrays.asList(clientNative, sidelessMappedNative, sidelessNative),
-            this.directory,
-            null,
-            Platform.current(),
-            true,
-            false
+        List<Action> actions = MavenLayout.actions(Arrays.asList(clientNative, sidelessMappedNative, sidelessNative),
+            this.directory, null, Platform.current(), true, false
         );
 
-        assertThat(Arrays.asList(actions.get(0).destination(), actions.get(1).destination())).isEqualTo(Arrays.asList(
-            this.directory.resolve("example/sideless-native/1.0/sideless-native-1.0-" + sidelessClassifier + ".jar"),
-            this.directory.resolve(
-                "io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar"
-            )
-        ));
+        assertThat(Arrays.asList(actions.get(0).destination(), actions.get(1).destination())).isEqualTo(
+            Arrays.asList(this.directory.resolve("example/sideless-native/1.0/sideless-native-1.0-" +
+                        sidelessClassifier + ".jar"
+                ),
+                this.directory.resolve("io/netty/netty-transport-native-epoll/4.2.16.Final/netty-transport-native-epoll-4.2.16.Final-linux-x86_64.jar"
+                )
+            ));
     }
 
     @Test

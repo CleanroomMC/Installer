@@ -95,11 +95,8 @@ public final class MmcInstance {
         if (loader == null) {
             return new MmcInstance(Kind.VANILLA, name, null, minecraft);
         }
-        return new MmcInstance(
-            isCleanroom(directory, loader) ? Kind.CLEANROOM : Kind.FORGE,
-            name,
-            string(loader, "version"),
-            minecraft
+        return new MmcInstance(isCleanroom(directory, loader) ? Kind.CLEANROOM : Kind.FORGE, name,
+            string(loader, "version"), minecraft
         );
     }
 

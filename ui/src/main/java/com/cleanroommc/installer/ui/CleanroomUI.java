@@ -60,9 +60,9 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -556,10 +556,8 @@ final class CleanroomUI {
         UIManager.put("Panel.background", SURFACE);
         UIManager.put("OptionPane.messageForeground", TEXT);
         try {
-            JOptionPane pane = new JOptionPane(
-                wrapMessage(message),
-                error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE,
-                JOptionPane.DEFAULT_OPTION,
+            JOptionPane pane = new JOptionPane(wrapMessage(message),
+                error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE, JOptionPane.DEFAULT_OPTION,
                 dialogIcon()
             );
             JDialog dialog = pane.createDialog(parent, title);
@@ -656,10 +654,8 @@ final class CleanroomUI {
                 ImageIcon imageIcon = (ImageIcon) icon;
                 Image image = imageIcon.getImage();
                 if (image != null) {
-                    Image scaledImage = image.getScaledInstance(
-                        (int) (imageIcon.getIconWidth() * scale),
-                        (int) (imageIcon.getIconHeight() * scale),
-                        Image.SCALE_SMOOTH
+                    Image scaledImage = image.getScaledInstance((int) (imageIcon.getIconWidth() * scale),
+                        (int) (imageIcon.getIconHeight() * scale), Image.SCALE_SMOOTH
                     );
                     label.setIcon(new ImageIcon(scaledImage));
                 }
@@ -682,44 +678,32 @@ final class CleanroomUI {
             AbstractButton button = (AbstractButton) component;
             Insets margin = button.getMargin();
             if (margin != null) {
-                button.setMargin(new Insets(
-                    (int) (margin.top * scale),
-                    (int) (margin.left * scale),
-                    (int) (margin.bottom * scale),
-                    (int) (margin.right * scale)
+                button.setMargin(new Insets((int) (margin.top * scale), (int) (margin.left * scale),
+                    (int) (margin.bottom * scale), (int) (margin.right * scale)
                 ));
             }
         } else if (component instanceof JTextField) {
             JTextField textField = (JTextField) component;
             Insets margin = textField.getMargin();
             if (margin != null) {
-                textField.setMargin(new Insets(
-                    (int) (margin.top * scale),
-                    (int) (margin.left * scale),
-                    (int) (margin.bottom * scale),
-                    (int) (margin.right * scale)
+                textField.setMargin(new Insets((int) (margin.top * scale), (int) (margin.left * scale),
+                    (int) (margin.bottom * scale), (int) (margin.right * scale)
                 ));
             }
         } else if (component instanceof JComboBox) {
             JComboBox<?> comboBox = (JComboBox<?>) component;
             Insets margin = comboBox.getInsets();
             if (margin != null) {
-                comboBox.setBorder(BorderFactory.createEmptyBorder(
-                    (int) (margin.top * scale),
-                    (int) (margin.left * scale),
-                    (int) (margin.bottom * scale),
-                    (int) (margin.right * scale)
+                comboBox.setBorder(BorderFactory.createEmptyBorder((int) (margin.top * scale),
+                    (int) (margin.left * scale), (int) (margin.bottom * scale), (int) (margin.right * scale)
                 ));
             }
         } else if (component instanceof JLabel) {
             JLabel label = (JLabel) component;
             Insets margin = label.getInsets();
             if (margin != null) {
-                label.setBorder(BorderFactory.createEmptyBorder(
-                    (int) (margin.top * scale),
-                    (int) (margin.left * scale),
-                    (int) (margin.bottom * scale),
-                    (int) (margin.right * scale)
+                label.setBorder(BorderFactory.createEmptyBorder((int) (margin.top * scale), (int) (margin.left * scale),
+                    (int) (margin.bottom * scale), (int) (margin.right * scale)
                 ));
             }
         } else if (component instanceof JPanel) {
@@ -730,11 +714,8 @@ final class CleanroomUI {
                 ? ((EmptyBorder) existingBorder).getBorderInsets()
                 : new Insets(0, 0, 0, 0);
 
-            panel.setBorder(BorderFactory.createEmptyBorder(
-                (int) (margin.top * scale),
-                (int) (margin.left * scale),
-                (int) (margin.bottom * scale),
-                (int) (margin.right * scale)
+            panel.setBorder(BorderFactory.createEmptyBorder((int) (margin.top * scale), (int) (margin.left * scale),
+                (int) (margin.bottom * scale), (int) (margin.right * scale)
             ));
         }
 
@@ -1169,10 +1150,7 @@ final class CleanroomUI {
 
     /** Scales the padding with the UI and keeps margin/border in agreement. */
     private static void setButtonPadding(AbstractButton button, Insets padding) {
-        Insets scaled = new Insets(
-            scaled(padding.top),
-            scaled(padding.left),
-            scaled(padding.bottom),
+        Insets scaled = new Insets(scaled(padding.top), scaled(padding.left), scaled(padding.bottom),
             scaled(padding.right)
         );
         button.setMargin(scaled);
@@ -1293,8 +1271,7 @@ final class CleanroomUI {
     }
 
     private static Border textFieldBorder(Color color) {
-        return BorderFactory.createCompoundBorder(
-            new RoundedBorder(color, 8),
+        return BorderFactory.createCompoundBorder(new RoundedBorder(color, 8),
             BorderFactory.createEmptyBorder(0, 4, 0, 4)
         );
     }
@@ -1509,10 +1486,7 @@ final class CleanroomUI {
         private void paintMoon(Graphics2D g, int centerX, int centerY, boolean active) {
             double radius = 5.5;
             Area moon = new Area(new Ellipse2D.Double(centerX - radius, centerY - radius, radius * 2, radius * 2));
-            moon.subtract(new Area(new Ellipse2D.Double(
-                centerX - radius * 0.42,
-                centerY - radius * 1.08,
-                radius * 1.72,
+            moon.subtract(new Area(new Ellipse2D.Double(centerX - radius * 0.42, centerY - radius * 1.08, radius * 1.72,
                 radius * 1.72
             )));
             g.setColor(active ? new Color(153, 156, 159) : Color.WHITE);
@@ -1855,9 +1829,7 @@ final class CleanroomUI {
 
             });
 
-            scroller = new JScrollPane(
-                list,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            scroller = new JScrollPane(list, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
             );
 
@@ -1871,8 +1843,7 @@ final class CleanroomUI {
             popupPanel = new JPanel(new BorderLayout());
             popupPanel.setOpaque(true);
             popupPanel.setBackground(comboBox.getBackground());
-            popupPanel.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(BORDER, 8),
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
                 BorderFactory.createEmptyBorder(1, 1, 1, 1)
             ));
             popupPanel.putClientProperty(KEEP_OPAQUE, Boolean.TRUE);
@@ -1997,8 +1968,7 @@ final class CleanroomUI {
 
             popupPanel.setOpaque(true);
             popupPanel.setBackground(CONTROL);
-            popupPanel.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(BORDER, 8),
+            popupPanel.setBorder(BorderFactory.createCompoundBorder(new RoundedBorder(BORDER, 8),
                 BorderFactory.createEmptyBorder(1, 1, 1, 1)
             ));
             popupPanel.revalidate();
@@ -2200,11 +2170,7 @@ final class CleanroomUI {
         @Override
         public void paintCurrentValue(Graphics graphics, Rectangle bounds, boolean hasFocus) {
             ListCellRenderer<Object> renderer = comboBox.getRenderer();
-            Component rendered = renderer.getListCellRendererComponent(
-                listBox,
-                comboBox.getSelectedItem(),
-                -1,
-                false,
+            Component rendered = renderer.getListCellRendererComponent(listBox, comboBox.getSelectedItem(), -1, false,
                 false
             );
             rendered.setFont(comboBox.getFont());
@@ -2214,15 +2180,8 @@ final class CleanroomUI {
                 ((JComponent) rendered).setOpaque(false);
                 ((JComponent) rendered).setBorder(BorderFactory.createEmptyBorder(0, 9, 0, 4));
             }
-            currentValuePane.paintComponent(
-                graphics,
-                rendered,
-                comboBox,
-                bounds.x,
-                bounds.y,
-                bounds.width,
-                bounds.height,
-                true
+            currentValuePane.paintComponent(graphics, rendered, comboBox, bounds.x, bounds.y, bounds.width,
+                bounds.height, true
             );
         }
 
@@ -2243,11 +2202,7 @@ final class CleanroomUI {
         }
 
         @Override
-        public Component getListCellRendererComponent(
-            JList<?> list,
-            Object value,
-            int index,
-            boolean isSelected,
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
             boolean cellHasFocus
         ) {
             Component rendered = delegate.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
@@ -2298,13 +2253,8 @@ final class CleanroomUI {
             Graphics2D g = (Graphics2D) graphics.create();
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(isDragging ? PRIMARY : BORDER);
-            g.fillRoundRect(
-                bounds.x + 2,
-                bounds.y + 2,
-                Math.max(4, bounds.width - 4),
-                Math.max(4, bounds.height - 4),
-                8,
-                8
+            g.fillRoundRect(bounds.x + 2, bounds.y + 2, Math.max(4, bounds.width - 4), Math.max(4, bounds.height - 4),
+                8, 8
             );
             g.dispose();
         }
@@ -2322,12 +2272,7 @@ final class CleanroomUI {
 
     private static final class ModernButtonUI extends BasicButtonUI {
 
-        private static void fillButton(
-            Graphics2D g,
-            Color fill,
-            Color outline,
-            int width,
-            int height,
+        private static void fillButton(Graphics2D g, Color fill, Color outline, int width, int height,
             boolean drawOutline
         ) {
             // Fill the full bounds so AA doesn't leave a 1px "outer ring" of the background

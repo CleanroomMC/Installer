@@ -60,16 +60,12 @@ class DownloaderTest {
     void startServer() throws IOException {
         this.server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         this.server.createContext("/good", exchange -> respond(exchange, BODY));
-        this.server.createContext(
-            "/truncated",
-            exchange -> respond(exchange, "clean".getBytes(StandardCharsets.UTF_8))
+        this.server.createContext("/truncated", exchange -> respond(exchange, "clean".getBytes(StandardCharsets.UTF_8))
         );
-        this.server.createContext(
-            "/good.sha1",
+        this.server.createContext("/good.sha1",
             exchange -> respond(exchange, (sha1() + "\n").getBytes(StandardCharsets.UTF_8))
         );
-        this.server.createContext(
-            "/truncated.sha1",
+        this.server.createContext("/truncated.sha1",
             exchange -> respond(exchange, sha1().getBytes(StandardCharsets.UTF_8))
         );
         this.server.createContext("/broken", exchange -> {
@@ -106,13 +102,8 @@ class DownloaderTest {
     @Test
     void aWrongHashFailsAndLeavesNoFileBehind() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
-            () -> downloader().download(
-                this.base + "/good",
-                file,
-                "0000000000000000000000000000000000000000",
-                0,
+        InstallException failure = catchThrowableOfType(InstallException.class,
+            () -> downloader().download(this.base + "/good", file, "0000000000000000000000000000000000000000", 0,
                 ProgressListener.NONE
             )
         );
@@ -124,8 +115,7 @@ class DownloaderTest {
     @Test
     void aWrongSizeFailsBeforeHashing() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> downloader().download(this.base + "/truncated", file, sha1(), BODY.length, ProgressListener.NONE)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.VERIFICATION);
@@ -139,11 +129,8 @@ class DownloaderTest {
         assertThat(downloader().downloadVerified(this.base + "/good", file, ProgressListener.NONE)).isTrue();
         assertThat(Files.readAllBytes(file)).isEqualTo(BODY);
 
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
-            () -> downloader().downloadVerified(
-                this.base + "/truncated",
-                this.directory.resolve("other.jar"),
+        InstallException failure = catchThrowableOfType(InstallException.class,
+            () -> downloader().downloadVerified(this.base + "/truncated", this.directory.resolve("other.jar"),
                 ProgressListener.NONE
             )
         );
@@ -193,8 +180,7 @@ class DownloaderTest {
             }
 
         };
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> downloader().download(this.base + "/good", file, null, 0, cancelled)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.CANCELLED);
@@ -204,8 +190,7 @@ class DownloaderTest {
     @Test
     void serverErrorsBecomeNetworkFailures() {
         Path file = this.directory.resolve("artifact.jar");
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> downloader().download(this.base + "/broken", file, null, 0, ProgressListener.NONE)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.NETWORK);
@@ -215,8 +200,7 @@ class DownloaderTest {
     void offlineModeNeverReachesTheNetwork() {
         Path file = this.directory.resolve("artifact.jar");
         Downloader offline = new Downloader(Log.console(), true, 1);
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> offline.download(this.base + "/good", file, null, 0, ProgressListener.NONE)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.NETWORK);

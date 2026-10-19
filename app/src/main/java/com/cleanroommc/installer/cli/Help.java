@@ -78,8 +78,7 @@ public final class Help {
             .append(nl())
             .append("      --java <path>        use this Java installation")
             .append(nl())
-            .append(
-                "      --java-version <n>   Java feature version to use (default: what the Cleanroom version asks for)"
+            .append("      --java-version <n>   Java feature version to use (default: what the Cleanroom version asks for)"
             )
             .append(nl())
             .append("      --java-vendor <name> preferred vendor, e.g. zulu, temurin")
@@ -112,8 +111,7 @@ public final class Help {
             .append(nl())
             .append("      --starter-jar        write server.jar, for hosts that only take a jar path")
             .append(nl())
-            .append(
-                "      --pin-java           write the resolved Java path into the scripts (always done for a provisioned Java)"
+            .append("      --pin-java           write the resolved Java path into the scripts (always done for a provisioned Java)"
             )
             .append(nl())
             .append(nl())

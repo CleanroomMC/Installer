@@ -25,8 +25,15 @@ class CliOptionsTest {
 
     @Test
     void parsesAClientInstall() throws Exception {
-        CliOptions options = CliOptions.parse(
-            new String[] { "client", "-d", "/tmp/mc", "--version", "0.6.11-alpha", "--full", "--yes" },
+        CliOptions options = CliOptions.parse(new String[] {
+                "client",
+                "-d",
+                "/tmp/mc",
+                "--version",
+                "0.6.11-alpha",
+                "--full",
+                "--yes"
+            },
             this.environment
         );
         InstallRequest request = options.toRequest();
@@ -40,8 +47,7 @@ class CliOptionsTest {
 
     @Test
     void unknownFlagsAreAnErrorRatherThanAGuess() {
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> CliOptions.parse(new String[] { "client", "--dirr", "/tmp/mc" }, this.environment)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.USAGE);
@@ -50,8 +56,7 @@ class CliOptionsTest {
 
     @Test
     void flagsThatNeedAValueSaySo() {
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> CliOptions.parse(new String[] { "client", "--dir" }, this.environment)
         );
         assertThat(failure.exitCode()).isEqualTo(ExitCode.USAGE);
@@ -60,16 +65,20 @@ class CliOptionsTest {
 
     @Test
     void contradictoryInterfaceFlagsAreRejected() {
-        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(
-            new String[] { "--gui", "--no-gui" },
+        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(new String[] {
+                "--gui",
+                "--no-gui"
+            },
             this.environment
         ));
     }
 
     @Test
     void aSecondPositionalArgumentIsRejected() {
-        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(
-            new String[] { "client", "server" },
+        assertThatExceptionOfType(InstallException.class).isThrownBy(() -> CliOptions.parse(new String[] {
+                "client",
+                "server"
+            },
             this.environment
         ));
     }
@@ -96,8 +105,12 @@ class CliOptionsTest {
 
     @Test
     void mmcFlagsLandOnTheRightOptions() throws Exception {
-        InstallRequest request = CliOptions.parse(
-            new String[] { "mmc", "--replace-java-path", "--instance-name", "Cleanroom Test" },
+        InstallRequest request = CliOptions.parse(new String[] {
+                "mmc",
+                "--replace-java-path",
+                "--instance-name",
+                "Cleanroom Test"
+            },
             this.environment
         )
             .toRequest();
@@ -107,15 +120,20 @@ class CliOptionsTest {
 
     @Test
     void javaFlagsBuildTheSpec() throws Exception {
-        InstallRequest request = CliOptions.parse(
-            new String[] { "client", "--java-version", "21", "--java-vendor", "temurin", "--provision-java" },
+        InstallRequest request = CliOptions.parse(new String[] {
+                "client",
+                "--java-version",
+                "21",
+                "--java-vendor",
+                "temurin",
+                "--provision-java"
+            },
             this.environment
         )
             .toRequest();
         assertThat(request.java().target()).isEqualTo(21);
         assertThat(request.java().withProfileBounds(25, 25, 25).accepts(21)).isTrue();
-        assertThat(
-            CliOptions.parse(new String[] { "client" }, this.environment)
+        assertThat(CliOptions.parse(new String[] { "client" }, this.environment)
                 .toRequest()
                 .java()
                 .withProfileBounds(17, 21, 21)
@@ -127,8 +145,7 @@ class CliOptionsTest {
 
     @Test
     void jvmArgumentsSplitOnWhitespace() throws Exception {
-        InstallRequest request = CliOptions.parse(
-            new String[] { "client", "--jvm-args", "-Xmx6G  -XX:+UseZGC" },
+        InstallRequest request = CliOptions.parse(new String[] { "client", "--jvm-args", "-Xmx6G  -XX:+UseZGC" },
             this.environment
         )
             .toRequest();

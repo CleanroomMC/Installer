@@ -31,8 +31,7 @@ class ExtractZipActionTest {
             zip.write('x');
         }
 
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> new ExtractZipAction(archive, this.directory.resolve("instance")).execute(null)
         );
 

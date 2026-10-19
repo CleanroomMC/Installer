@@ -39,8 +39,7 @@ class JavaResolverTest {
     @Test
     void publishesTheCleanroomHomeSoJavaUtilsLocatesWhatWeProvision() {
         Path home = Paths.get("/tmp/somewhere/.cleanroom");
-        new JavaResolver(
-            new Environment() {
+        new JavaResolver(new Environment() {
 
                 @Override
                 public Path cleanroomHome() {

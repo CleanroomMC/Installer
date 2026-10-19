@@ -76,8 +76,7 @@ public final class JavaResolver {
             return located;
         }
         if (!spec.allowProvision()) {
-            throw new InstallException(
-                ExitCode.JAVA,
+            throw new InstallException(ExitCode.JAVA,
                 "No " + spec.requirement() + " was found." + System.lineSeparator() +
                     "Cleanroom cannot run on the Java the Minecraft launcher ships." + System.lineSeparator() +
                     "Pass --java <path> to point at one, or --provision-java to download " + "Java " + spec.target() +
@@ -101,8 +100,7 @@ public final class JavaResolver {
             JavaInstall install = JavaUtils.parseInstall(spec.path());
             int major = install.version().major();
             if (!spec.accepts(major)) {
-                throw new InstallException(
-                    ExitCode.JAVA,
+                throw new InstallException(ExitCode.JAVA,
                     spec.path() + " is Java " + major + ", but Cleanroom needs " + spec.requirement() + "."
                 );
             }
@@ -157,9 +155,7 @@ public final class JavaResolver {
             this.log.info("Provisioned {}", install);
             return new JavaResolution(install, JavaResolution.Origin.PROVISIONED);
         } catch (IOException e) {
-            throw new InstallException(
-                ExitCode.JAVA,
-                "Unable to download Java " + spec.target() + " into " + directory,
+            throw new InstallException(ExitCode.JAVA, "Unable to download Java " + spec.target() + " into " + directory,
                 e
             );
         }

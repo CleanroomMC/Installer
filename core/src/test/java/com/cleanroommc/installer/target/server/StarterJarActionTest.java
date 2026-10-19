@@ -49,8 +49,7 @@ public class StarterJarActionTest {
         Path library = root.resolve("libraries/with space/probe.jar");
         Files.createDirectories(library.getParent());
         String entry = StarterJarActionTest.class.getName().replace('.', '/') + ".class";
-        try (OutputStream out = Files.newOutputStream(library); JarOutputStream jar = new JarOutputStream(
-            out
+        try (OutputStream out = Files.newOutputStream(library); JarOutputStream jar = new JarOutputStream(out
         ); InputStream in = StarterJarActionTest.class.getResourceAsStream("/" + entry)) {
             jar.putNextEntry(new JarEntry(entry));
             byte[] buffer = new byte[8192];
@@ -61,29 +60,20 @@ public class StarterJarActionTest {
         }
 
         Path serverJar = root.resolve("server.jar");
-        StarterJarAction action = new StarterJarAction(
-            serverJar,
-            root,
-            Collections.singletonList(library),
-            StarterJarActionTest.class.getName(),
-            Arrays.asList("--tweakClass", "example.Tweaker"),
-            Arrays.asList(
-                "--add-opens=java.base/java.lang=ALL-UNNAMED",
-                "--add-exports",
-                "java.base/jdk.internal.misc=ALL-UNNAMED",
-                "-Dexample=1"
+        StarterJarAction action = new StarterJarAction(serverJar, root, Collections.singletonList(library),
+            StarterJarActionTest.class.getName(), Arrays.asList("--tweakClass", "example.Tweaker"),
+            Arrays.asList("--add-opens=java.base/java.lang=ALL-UNNAMED", "--add-exports",
+                "java.base/jdk.internal.misc=ALL-UNNAMED", "-Dexample=1"
             ),
-            8,
-            0
+            8, 0
         );
         action.execute(null);
 
         assertThat(action.skippedJvmArgs()).containsExactly("-Dexample=1");
         try (JarFile jar = new JarFile(serverJar.toFile())) {
             assertThat(jar.getManifest().getMainAttributes().getValue("Add-Opens")).isEqualTo("java.base/java.lang");
-            assertThat(jar.getManifest().getMainAttributes().getValue("Add-Exports")).isEqualTo(
-                "java.base/jdk.internal.misc"
-            );
+            assertThat(jar.getManifest().getMainAttributes().getValue("Add-Exports")
+            ).isEqualTo("java.base/jdk.internal.misc");
         }
 
         String java = Paths.get(System.getProperty("java.home"), "bin", "java").toString();

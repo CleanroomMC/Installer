@@ -95,8 +95,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         List<String> notes = new ArrayList<>();
         switch (existing.kind()) {
             case CLEANROOM:
-                notes.add(
-                    existing.isCleanroom(version)
+                notes.add(existing.isCleanroom(version)
                         ? "Repaired the existing Cleanroom " + version + " instance"
                         : "Changed this instance from Cleanroom " + existing.loaderVersion() + " to " + version
                 );
@@ -167,8 +166,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         Path directory = directory(request, context.env());
         if (directory == null) {
             String wanted = request.extra(OPTION_LAUNCHER);
-            throw new InstallException(
-                ExitCode.TARGET,
+            throw new InstallException(ExitCode.TARGET,
                 (wanted == null
                         ? "No Prism, PolyMC or MultiMC installation was found."
                         : "No " + wanted + " installation was found.") +
@@ -182,8 +180,7 @@ public final class MmcTarget extends AbstractInstallTarget {
             }
             MmcInstance existing = MmcInstance.inspect(directory);
             if (existing.kind() == MmcInstance.Kind.FORGE && !request.assumeYes()) {
-                throw new InstallException(
-                    ExitCode.TARGET,
+                throw new InstallException(ExitCode.TARGET,
                     directory + " is a " + existing.describe() + "." + System.lineSeparator() +
                         "Installing Cleanroom there replaces Forge, and mods built for Forge may " +
                         "not load afterwards." + System.lineSeparator() +
@@ -195,8 +192,7 @@ public final class MmcTarget extends AbstractInstallTarget {
         Path instances = instances(request, context.env());
         Path instance = instances.resolve(instanceName(request, context));
         if (Files.exists(instance) && !request.assumeYes()) {
-            throw new InstallException(
-                ExitCode.TARGET,
+            throw new InstallException(ExitCode.TARGET,
                 "Instance " + instance + " already exists. Pass --yes to overwrite it, " +
                     "or --instance-name to use a different name."
             );
@@ -222,14 +218,12 @@ public final class MmcTarget extends AbstractInstallTarget {
         Path pack = context.cache().resolve("packs").resolve(packFileName(profile));
         boolean embeddedPack = hasEmbeddedPack(context);
         plan.add(packAction(context, profile, pack, embeddedPack));
-        plan.add(
-            updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance)
+        plan.add(updating ? new ExtractZipAction(pack, instance, INSTANCE_OWNED) : new ExtractZipAction(pack, instance)
         );
         if (embeddedPack && packLoadsLocalUniversal(context, profile)) {
             plan.add(embeddedUniversalAction(context, profile, instance));
         }
-        plan.add(new WriteFileAction(
-            instance.resolve(".cleanroom-installer"),
+        plan.add(new WriteFileAction(instance.resolve(".cleanroom-installer"),
             "Created by the Cleanroom Installer for " + versionId + System.lineSeparator()
         ));
 
@@ -239,9 +233,7 @@ public final class MmcTarget extends AbstractInstallTarget {
             values.put("name", requestedName);
         }
         if (shouldReplaceJavaPath(request)) {
-            JavaResolution java = resolveJava(
-                request,
-                context,
+            JavaResolution java = resolveJava(request, context,
                 request.java().withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended),
                 plan
             );

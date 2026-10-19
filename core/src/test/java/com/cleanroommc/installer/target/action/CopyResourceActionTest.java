@@ -41,8 +41,7 @@ class CopyResourceActionTest {
 
         };
 
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> new CopyResourceAction("library", () -> failing, file).execute(null)
         );
 

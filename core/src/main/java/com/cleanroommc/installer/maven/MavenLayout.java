@@ -31,23 +31,14 @@ public final class MavenLayout {
         return librariesDirectory.resolve(download.path(coordinate).replace('/', File.separatorChar));
     }
 
-    public static List<Action> actions(
-        List<Library> libraries,
-        Path librariesDirectory,
-        ProfileSource source,
-        Platform platform,
-        boolean nativesForThisPlatformOnly
+    public static List<Action> actions(List<Library> libraries, Path librariesDirectory, ProfileSource source,
+        Platform platform, boolean nativesForThisPlatformOnly
     ) {
         return actions(libraries, librariesDirectory, source, platform, nativesForThisPlatformOnly, true);
     }
 
-    public static List<Action> actions(
-        List<Library> libraries,
-        Path librariesDirectory,
-        ProfileSource source,
-        Platform platform,
-        boolean nativesForThisPlatformOnly,
-        boolean includeClientNatives
+    public static List<Action> actions(List<Library> libraries, Path librariesDirectory, ProfileSource source,
+        Platform platform, boolean nativesForThisPlatformOnly, boolean includeClientNatives
     ) {
         List<Action> actions = new ArrayList<>();
         for (Library library : libraries) {

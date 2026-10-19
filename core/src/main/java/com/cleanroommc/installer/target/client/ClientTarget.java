@@ -135,22 +135,19 @@ public final class ClientTarget extends AbstractInstallTarget {
     public void validate(InstallRequest request, InstallContext context) throws InstallException {
         Path directory = directory(request, context.env());
         if (InstallLocations.looksLikeMmcInstance(directory)) {
-            throw new InstallException(
-                ExitCode.TARGET,
+            throw new InstallException(ExitCode.TARGET,
                 directory + " is a MultiMC/Prism instance, not a Minecraft installation." + System.lineSeparator() +
                     "Use the 'mmc' mode for those."
             );
         }
         if (!Files.isDirectory(directory)) {
             if (!request.assumeYes()) {
-                throw new InstallException(
-                    ExitCode.TARGET,
+                throw new InstallException(ExitCode.TARGET,
                     directory + " does not exist. Pass --yes to create it, or --dir to point somewhere else."
                 );
             }
         } else if (!InstallLocations.looksLikeMinecraft(directory) && !request.assumeYes()) {
-            throw new InstallException(
-                ExitCode.TARGET,
+            throw new InstallException(ExitCode.TARGET,
                 directory + " does not look like a Minecraft installation (no launcher_profiles.json, no versions/)." +
                     System.lineSeparator() + "Pass --yes to install there anyway, or --dir to point elsewhere."
             );
@@ -175,20 +172,14 @@ public final class ClientTarget extends AbstractInstallTarget {
             return plan;
         }
 
-        plan.add(new WriteFileAction(
-            root.resolve("versions").resolve(versionId).resolve(versionId + ".json"),
+        plan.add(new WriteFileAction(root.resolve("versions").resolve(versionId).resolve(versionId + ".json"),
             Json.GSON.toJson(version) + "\n"
         ));
 
         plan.addAll(universalActions(profile, libraries, context));
 
         if (request.flag(OPTION_FULL)) {
-            plan.addAll(MavenLayout.actions(
-                version.libraries(),
-                libraries,
-                context.source(),
-                Platform.current(),
-                true
+            plan.addAll(MavenLayout.actions(version.libraries(), libraries, context.source(), Platform.current(), true
             ));
         }
 
@@ -198,11 +189,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         return plan;
     }
 
-    private boolean alreadyInstalled(
-        InstallRequest request,
-        Environment environment,
-        Path root,
-        String versionId,
+    private boolean alreadyInstalled(InstallRequest request, Environment environment, Path root, String versionId,
         InstallProfile profile
     ) {
         Path versionFile = root.resolve("versions").resolve(versionId).resolve(versionId + ".json");
@@ -210,8 +197,7 @@ public final class ClientTarget extends AbstractInstallTarget {
             return false;
         }
         Coordinate universal = Coordinate.parse(profile.path);
-        if (!Files.isRegularFile(
-            root.resolve("libraries").resolve(universal.path().replace('/', File.separatorChar))
+        if (!Files.isRegularFile(root.resolve("libraries").resolve(universal.path().replace('/', File.separatorChar))
         )) {
             return false;
         }
@@ -249,18 +235,14 @@ public final class ClientTarget extends AbstractInstallTarget {
         return actions;
     }
 
-    private List<Action> profileActions(
-        InstallRequest request,
-        InstallContext context,
-        InstallProfile profile,
-        String versionId,
-        Path root,
-        InstallPlan plan
+    private List<Action> profileActions(InstallRequest request, InstallContext context, InstallProfile profile,
+        String versionId, Path root, InstallPlan plan
     ) throws InstallException {
         JavaSpec spec = request.java()
             .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended)
-            .withDistro(
-                request.java().distro() == null ? JavaDistro.match(profile.java.distro) : request.java().distro()
+            .withDistro(request.java().distro() == null
+                    ? JavaDistro.match(profile.java.distro)
+                    : request.java().distro()
             );
         JavaResolution java = resolveJava(request, context, spec, plan);
         if (java != null) {
@@ -275,9 +257,7 @@ public final class ClientTarget extends AbstractInstallTarget {
 
         List<Action> actions = new ArrayList<>();
         for (Path profilesFile : profileFiles(request, context.env(), root)) {
-            actions.add(new MergeJsonAction(
-                profilesFile,
-                "profile '" + name + "'",
+            actions.add(new MergeJsonAction(profilesFile, "profile '" + name + "'",
                 ctx -> new LauncherProfiles(profilesFile).merge(key, name, versionId, javaDir, jvmArgs, icon)
             ));
         }
@@ -300,8 +280,7 @@ public final class ClientTarget extends AbstractInstallTarget {
                 return result.noOp(true);
             }
             if (versions.size() > 1) {
-                throw new InstallException(
-                    ExitCode.USAGE,
+                throw new InstallException(ExitCode.USAGE,
                     "Several Cleanroom versions are installed in " + root + ": " + String.join(", ", versions) +
                         System.lineSeparator() + "Pass --version to choose the one to remove."
                 );
@@ -329,8 +308,8 @@ public final class ClientTarget extends AbstractInstallTarget {
         if (result.notes().isEmpty()) {
             return result.noOp(true);
         }
-        result.note(
-            "Libraries under " + root.resolve("libraries") + " were left in place as other versions may use them"
+        result.note("Libraries under " + root.resolve("libraries") +
+                " were left in place as other versions may use them"
         );
         return result;
     }

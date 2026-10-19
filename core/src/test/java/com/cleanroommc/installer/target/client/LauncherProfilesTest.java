@@ -29,18 +29,11 @@ class LauncherProfilesTest {
 
     @Test
     void preservesUnknownKeysAndOtherProfiles() throws Exception {
-        Path file = write(
-            "{\"profiles\":{\"vanilla\":{\"name\":\"Vanilla\",\"custom\":42}}," +
+        Path file = write("{\"profiles\":{\"vanilla\":{\"name\":\"Vanilla\",\"custom\":42}}," +
                 "\"selectedUser\":{\"account\":\"abc\"},\"version\":3}"
         );
 
-        new LauncherProfiles(file).merge(
-            "cleanroom-1.0",
-            "Cleanroom 1.0",
-            "Cleanroom-1.0",
-            "/opt/java",
-            "-Xmx4G",
-            null
+        new LauncherProfiles(file).merge("cleanroom-1.0", "Cleanroom 1.0", "Cleanroom-1.0", "/opt/java", "-Xmx4G", null
         );
 
         JsonObject document = Json.readObject(file);
@@ -85,8 +78,10 @@ class LauncherProfilesTest {
 
         JsonObject document = Json.readObject(file);
         assertThat(document.getAsJsonObject("profiles").size()).isEqualTo(1);
-        assertThat(
-            document.getAsJsonObject("profiles").getAsJsonObject("cleanroom-1.0").get("lastVersionId").getAsString()
+        assertThat(document.getAsJsonObject("profiles")
+                .getAsJsonObject("cleanroom-1.0")
+                .get("lastVersionId")
+                .getAsString()
         ).isEqualTo("new-id");
     }
 
@@ -119,8 +114,7 @@ class LauncherProfilesTest {
     void aCorruptFileFailsLoudlyInsteadOfBeingOverwritten() throws Exception {
         Path file = write("{ this is not json");
         LauncherProfiles profiles = new LauncherProfiles(file);
-        InstallException failure = catchThrowableOfType(
-            InstallException.class,
+        InstallException failure = catchThrowableOfType(InstallException.class,
             () -> profiles.merge("cleanroom-1.0", "Cleanroom", "id", null, null, null)
         );
         assertThat(failure.getMessage().contains(file.toString())).isTrue();

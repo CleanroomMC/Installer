@@ -69,8 +69,7 @@ class InstallLocationsTest {
         Path instances = this.home.resolve("elsewhere/instances");
         Files.createDirectories(instances);
         Files.createDirectories(root);
-        Files.write(
-            root.resolve("prismlauncher.cfg"),
+        Files.write(root.resolve("prismlauncher.cfg"),
             ("InstanceDir=" + root.relativize(instances) + "\n").getBytes(StandardCharsets.UTF_8)
         );
 

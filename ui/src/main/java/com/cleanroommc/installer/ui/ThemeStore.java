@@ -32,8 +32,9 @@ interface ThemeStore {
 
     final class FileThemeStore implements ThemeStore {
 
-        static final FileThemeStore INSTANCE = new FileThemeStore(
-            Environment.current().installerCache().resolve("ui.json")
+        static final FileThemeStore INSTANCE = new FileThemeStore(Environment.current()
+                .installerCache()
+                .resolve("ui.json")
         );
 
         private final Path file;

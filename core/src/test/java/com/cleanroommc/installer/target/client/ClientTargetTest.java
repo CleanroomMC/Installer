@@ -39,10 +39,8 @@ class ClientTargetTest {
         assertThat(removed.isNoOp()).isFalse();
         assertThat(version).doesNotExist();
         assertThat(vanilla).exists();
-        assertThat(new LauncherProfiles(this.directory.resolve(LauncherProfiles.FILE)).alreadyHas(
-            "cleanroom-0.6.13-alpha",
-            "1.12.2-Cleanroom-0.6.13-alpha"
-        )).isFalse();
+        assertThat(new LauncherProfiles(this.directory.resolve(LauncherProfiles.FILE
+        )).alreadyHas("cleanroom-0.6.13-alpha", "1.12.2-Cleanroom-0.6.13-alpha")).isFalse();
         assertThat(new LauncherProfiles(store).alreadyHas("cleanroom-0.6.13-alpha", "1.12.2-Cleanroom-0.6.13-alpha"))
             .as("the Microsoft Store launcher reads its own profile file")
             .isFalse();
@@ -65,13 +63,8 @@ class ClientTargetTest {
 
     private Path install(String version) throws Exception {
         String id = "1.12.2-Cleanroom-" + version;
-        new LauncherProfiles(this.directory.resolve(LauncherProfiles.FILE)).merge(
-            "cleanroom-" + version,
-            "Cleanroom",
-            id,
-            null,
-            null,
-            null
+        new LauncherProfiles(this.directory.resolve(LauncherProfiles.FILE)).merge("cleanroom-" + version, "Cleanroom",
+            id, null, null, null
         );
         Path versionDirectory = Files.createDirectories(this.directory.resolve("versions").resolve(id));
         Files.createFile(versionDirectory.resolve(id + ".json"));

@@ -24,13 +24,7 @@ public final class JavaSpec {
         this(path, minimum, maximum, target, distro, allowProvision, false);
     }
 
-    private JavaSpec(
-        String path,
-        int minimum,
-        int maximum,
-        int target,
-        JavaDistro distro,
-        boolean allowProvision,
+    private JavaSpec(String path, int minimum, int maximum, int target, JavaDistro distro, boolean allowProvision,
         boolean versionChosen
     ) {
         this.path = path;
@@ -88,25 +82,13 @@ public final class JavaSpec {
     }
 
     public JavaSpec withPath(String newPath) {
-        return new JavaSpec(
-            newPath,
-            this.minimum,
-            this.maximum,
-            this.target,
-            this.distro,
-            this.allowProvision,
+        return new JavaSpec(newPath, this.minimum, this.maximum, this.target, this.distro, this.allowProvision,
             this.versionChosen
         );
     }
 
     public JavaSpec withBounds(int newMinimum, int newMaximum, int newTarget) {
-        return new JavaSpec(
-            this.path,
-            newMinimum,
-            newMaximum,
-            newTarget,
-            this.distro,
-            this.allowProvision,
+        return new JavaSpec(this.path, newMinimum, newMaximum, newTarget, this.distro, this.allowProvision,
             this.versionChosen
         );
     }
@@ -123,13 +105,7 @@ public final class JavaSpec {
     }
 
     public JavaSpec withDistro(JavaDistro newDistro) {
-        return new JavaSpec(
-            this.path,
-            this.minimum,
-            this.maximum,
-            this.target,
-            newDistro,
-            this.allowProvision,
+        return new JavaSpec(this.path, this.minimum, this.maximum, this.target, newDistro, this.allowProvision,
             this.versionChosen
         );
     }

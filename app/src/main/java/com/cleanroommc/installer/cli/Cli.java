@@ -148,19 +148,11 @@ public final class Cli {
             return uninstall(options, downloader, log, progress);
         }
         InstallTarget target = InstallTargets.byId(options.mode);
-        try (ProfileSource source = Sources.open(
-            options.version,
-            downloader,
-            log,
-            this.environment.installerCache(),
+        try (ProfileSource source = Sources.open(options.version, downloader, log, this.environment.installerCache(),
             progress
         )) {
-            InstallContext context = new InstallContext(
-                source,
-                downloader,
-                new JavaResolver(this.environment, log),
-                this.environment,
-                log
+            InstallContext context = new InstallContext(source, downloader, new JavaResolver(this.environment, log),
+                this.environment, log
             ).listener(progress);
             InstallRequest request = options.toRequest();
 
@@ -173,9 +165,8 @@ public final class Cli {
                     for (Action action : plan.actions()) {
                         actions.add(action.describe());
                     }
-                    this.out.println(
-                        "{\"event\":\"plan\",\"target\":" + CliProgress.quote(plan.targetId()) + ",\"version\":" +
-                            CliProgress.quote(plan.versionId()) + ",\"root\":" +
+                    this.out.println("{\"event\":\"plan\",\"target\":" + CliProgress.quote(plan.targetId()) +
+                            ",\"version\":" + CliProgress.quote(plan.versionId()) + ",\"root\":" +
                             CliProgress.quote(plan.root().toString()) + ",\"actions\":" + array(actions) +
                             ",\"notes\":" + array(plan.notes()) + "}"
                     );
@@ -202,12 +193,8 @@ public final class Cli {
             request = request.toBuilder().version(Sources.pinnedVersion()).build();
         }
         // No profile source: what to remove is read from the game directory, never from a download
-        InstallContext context = new InstallContext(
-            null,
-            downloader,
-            new JavaResolver(this.environment, log),
-            this.environment,
-            log
+        InstallContext context = new InstallContext(null, downloader, new JavaResolver(this.environment, log),
+            this.environment, log
         ).listener(progress);
         InstallResult result = InstallTargets.byId(ClientTarget.ID).uninstall(request, context);
         progress.done();
@@ -217,15 +204,14 @@ public final class Cli {
 
     private void printResult(InstallResult result, boolean json, boolean removing) {
         if (json) {
-            this.out.println(
-                "{\"event\":\"result\",\"ok\":true,\"root\":" + CliProgress.quote(result.root().toString()) +
-                    ",\"files\":" + array(result.written()) + ",\"notes\":" + array(result.notes()) + "}"
+            this.out.println("{\"event\":\"result\",\"ok\":true,\"root\":" +
+                    CliProgress.quote(result.root().toString()) + ",\"files\":" + array(result.written()) +
+                    ",\"notes\":" + array(result.notes()) + "}"
             );
             return;
         }
         if (removing) {
-            this.out.println(
-                result.isNoOp()
+            this.out.println(result.isNoOp()
                     ? "No Cleanroom installation was found in " + result.root() + "."
                     : "Removed Cleanroom from " + result.root() + "."
             );
@@ -244,8 +230,7 @@ public final class Cli {
 
     private void report(InstallException e, boolean json) {
         if (json) {
-            this.out.println(
-                "{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code() + ",\"message\":" +
+            this.out.println("{\"event\":\"result\",\"ok\":false,\"code\":" + e.exitCode().code() + ",\"message\":" +
                     CliProgress.quote(e.getMessage()) + "}"
             );
             return;

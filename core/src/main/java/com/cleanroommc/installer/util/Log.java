@@ -40,10 +40,7 @@ public final class Log implements AutoCloseable {
                 if (file.getParent() != null) {
                     Files.createDirectories(file.getParent());
                 }
-                opened = Files.newBufferedWriter(
-                    file,
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE,
+                opened = Files.newBufferedWriter(file, StandardCharsets.UTF_8, StandardOpenOption.CREATE,
                     StandardOpenOption.APPEND
                 );
             } catch (IOException e) {

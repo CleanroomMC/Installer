@@ -98,8 +98,7 @@ public final class Downloader {
             throw new InstallException(ExitCode.TARGET, "Unable to inspect " + destination, e);
         }
         if (this.offline) {
-            throw new InstallException(
-                ExitCode.NETWORK,
+            throw new InstallException(ExitCode.NETWORK,
                 "Offline mode: " + destination.getFileName() + " is missing and " + url + " cannot be fetched"
             );
         }
@@ -247,8 +246,7 @@ public final class Downloader {
             long actual = Files.size(destination);
             if (actual != size) {
                 Files.deleteIfExists(destination);
-                throw new InstallException(
-                    ExitCode.VERIFICATION,
+                throw new InstallException(ExitCode.VERIFICATION,
                     "Size mismatch for " + url + ": expected " + size + " bytes, got " + actual
                 );
             }
@@ -259,8 +257,7 @@ public final class Downloader {
         String actual = Hashes.sha1(destination);
         if (!sha1.trim().equalsIgnoreCase(actual)) {
             Files.deleteIfExists(destination);
-            throw new InstallException(
-                ExitCode.VERIFICATION,
+            throw new InstallException(ExitCode.VERIFICATION,
                 "SHA-1 mismatch for " + url + System.lineSeparator() + "  expected " + sha1.trim() +
                     System.lineSeparator() + "  actual   " + actual + System.lineSeparator() + "  saved to " +
                     destination

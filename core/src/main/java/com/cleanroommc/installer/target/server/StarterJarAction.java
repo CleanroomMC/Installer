@@ -36,15 +36,8 @@ public final class StarterJarAction extends Action {
     private final Manifest manifest = new Manifest();
     private final List<String> skippedJvmArgs = new ArrayList<>();
 
-    public StarterJarAction(
-        Path destination,
-        Path root,
-        List<Path> classpath,
-        String mainClass,
-        List<String> gameArgs,
-        List<String> jvmArgs,
-        int minimumJava,
-        int maximumJava
+    public StarterJarAction(Path destination, Path root, List<Path> classpath, String mainClass, List<String> gameArgs,
+        List<String> jvmArgs, int minimumJava, int maximumJava
     ) throws InstallException {
         super(destination);
         Attributes attributes = this.manifest.getMainAttributes();
@@ -127,9 +120,7 @@ public final class StarterJarAction extends Action {
     public void execute(InstallContext context) throws InstallException {
         try {
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            try (JarOutputStream jar = new JarOutputStream(
-                bytes,
-                this.manifest
+            try (JarOutputStream jar = new JarOutputStream(bytes, this.manifest
             ); InputStream starter = ServerStarter.class.getResourceAsStream("/" + STARTER_ENTRY)) {
                 if (starter == null) {
                     throw new IOException("missing: " + STARTER_ENTRY);

@@ -29,12 +29,8 @@ public final class InstallContext {
 
     private ProgressListener listener = ProgressListener.NONE;
 
-    public InstallContext(
-        ProfileSource source,
-        Downloader downloader,
-        JavaResolver javaResolver,
-        Environment environment,
-        Log log
+    public InstallContext(ProfileSource source, Downloader downloader, JavaResolver javaResolver,
+        Environment environment, Log log
     ) {
         this.source = source;
         this.downloader = downloader;

@@ -46,8 +46,7 @@ public final class ServerStarter {
         int minimum = Integer.parseInt(attributes.getValue(JAVA_MINIMUM));
         String maximum = attributes.getValue(JAVA_MAXIMUM);
         if (java < minimum || maximum != null && java > Integer.parseInt(maximum)) {
-            System.err.println(
-                "Cleanroom needs Java " + minimum + (maximum == null ? " or newer" : " to " + maximum) +
+            System.err.println("Cleanroom needs Java " + minimum + (maximum == null ? " or newer" : " to " + maximum) +
                     ", but this is Java " + java + ". Pick another Java version in the server host's settings."
             );
             System.exit(1);
@@ -68,9 +67,7 @@ public final class ServerStarter {
         launchArgs.addAll(Arrays.asList(args));
         String[] launch = launchArgs.toArray(new String[0]);
         MethodHandles.publicLookup()
-            .findStatic(
-                Class.forName(attributes.getValue(MAIN_CLASS)),
-                "main",
+            .findStatic(Class.forName(attributes.getValue(MAIN_CLASS)), "main",
                 MethodType.methodType(void.class, String[].class)
             )
             .invokeExact(launch);

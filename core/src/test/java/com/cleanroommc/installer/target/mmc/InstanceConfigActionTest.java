@@ -38,8 +38,7 @@ class InstanceConfigActionTest {
     @Test
     void existingKeysAreReplacedAndTheRestSurvives() throws Exception {
         Path config = this.temp.resolve("instance.cfg");
-        Files.write(
-            config,
+        Files.write(config,
             String.join("\n", "name=My Pack", "JavaPath=/old/java", "iconKey=default").getBytes(StandardCharsets.UTF_8)
         );
 
@@ -69,12 +68,10 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo(
-            "name=Mine"
-        );
-        assertThat(new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8)).isEqualTo(
-            "{}"
-        );
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8
+        )).isEqualTo("name=Mine");
+        assertThat(new String(Files.readAllBytes(instance.resolve("mmc-pack.json")), StandardCharsets.UTF_8
+        )).isEqualTo("{}");
     }
 
     @Test
@@ -87,9 +84,8 @@ class InstanceConfigActionTest {
 
         new ExtractZipAction(pack, instance, Collections.singleton("instance.cfg")).execute(null);
 
-        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8)).isEqualTo(
-            "name=Cleanroom"
-        );
+        assertThat(new String(Files.readAllBytes(instance.resolve("instance.cfg")), StandardCharsets.UTF_8
+        )).isEqualTo("name=Cleanroom");
     }
 
 }

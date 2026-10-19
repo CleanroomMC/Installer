@@ -67,8 +67,9 @@ class MmcTargetTest {
     @Test
     void replacingJavaPathIsOptInForEveryInstall() {
         assertThat(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID).build())).isFalse();
-        assertThat(MmcTarget.shouldReplaceJavaPath(
-            InstallRequest.builder(MmcTarget.ID).flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, true).build()
+        assertThat(MmcTarget.shouldReplaceJavaPath(InstallRequest.builder(MmcTarget.ID)
+                .flag(MmcTarget.OPTION_REPLACE_JAVA_PATH, true)
+                .build()
         )).isTrue();
     }
 
@@ -78,8 +79,7 @@ class MmcTargetTest {
 
         InstallPlan plan = new MmcTarget().plan(request(), context);
 
-        Path localUniversal = directory.resolve(
-            "instances/Cleanroom 1.0.0+build.4/libraries/cleanroom-1.0.0+build.4-universal.jar"
+        Path localUniversal = directory.resolve("instances/Cleanroom 1.0.0+build.4/libraries/cleanroom-1.0.0+build.4-universal.jar"
         );
         assertThat(plan.actions()).hasSize(4);
         assertThat(plan.actions().get(2)).isInstanceOf(CopyResourceAction.class);
@@ -96,8 +96,7 @@ class MmcTargetTest {
         InstallPlan plan = new MmcTarget().plan(request(), context);
 
         assertThat(plan.actions()).hasSize(3);
-        assertThat(
-            plan.actions().stream().noneMatch(action -> action.destination().toString().contains("libraries"))
+        assertThat(plan.actions().stream().noneMatch(action -> action.destination().toString().contains("libraries"))
         ).isTrue();
     }
 
@@ -107,17 +106,16 @@ class MmcTargetTest {
         Path polyMc = Files.createDirectories(directory.resolve("home/.local/share/PolyMC/instances"));
         InstallContext context = context("{\"name\":\"" + UNIVERSAL + "\",\"downloads\":{}}");
 
-        assertThat(
-            new MmcTarget().plan(InstallRequest.builder(MmcTarget.ID).build(), context).root().getParent()
+        assertThat(new MmcTarget().plan(InstallRequest.builder(MmcTarget.ID).build(), context).root().getParent()
         ).isEqualTo(prism);
-        assertThat(
-            new MmcTarget()
+        assertThat(new MmcTarget()
                 .plan(InstallRequest.builder(MmcTarget.ID).extra(MmcTarget.OPTION_LAUNCHER, "polymc").build(), context)
                 .root()
                 .getParent()
         ).isEqualTo(polyMc);
-        assertThatThrownBy(() -> new MmcTarget().validate(
-            InstallRequest.builder(MmcTarget.ID).extra(MmcTarget.OPTION_LAUNCHER, "multimc").build(),
+        assertThatThrownBy(() -> new MmcTarget().validate(InstallRequest.builder(MmcTarget.ID)
+                .extra(MmcTarget.OPTION_LAUNCHER, "multimc")
+                .build(),
             context
         ))
             .isInstanceOf(InstallException.class)
@@ -143,8 +141,7 @@ class MmcTargetTest {
         }
         Map<String, byte[]> resources = new HashMap<>();
         resources.put(MmcTarget.EMBEDDED_PACK, pack.toByteArray());
-        resources.put(
-            "maven/com/cleanroommc/cleanroom/1.0.0+build.4/cleanroom-1.0.0+build.4-universal.jar",
+        resources.put("maven/com/cleanroommc/cleanroom/1.0.0+build.4/cleanroom-1.0.0+build.4-universal.jar",
             "universal".getBytes(StandardCharsets.UTF_8)
         );
         Environment environment = new Environment() {

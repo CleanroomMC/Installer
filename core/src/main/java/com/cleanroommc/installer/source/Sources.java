@@ -56,11 +56,7 @@ public final class Sources {
      * @param requestedVersion the version the user asked for, or null for "whatever this jar carries,
      *                         else the latest release"
      */
-    public static ProfileSource open(
-        String requestedVersion,
-        Downloader downloader,
-        Log log,
-        Path cache,
+    public static ProfileSource open(String requestedVersion, Downloader downloader, Log log, Path cache,
         ProgressListener listener
     ) throws InstallException {
         Path own = ownJar();
@@ -72,10 +68,7 @@ public final class Sources {
                     log.info("Installing Cleanroom {} from this installer", embeddedVersion);
                     return embedded;
                 }
-                log.info(
-                    "This installer carries Cleanroom {}, but {} was asked for",
-                    embeddedVersion,
-                    requestedVersion
+                log.info("This installer carries Cleanroom {}, but {} was asked for", embeddedVersion, requestedVersion
                 );
             }
             embedded.close();
@@ -83,11 +76,7 @@ public final class Sources {
         return remote(requestedVersion, downloader, log, cache, listener);
     }
 
-    private static ProfileSource remote(
-        String requestedVersion,
-        Downloader downloader,
-        Log log,
-        Path cache,
+    private static ProfileSource remote(String requestedVersion, Downloader downloader, Log log, Path cache,
         ProgressListener listener
     ) throws InstallException {
         VersionIndex index = new VersionIndex(downloader, log, cache);

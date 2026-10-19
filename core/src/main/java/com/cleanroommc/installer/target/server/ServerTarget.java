@@ -123,16 +123,14 @@ public final class ServerTarget extends AbstractInstallTarget {
             throw new InstallException(ExitCode.TARGET, "No write permission for " + directory);
         }
         if (InstallLocations.looksLikeMinecraft(directory) && !request.assumeYes()) {
-            throw new InstallException(
-                ExitCode.TARGET,
+            throw new InstallException(ExitCode.TARGET,
                 directory + " looks like a Minecraft client installation." + System.lineSeparator() +
                     "Pass --yes to install a server there anyway, or --dir to point elsewhere."
             );
         }
         if (busyDirectory(directory)) {
             context.log()
-                .warn(
-                    "{} is not empty and has no server.properties or eula.txt in it; installing there anyway.",
+                .warn("{} is not empty and has no server.properties or eula.txt in it; installing there anyway.",
                     directory
                 );
         }
@@ -148,13 +146,8 @@ public final class ServerTarget extends AbstractInstallTarget {
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");
 
-        List<Action> libraryActions = MavenLayout.actions(
-            version.libraries(),
-            libraries,
-            context.source(),
-            Platform.current(),
-            true,
-            false
+        List<Action> libraryActions = MavenLayout.actions(version.libraries(), libraries, context.source(),
+            Platform.current(), true, false
         );
         plan.addAll(libraryActions);
 
@@ -194,24 +187,19 @@ public final class ServerTarget extends AbstractInstallTarget {
         Path argsDirectory = libraries.resolve(universal.group().replace('.', File.separatorChar))
             .resolve(universal.artifact())
             .resolve(universal.version());
-        plan.add(new WriteFileAction(
-            argsDirectory.resolve("unix_args.txt"),
+        plan.add(new WriteFileAction(argsDirectory.resolve("unix_args.txt"),
             ArgFiles.argsFile(profile.jvmArgs(), join(classpath, root, ":"), mainClass, gameArgs)
         ));
-        plan.add(new WriteFileAction(
-            argsDirectory.resolve("win_args.txt"),
+        plan.add(new WriteFileAction(argsDirectory.resolve("win_args.txt"),
             ArgFiles.argsFile(profile.jvmArgs(), join(classpath, root, ";"), mainClass, gameArgs)
         ));
         Path userJvmArgs = root.resolve("user_jvm_args.txt");
         if (Files.exists(userJvmArgs)) {
-            plan.note(
-                "Kept the existing user_jvm_args.txt" +
+            plan.note("Kept the existing user_jvm_args.txt" +
                     (request.extra(OPTION_MEMORY) != null ? "; --memory was not applied" : "")
             );
         } else {
-            plan.add(new WriteFileAction(
-                userJvmArgs,
-                ArgFiles.userJvmArgs(request.extra(OPTION_MEMORY, DEFAULT_MEMORY))
+            plan.add(new WriteFileAction(userJvmArgs, ArgFiles.userJvmArgs(request.extra(OPTION_MEMORY, DEFAULT_MEMORY))
             ));
         }
 
@@ -231,32 +219,22 @@ public final class ServerTarget extends AbstractInstallTarget {
             // Only the script this machine can actually run: a Linux box has no use for run.bat.
             if (context.env().windows()) {
                 String winArgs = root.relativize(argsDirectory.resolve("win_args.txt")).toString().replace('/', '\\');
-                plan.add(new WriteFileAction(
-                    root.resolve("run.bat"),
+                plan.add(new WriteFileAction(root.resolve("run.bat"),
                     ArgFiles.runBat(javaCommand, winArgs, spec.minimum(), spec.maximum())
                 ));
             } else {
                 String unixArgs = root.relativize(argsDirectory.resolve("unix_args.txt"))
                     .toString()
                     .replace(File.separatorChar, '/');
-                plan.add(new WriteFileAction(
-                    root.resolve("run.sh"),
-                    ArgFiles.runSh(javaCommand, unixArgs, spec.minimum(), spec.maximum()),
-                    true
+                plan.add(new WriteFileAction(root.resolve("run.sh"),
+                    ArgFiles.runSh(javaCommand, unixArgs, spec.minimum(), spec.maximum()), true
                 ));
             }
         }
 
         if (request.flag(OPTION_STARTER_JAR)) {
-            StarterJarAction starter = new StarterJarAction(
-                root.resolve("server.jar"),
-                root,
-                classpath,
-                mainClass,
-                gameArgs,
-                profile.jvmArgs(),
-                spec.minimum(),
-                spec.maximum()
+            StarterJarAction starter = new StarterJarAction(root.resolve("server.jar"), root, classpath, mainClass,
+                gameArgs, profile.jvmArgs(), spec.minimum(), spec.maximum()
             );
             plan.add(starter);
             plan.note("server.jar does not read user_jvm_args.txt; set memory and JVM flags in the server host");

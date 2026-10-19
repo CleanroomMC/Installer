@@ -126,8 +126,7 @@ public final class VersionIndex {
                 return version;
             }
         }
-        throw new InstallException(
-            ExitCode.USAGE,
+        throw new InstallException(ExitCode.USAGE,
             "No such Cleanroom version: " + id + ". Run 'list-versions' to see what is available."
         );
     }
@@ -136,8 +135,7 @@ public final class VersionIndex {
         String url = InstallerMeta.CLEANROOM_REPO + InstallerMeta.CLEANROOM_GROUP.replace('.', '/') + "/" +
             InstallerMeta.CLEANROOM_ARTIFACT + "/maven-metadata.xml";
         byte[] xml = this.downloader.fetch(url);
-        List<String> versions = parseMavenMetadata(new InputStreamReader(
-            new ByteArrayInputStream(xml),
+        List<String> versions = parseMavenMetadata(new InputStreamReader(new ByteArrayInputStream(xml),
             StandardCharsets.UTF_8
         ));
         Collections.reverse(versions);
