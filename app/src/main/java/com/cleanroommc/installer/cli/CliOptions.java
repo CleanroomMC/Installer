@@ -148,6 +148,9 @@ public final class CliOptions {
                 case "--no-server-jar":
                     options.extras.put(ServerTarget.OPTION_NO_SERVER_JAR, "true");
                     break;
+                case "--starter-jar":
+                    options.extras.put(ServerTarget.OPTION_STARTER_JAR, "true");
+                    break;
                 case "--pin-java":
                     options.extras.put(ServerTarget.OPTION_PIN_JAVA, "true");
                     break;

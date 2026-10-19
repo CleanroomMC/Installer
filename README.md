@@ -6,6 +6,7 @@ Double-click/execute it for a window. Run it with arguments for command-line int
 java -jar installer.jar                      # Graphical installer
 java -jar installer.jar client               # Add a profile to the Minecraft launcher
 java -jar installer.jar server -d ./server   # Set up a dedicated server
+java -jar installer.jar server --starter-jar # Also write server.jar, for hosts that only take a jar path
 java -jar installer.jar mmc                  # Create a Prism/PolyMC/MultiMC instance
 java -jar installer.jar --help
 ```

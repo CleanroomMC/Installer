@@ -83,12 +83,14 @@ public final class InstallerWindow {
     private JCheckBox provisionJava;
     private JCheckBox replaceJavaPath;
     private JCheckBox installScripts;
+    private JCheckBox starterJar;
     private JTextField instanceNameField;
     private JPanel fullDownloadRow;
     private JPanel instanceNameRow;
     private JPanel replaceJavaPathRow;
     private JPanel provisionJavaRow;
     private JPanel installScriptsRow;
+    private JPanel starterJarRow;
     private Rectangle screen;
     private JLabel detected;
     private JLabel modeDescription;
@@ -561,8 +563,20 @@ public final class InstallerWindow {
         );
         options.add(this.installScriptsRow);
 
+        this.starterJar = new JCheckBox(
+            "Write server.jar",
+            this.seed != null && this.seed.flag(ServerTarget.OPTION_STARTER_JAR)
+        );
+        this.starterJar.setOpaque(false);
+        this.starterJarRow = CleanroomUI.optionRow(
+            this.starterJar,
+            "For server hosts that only take a jar path. It ignores user_jvm_args.txt"
+        );
+        options.add(this.starterJarRow);
+
         this.fullDownloadRow.setVisible(ClientTarget.ID.equals(this.selectedTargetId));
         this.installScriptsRow.setVisible(ServerTarget.ID.equals(this.selectedTargetId));
+        this.starterJarRow.setVisible(ServerTarget.ID.equals(this.selectedTargetId));
         refreshMmcOptions();
         // Stays hidden until the background scan reports that no usable Java exists.
         this.provisionJavaRow.setVisible(false);
@@ -595,6 +609,7 @@ public final class InstallerWindow {
         this.detected.setText(detectionText());
         this.fullDownloadRow.setVisible(ClientTarget.ID.equals(target.id()));
         this.installScriptsRow.setVisible(ServerTarget.ID.equals(target.id()));
+        this.starterJarRow.setVisible(ServerTarget.ID.equals(target.id()));
         refreshMmcOptions();
     }
 
@@ -766,6 +781,7 @@ public final class InstallerWindow {
         }
         if (ServerTarget.ID.equals(this.selectedTargetId)) {
             builder.flag(ServerTarget.OPTION_NO_SCRIPTS, !this.installScripts.isSelected());
+            builder.flag(ServerTarget.OPTION_STARTER_JAR, this.starterJar.isSelected());
         }
         // The builder keeps the seed's target id, so switching modes in the window has to be applied.
         InstallRequest built = builder.build();

@@ -46,6 +46,7 @@ public final class ServerTarget extends AbstractInstallTarget {
     public static final String ID = "server";
     public static final String OPTION_NO_SCRIPTS = "noScripts";
     public static final String OPTION_NO_SERVER_JAR = "noServerJar";
+    public static final String OPTION_STARTER_JAR = "starterJar";
     public static final String OPTION_PIN_JAVA = "pinJava";
     public static final String OPTION_MEMORY = "memory";
 
@@ -214,10 +215,10 @@ public final class ServerTarget extends AbstractInstallTarget {
             ));
         }
 
+        JavaSpec spec = request.java()
+            .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
         if (!request.flag(OPTION_NO_SCRIPTS)) {
             String javaCommand = "java";
-            JavaSpec spec = request.java()
-                .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
             boolean pin = request.flag(OPTION_PIN_JAVA);
             if (pin || spec.allowProvision()) {
                 JavaResolution java = resolveJava(request, context, spec, plan);
@@ -243,6 +244,24 @@ public final class ServerTarget extends AbstractInstallTarget {
                     ArgFiles.runSh(javaCommand, unixArgs, spec.minimum(), spec.maximum()),
                     true
                 ));
+            }
+        }
+
+        if (request.flag(OPTION_STARTER_JAR)) {
+            StarterJarAction starter = new StarterJarAction(
+                root.resolve("server.jar"),
+                root,
+                classpath,
+                mainClass,
+                gameArgs,
+                profile.jvmArgs(),
+                spec.minimum(),
+                spec.maximum()
+            );
+            plan.add(starter);
+            plan.note("server.jar does not read user_jvm_args.txt; set memory and JVM flags in the server host");
+            for (String arg : starter.skippedJvmArgs()) {
+                plan.note("server.jar cannot apply " + arg + "; add it to the server host's JVM flags");
             }
         }
 
