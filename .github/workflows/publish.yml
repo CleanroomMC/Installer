@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    uses: CleanroomMC/Conventions/.github/workflows/release.yml@1.1.7
+    uses: CleanroomMC/Conventions/.github/workflows/release.yml@1.4.1
     with:
       publish-maven: true
     secrets: inherit
