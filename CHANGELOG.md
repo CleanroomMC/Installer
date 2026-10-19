@@ -1,8 +1,28 @@
 # Changelog
 
+## 0.3.0 - 2026-10-19
+
+### Feature
+
+- Starter jars for server installs, to support certain server hosts' configurations *[commit by [@Rongmario](https://github.com/Rongmario) in [8888ac7](https://github.com/CleanroomMC/Installer/commit/8888ac7e64c0d8e809ca9f11b7f7feffe9bf8640)]*
+
+### Bug Fix
+
+- **ui**: Give the directory chooser the platform colours so dark mode stays readable *[commit by [@Rongmario](https://github.com/Rongmario) in [ab69a65](https://github.com/CleanroomMC/Installer/commit/ab69a65c8e2d77e436868dbb580ac2c7feac349f)]*
+
+### Documentation
+
+- **readme**: Clarify new installer features *[commit by [@Rongmario](https://github.com/Rongmario) in [c7328ed](https://github.com/CleanroomMC/Installer/commit/c7328edb43f31ffeea45cabcbef2da5c42abd081)]*
+
+### Build and Dependencies
+
+- **deps**: Update conventions to 1.4.1 *[commit by [@Rongmario](https://github.com/Rongmario) in [f8e05f2](https://github.com/CleanroomMC/Installer/commit/f8e05f2d6e4e3921d327064bff6a9b36c1d3b15b)]*
+
+**Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.2.1...0.3.0
+
 ## 0.2.1 - 2026-10-13
 
-## Bug Fix
+### Bug Fix
 
 - **client**: Pass -XstartOnFirstThread in the launcher profile on macOS *[commit by [@Rongmario](https://github.com/Rongmario) in [bbf46c1](https://github.com/CleanroomMC/Installer/commit/bbf46c1f3994acda618cc3fdb1c28e72726d06c0)]*
 
@@ -13,12 +33,12 @@
 > [!WARNING]
 > This version has breaking changes! More details below.
 
-## Breaking Changes
+### Breaking Changes
 
 - Keep the installer window as the only public class of the ui module *[commit by [@Rongmario](https://github.com/Rongmario) in [23ac22e](https://github.com/CleanroomMC/Installer/commit/23ac22ea379aac93fa1f869ebba560e754530691)]*
 - Drop the -v alias of --version and document --yes and --launcher-profiles *[commit by [@Rongmario](https://github.com/Rongmario) in [516ecd6](https://github.com/CleanroomMC/Installer/commit/516ecd6e07ef4e31b7a7d25e21d23c6b2ce75637)]*
 
-## Bug Fix
+### Bug Fix
 
 - Pin the server scripts to a Java path only when asked or when Java was provisioned *[commit by [@Rongmario](https://github.com/Rongmario) in [b8c8f26](https://github.com/CleanroomMC/Installer/commit/b8c8f268fe0d59da9bc78ed0cc781c06e3c6f9df)]*
 - Take the Java version shown in the window and in help from the Java spec *[commit by [@Rongmario](https://github.com/Rongmario) in [5dd0da1](https://github.com/CleanroomMC/Installer/commit/5dd0da150745baa7b85ead2c7421080dab2d418d)]*
@@ -37,20 +57,20 @@
 - Let the JAVA variable override the runtime in server launch scripts *[commit by [@Rongmario](https://github.com/Rongmario) in [2d59deb](https://github.com/CleanroomMC/Installer/commit/2d59deb2f8201c24aa48bc43cd068517b4fa45f1)]*
 - Keep an existing user_jvm_args.txt when re-installing a server *[commit by [@Rongmario](https://github.com/Rongmario) in [4d5711f](https://github.com/CleanroomMC/Installer/commit/4d5711f683c937a06b545653ba9aa15d31c3b5f7)]*
 
-## Refactor
+### Refactor
 
 - Remove unused code and stale documentation *[commit by [@Rongmario](https://github.com/Rongmario) in [c8994a2](https://github.com/CleanroomMC/Installer/commit/c8994a2ecac511ff8705e8a45f8f6f5741a3ffd1)]*
 
-## Documentation
+### Documentation
 
 - Call the jar installer.jar, the name the build produces *[commit by [@Rongmario](https://github.com/Rongmario) in [3b9d2b8](https://github.com/CleanroomMC/Installer/commit/3b9d2b8b7da257960b24d3e5accc35cb1eb4ccb4)]*
 - Describe exit codes, JSON output, the cache and the install profile *[commit by [@Rongmario](https://github.com/Rongmario) in [c08c1e5](https://github.com/CleanroomMC/Installer/commit/c08c1e5160ffd89435eb81b9a579308797a2bc69)]*
 
-## Testing
+### Testing
 
 - Cover the command line, the version index and the zip escape guard *[commit by [@Rongmario](https://github.com/Rongmario) in [81656df](https://github.com/CleanroomMC/Installer/commit/81656df54bdfb9682994e44e7230a08621681b71)]*
 
-## Build and Dependencies
+### Build and Dependencies
 
 - Stop publishing the ui module *[commit by [@Rongmario](https://github.com/Rongmario) in [3c5dd93](https://github.com/CleanroomMC/Installer/commit/3c5dd93e7ea0501698f740c0729ee627407882ab)]*
 - Use Cleanroom Conventions 1.3.1 *[commit by [@Rongmario](https://github.com/Rongmario) in [c33650d](https://github.com/CleanroomMC/Installer/commit/c33650db47189c829952749e8687252633720fa6)]*
@@ -59,23 +79,19 @@
 
 ## 0.1.4 - 2026-09-28
 
-## Feature
+### Feature
 
 - Keep compatibility with previous cleanroom jar spec *[commit by [@Rongmario](https://github.com/Rongmario) in [aa8cb15](https://github.com/CleanroomMC/Installer/commit/aa8cb154ea9c9475fe62bc3dad87ea214107ddc8)]*
-
-## First-time Contributors
-
-- **[@github-actions[bot]](https://github.com/github-actions[bot]) made their first contribution!**
 
 **Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.1.3...0.1.4
 
 ## 0.1.3 - 2026-09-24
 
-## Bug Fix
+### Bug Fix
 
 - Only copy the embedded universal jar when the MMC pack loads it locally *[commit by [@Rongmario](https://github.com/Rongmario) in [b282870](https://github.com/CleanroomMC/Installer/commit/b282870d76ba82d01e73c70854d6a4e530505488)]*
 
-## Build and Dependencies
+### Build and Dependencies
 
 - Use Cleanroom Conventions 1.1.7 *[commit by [@Rongmario](https://github.com/Rongmario) in [bee1273](https://github.com/CleanroomMC/Installer/commit/bee1273cf928c9a123d05d0e33e25e34b869814b)]*
 
@@ -83,7 +99,7 @@
 
 ## 0.1.2 - 2026-08-27
 
-## Other
+### Other
 
 - Skip client natives but sideless ones - 0.1.2 *[commit by [@Rongmario](https://github.com/Rongmario) in [2649e7e](https://github.com/CleanroomMC/Installer/commit/2649e7e21d8167da5edf5cac3d5fe1c2a79f1919)]*
 
@@ -91,7 +107,7 @@
 
 ## 0.1.1 - 2026-08-24
 
-## Other
+### Other
 
 - Deduplicate universal jars if it was built locally - 0.1.1 *[commit by [@Rongmario](https://github.com/Rongmario) in [ad16de3](https://github.com/CleanroomMC/Installer/commit/ad16de307368edab2fd4dcfeebd7f16826313172)]*
 - Respect `replaceJavaPath` flag properly *[commit by [@Rongmario](https://github.com/Rongmario) in [37c1073](https://github.com/CleanroomMC/Installer/commit/37c1073c56ff7bd68e51a52d0cf58c965b6c5e24)]*
@@ -100,7 +116,7 @@
 
 ## 0.1.0 - 2026-08-21
 
-## Other
+### Other
 
 - Fix actions again *[commit by [@Rongmario](https://github.com/Rongmario) in [1878b3d](https://github.com/CleanroomMC/Installer/commit/1878b3d0845a7cc1e91234309852deec70866def)]*
 - 0.1.0 - First release *[commit by [@Rongmario](https://github.com/Rongmario) in [f70cb1e](https://github.com/CleanroomMC/Installer/commit/f70cb1eff7b96d7d9990827dd8ba5c4ffda4903a)]*
