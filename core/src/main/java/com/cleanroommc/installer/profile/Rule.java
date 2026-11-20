@@ -17,20 +17,11 @@ public final class Rule {
     public Map<String, Boolean> features;
 
     public static String osName(Platform platform) {
-        if (platform.isWindows()) {
-            return "windows";
-        }
-        if (platform.isMacOS()) {
-            return "osx";
-        }
-        return "linux";
+        return platform.isMacOS() ? "osx" : platform.operatingSystem().id();
     }
 
     public static String archName(Platform platform) {
-        if (platform.isArm()) {
-            return platform.is64Bit() ? "arm64" : "arm32";
-        }
-        return platform.is64Bit() ? "x64" : "x86";
+        return platform.architecture().id();
     }
 
     public boolean allow() {

@@ -18,6 +18,7 @@ import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.target.action.WriteFileAction;
 import com.cleanroommc.installer.util.Log;
+import com.cleanroommc.platformutils.Architecture;
 import com.cleanroommc.platformutils.Platform;
 
 import org.junit.jupiter.api.Test;
@@ -137,6 +138,17 @@ class ServerTargetTest {
         Files.write(userJvmArgs, "-Xmx12G".getBytes(StandardCharsets.UTF_8));
         assertThat(new ServerTarget().plan(request, context()).actions()).noneMatch(action -> action.destination()
             .equals(userJvmArgs));
+    }
+
+    @Test
+    void launchPlatformFollowsThePinnedJavasArchitecture() throws Exception {
+        assertThat(ServerTarget.platformOf(this.directory)).isEqualTo(Platform.current());
+        Files.write(this.directory.resolve("release"),
+            Arrays.asList("JAVA_VERSION=\"21.0.5\"", "OS_ARCH=\"riscv64\""), StandardCharsets.UTF_8
+        );
+        Platform platform = ServerTarget.platformOf(this.directory);
+        assertThat(platform.architecture()).isEqualTo(Architecture.RISCV64);
+        assertThat(platform.operatingSystem()).isEqualTo(Platform.current().operatingSystem());
     }
 
 }

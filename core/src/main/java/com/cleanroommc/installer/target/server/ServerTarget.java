@@ -26,6 +26,7 @@ import com.cleanroommc.installer.target.action.CopyResourceAction;
 import com.cleanroommc.installer.target.action.DownloadAction;
 import com.cleanroommc.installer.target.action.WriteFileAction;
 import com.cleanroommc.installer.util.Json;
+import com.cleanroommc.platformutils.Architecture;
 import com.cleanroommc.platformutils.Platform;
 
 import java.io.File;
@@ -92,6 +93,24 @@ public final class ServerTarget extends AbstractInstallTarget {
         }
     }
 
+    /**
+     * The platform a Java runs as, read from its release file
+     * An installer running under emulation reports the emulated architecture
+     * which can differ from the Java the scripts are pinned to.
+     */
+    static Platform platformOf(Path javaHome) {
+        Platform current = Platform.current();
+        try {
+            for (String line : Files.readAllLines(javaHome.resolve("release"))) {
+                if (line.startsWith("OS_ARCH=")) {
+                    Architecture architecture = Architecture.parse(line.substring("OS_ARCH=".length()).replace("\"", ""));
+                    return Platform.of(current.operatingSystem(), architecture, current.libC());
+                }
+            }
+        } catch (IOException ignored) { }
+        return current;
+    }
+
     static List<String> defaultTweakers() {
         return Arrays.asList("net.minecraftforge.fml.common.launcher.FMLServerTweaker");
     }
@@ -146,8 +165,25 @@ public final class ServerTarget extends AbstractInstallTarget {
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");
 
+        JavaSpec spec = request.java()
+            .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
+        String javaCommand = "java";
+        Platform launchPlatform = Platform.current();
+        if (!request.flag(OPTION_NO_SCRIPTS)) {
+            boolean pin = request.flag(OPTION_PIN_JAVA);
+            if (pin || spec.allowProvision()) {
+                JavaResolution java = resolveJava(request, context, spec, plan);
+                // A provisioned Java is not on the PATH, so the scripts cannot find it by name
+                if (java != null && (pin || java.origin() == JavaResolution.Origin.PROVISIONED)) {
+                    javaCommand = java.executable().toString();
+                    launchPlatform = platformOf(java.home());
+                    plan.note("Scripts pinned to " + javaCommand);
+                }
+            }
+        }
+
         List<Action> libraryActions = MavenLayout.actions(version.libraries(), libraries, context.source(),
-            Platform.current(), true, false
+            launchPlatform, true, false
         );
         plan.addAll(libraryActions);
 
@@ -203,19 +239,7 @@ public final class ServerTarget extends AbstractInstallTarget {
             ));
         }
 
-        JavaSpec spec = request.java()
-            .withProfileBounds(profile.java.minimum, profile.java.maximum, profile.java.recommended);
         if (!request.flag(OPTION_NO_SCRIPTS)) {
-            String javaCommand = "java";
-            boolean pin = request.flag(OPTION_PIN_JAVA);
-            if (pin || spec.allowProvision()) {
-                JavaResolution java = resolveJava(request, context, spec, plan);
-                // A provisioned Java is not on the PATH, so the scripts cannot find it by name
-                if (java != null && (pin || java.origin() == JavaResolution.Origin.PROVISIONED)) {
-                    javaCommand = java.executable().toString();
-                    plan.note("Scripts pinned to " + javaCommand);
-                }
-            }
             // Only the script this machine can actually run: a Linux box has no use for run.bat.
             if (context.env().windows()) {
                 String winArgs = root.relativize(argsDirectory.resolve("win_args.txt")).toString().replace('/', '\\');
