@@ -56,12 +56,9 @@ public final class ClientTarget extends AbstractInstallTarget {
     private static final String VERSION_MARKER = "Cleanroom-";
 
     static String jvmArgs(InstallRequest request, InstallProfile profile) {
-        List<String> args = new ArrayList<>();
-        if (!request.jvmArgs().isEmpty()) {
-            args.addAll(request.jvmArgs());
-        } else {
-            args.addAll(profile.jvmArgs());
-        }
+        // Profile first, then the user's
+        List<String> args = new ArrayList<>(profile.jvmArgs());
+        args.addAll(request.jvmArgs());
         // SDL only brings up its Cocoa video driver on the process main thread
         if (Platform.current().isMacOS() && !args.contains("-XstartOnFirstThread")) {
             args.add("-XstartOnFirstThread");

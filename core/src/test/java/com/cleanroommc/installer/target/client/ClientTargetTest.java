@@ -6,6 +6,7 @@
 package com.cleanroommc.installer.target.client;
 
 import com.cleanroommc.installer.platform.Environment;
+import com.cleanroommc.installer.profile.InstallProfile;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
 import com.cleanroommc.installer.target.InstallRequest;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -59,6 +61,18 @@ class ClientTargetTest {
 
         assertThat(older).doesNotExist();
         assertThat(newer).exists();
+    }
+
+    @Test
+    void userJvmArgsComeAfterTheProfilesOwn() {
+        InstallProfile profile = new InstallProfile();
+        profile.jvmArgs = Arrays.asList("-Dloader.needs=this", "-Xmx4G");
+        InstallRequest request = InstallRequest.builder(ClientTarget.ID)
+            .directory(this.directory)
+            .jvmArgs(Arrays.asList("-Xmx6G"))
+            .build();
+
+        assertThat(ClientTarget.jvmArgs(request, profile)).startsWith("-Dloader.needs=this -Xmx4G -Xmx6G");
     }
 
     private Path install(String version) throws Exception {
