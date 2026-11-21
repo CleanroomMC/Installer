@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 - 2026-11-21
+
+### Bug Fix
+
+- **ui**: Elements overflowing *[commit by [@Rongmario](https://github.com/Rongmario) in [2d5f76a](https://github.com/CleanroomMC/Installer/commit/2d5f76a3e60e06da382810a0435669596b0cff10)]*
+- **platform**: Match natives to the real os and arch via platform-utils 3.0.0, and to the pinned java on servers *[commit by [@Rongmario](https://github.com/Rongmario) in [43d652c](https://github.com/CleanroomMC/Installer/commit/43d652cb53a903d999eadf39d5087abf260fb630)]*
+- **client**: Append user jvm args after the profile's instead of replacing them *[commit by [@Rongmario](https://github.com/Rongmario) in [4d565bb](https://github.com/CleanroomMC/Installer/commit/4d565bb0965c22b5bf7b8b39288389824442248d)]*
+
+**Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.3.0...0.3.1
+
 ## 0.3.0 - 2026-10-19
 
 ### Feature
