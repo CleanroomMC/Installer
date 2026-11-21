@@ -1221,8 +1221,8 @@ final class CleanroomUI {
         }
         Rectangle screen = gc.getBounds();
         Insets screenInsets = Toolkit.getDefaultToolkit().getScreenInsets(gc);
-        int maxW = Math.max(minW, screen.width - screenInsets.left - screenInsets.right - 40);
-        int maxH = Math.max(minH, screen.height - screenInsets.top - screenInsets.bottom - 40);
+        int maxW = screen.width - screenInsets.left - screenInsets.right - 40;
+        int maxH = screen.height - screenInsets.top - screenInsets.bottom - 40;
 
         return new Dimension(Math.min(minW, maxW), Math.min(minH, maxH));
     }
