@@ -143,8 +143,8 @@ class ServerTargetTest {
     @Test
     void launchPlatformFollowsThePinnedJavasArchitecture() throws Exception {
         assertThat(ServerTarget.platformOf(this.directory)).isEqualTo(Platform.current());
-        Files.write(this.directory.resolve("release"),
-            Arrays.asList("JAVA_VERSION=\"21.0.5\"", "OS_ARCH=\"riscv64\""), StandardCharsets.UTF_8
+        Files.write(this.directory.resolve("release"), Arrays.asList("JAVA_VERSION=\"21.0.5\"", "OS_ARCH=\"riscv64\""),
+            StandardCharsets.UTF_8
         );
         Platform platform = ServerTarget.platformOf(this.directory);
         assertThat(platform.architecture()).isEqualTo(Architecture.RISCV64);

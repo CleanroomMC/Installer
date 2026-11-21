@@ -103,11 +103,13 @@ public final class ServerTarget extends AbstractInstallTarget {
         try {
             for (String line : Files.readAllLines(javaHome.resolve("release"))) {
                 if (line.startsWith("OS_ARCH=")) {
-                    Architecture architecture = Architecture.parse(line.substring("OS_ARCH=".length()).replace("\"", ""));
+                    Architecture architecture = Architecture.parse(line.substring("OS_ARCH=".length()).replace("\"", "")
+                    );
                     return Platform.of(current.operatingSystem(), architecture, current.libC());
                 }
             }
-        } catch (IOException ignored) { }
+        } catch (IOException ignored) {
+        }
         return current;
     }
 
