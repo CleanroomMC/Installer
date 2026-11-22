@@ -8,12 +8,10 @@ package com.cleanroommc.installer.target.client;
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolution;
 import com.cleanroommc.installer.java.JavaSpec;
-import com.cleanroommc.installer.maven.Coordinate;
 import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.platform.InstallLocations;
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.target.AbstractInstallTarget;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
@@ -28,6 +26,8 @@ import com.cleanroommc.installer.target.action.MergeJsonAction;
 import com.cleanroommc.installer.target.action.WriteFileAction;
 import com.cleanroommc.installer.util.Json;
 import com.cleanroommc.javautils.api.JavaDistro;
+import com.cleanroommc.launcherutils.Coordinate;
+import com.cleanroommc.launcherutils.version.VersionJson;
 import com.cleanroommc.platformutils.Platform;
 
 import java.io.File;
@@ -159,7 +159,7 @@ public final class ClientTarget extends AbstractInstallTarget {
         Path root = directory(request, context.env());
         InstallProfile profile = context.profile();
         VersionJson version = context.versionJson();
-        String versionId = version.id != null ? version.id : InstallerMeta.versionId(profile.cleanroomVersion());
+        String versionId = version.id() != null ? version.id() : InstallerMeta.versionId(profile.cleanroomVersion());
 
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");

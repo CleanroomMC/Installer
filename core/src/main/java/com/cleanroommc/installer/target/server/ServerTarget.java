@@ -8,13 +8,10 @@ package com.cleanroommc.installer.target.server;
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolution;
 import com.cleanroommc.installer.java.JavaSpec;
-import com.cleanroommc.installer.maven.Coordinate;
 import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.platform.InstallLocations;
-import com.cleanroommc.installer.profile.Download;
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.target.AbstractInstallTarget;
 import com.cleanroommc.installer.target.ExitCode;
 import com.cleanroommc.installer.target.InstallContext;
@@ -26,6 +23,9 @@ import com.cleanroommc.installer.target.action.CopyResourceAction;
 import com.cleanroommc.installer.target.action.DownloadAction;
 import com.cleanroommc.installer.target.action.WriteFileAction;
 import com.cleanroommc.installer.util.Json;
+import com.cleanroommc.launcherutils.Coordinate;
+import com.cleanroommc.launcherutils.version.Download;
+import com.cleanroommc.launcherutils.version.VersionJson;
 import com.cleanroommc.platformutils.Architecture;
 import com.cleanroommc.platformutils.Platform;
 
@@ -162,7 +162,7 @@ public final class ServerTarget extends AbstractInstallTarget {
         Path root = directory(request, context.env());
         InstallProfile profile = context.profile();
         VersionJson version = context.versionJson();
-        String versionId = version.id != null ? version.id : InstallerMeta.versionId(profile.cleanroomVersion());
+        String versionId = version.id() != null ? version.id() : InstallerMeta.versionId(profile.cleanroomVersion());
 
         InstallPlan plan = new InstallPlan(ID, versionId, root);
         Path libraries = root.resolve("libraries");
@@ -197,21 +197,21 @@ public final class ServerTarget extends AbstractInstallTarget {
         List<Path> classpath = classpathDestinations(libraryActions, universalJar);
 
         if (!request.flag(OPTION_NO_SERVER_JAR)) {
-            Download server = version.downloads == null ? null : version.downloads.get("server");
-            if (server != null && !server.embedded()) {
+            Download server = version.download(VersionJson.SERVER);
+            if (server != null && !server.isEmbedded()) {
                 Path serverJar = libraries.resolve("net")
                     .resolve("minecraft")
                     .resolve("server")
                     .resolve(InstallerMeta.MINECRAFT_VERSION)
                     .resolve("server-" + InstallerMeta.MINECRAFT_VERSION + ".jar");
-                plan.add(new DownloadAction(server.url, serverJar, server.sha1, server.size));
+                plan.add(new DownloadAction(server.url(), serverJar, server.sha1(), server.size()));
                 classpath.add(serverJar);
             } else {
                 plan.note("This version json carries no vanilla server download; skipping the server jar");
             }
         }
 
-        String mainClass = profile.serverMainClass != null ? profile.serverMainClass : version.mainClass;
+        String mainClass = profile.serverMainClass != null ? profile.serverMainClass : version.mainClass();
         // Spec 0 profiles carry no tweakers and the client list is never a fallback
         List<String> tweakers = profile.serverTweakers == null || profile.serverTweakers.isEmpty()
             ? defaultTweakers()

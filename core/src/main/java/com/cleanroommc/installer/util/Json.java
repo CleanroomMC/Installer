@@ -5,6 +5,8 @@
 
 package com.cleanroommc.installer.util;
 
+import com.cleanroommc.launcherutils.LauncherGson;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -22,7 +24,8 @@ import java.nio.file.StandardCopyOption;
 
 public final class Json {
 
-    public static final Gson GSON = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();
+    public static final Gson GSON = LauncherGson.register(new GsonBuilder().disableHtmlEscaping().setPrettyPrinting())
+        .create();
 
     private Json() { }
 

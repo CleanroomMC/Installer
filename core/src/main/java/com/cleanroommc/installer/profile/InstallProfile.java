@@ -5,7 +5,8 @@
 
 package com.cleanroommc.installer.profile;
 
-import com.cleanroommc.installer.maven.Coordinate;
+import com.cleanroommc.launcherutils.Coordinate;
+import com.cleanroommc.launcherutils.version.Library;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

@@ -7,17 +7,17 @@ package com.cleanroommc.installer.target.server;
 
 import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.Environment;
-import com.cleanroommc.installer.profile.Download;
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.Library;
-import com.cleanroommc.installer.profile.Rule;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.source.ProfileSource;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.action.Action;
 import com.cleanroommc.installer.target.action.WriteFileAction;
 import com.cleanroommc.installer.util.Log;
+import com.cleanroommc.launcherutils.LauncherNames;
+import com.cleanroommc.launcherutils.version.Download;
+import com.cleanroommc.launcherutils.version.Library;
+import com.cleanroommc.launcherutils.version.VersionJson;
 import com.cleanroommc.platformutils.Architecture;
 import com.cleanroommc.platformutils.Platform;
 
@@ -30,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,8 +41,7 @@ class ServerTargetTest {
     private static InstallContext context() {
         InstallProfile profile = new InstallProfile();
         profile.path = "com.cleanroommc:cleanroom:1.0.0:universal";
-        VersionJson version = new VersionJson();
-        version.id = "Cleanroom-1.0.0";
+        VersionJson version = new VersionJson().id("Cleanroom-1.0.0");
         ProfileSource source = new ProfileSource() {
 
             @Override
@@ -69,9 +67,7 @@ class ServerTargetTest {
     }
 
     private static Download download(String url) {
-        Download download = new Download();
-        download.url = url;
-        return download;
+        return new Download().url(url);
     }
 
     @Test
@@ -88,29 +84,19 @@ class ServerTargetTest {
 
     @Test
     void skipsClientNativeMappingsButKeepsSidelessNativeArtifacts() {
-        Library clientNative = new Library();
-        clientNative.name = "org.lwjgl:lwjgl:3.4.3";
-        clientNative.side = "client";
-        clientNative.natives = Collections.singletonMap("linux", "natives-linux");
-        clientNative.downloads = new Library.Downloads();
-        clientNative.downloads.classifiers = Collections.singletonMap("natives-linux",
-            download("https://example.invalid/lwjgl-natives-linux.jar")
-        );
+        Library clientNative = Library.of("org.lwjgl:lwjgl:3.4.3")
+            .side(VersionJson.CLIENT)
+            .natives("linux", "natives-linux")
+            .classifier("natives-linux", download("https://example.invalid/lwjgl-natives-linux.jar"));
 
-        String os = Rule.osName(Platform.current());
-        String sidelessClassifier = "natives-" + os;
-        Library sidelessMappedNative = new Library();
-        sidelessMappedNative.name = "example:sideless-native:1.0";
-        sidelessMappedNative.natives = Collections.singletonMap(os, sidelessClassifier);
-        sidelessMappedNative.downloads = new Library.Downloads();
-        sidelessMappedNative.downloads.classifiers = Collections.singletonMap(sidelessClassifier,
-            download("https://example.invalid/sideless-native.jar")
-        );
+        String os = LauncherNames.os(Platform.current());
+        String sidelessClassifier = LauncherNames.NATIVES_PREFIX + os;
+        Library sidelessMappedNative = Library.of("example:sideless-native:1.0")
+            .natives(os, sidelessClassifier)
+            .classifier(sidelessClassifier, download("https://example.invalid/sideless-native.jar"));
 
-        Library sidelessNative = new Library();
-        sidelessNative.name = "io.netty:netty-transport-native-epoll:4.2.16.Final:linux-x86_64";
-        sidelessNative.downloads = new Library.Downloads();
-        sidelessNative.downloads.artifact = download("https://example.invalid/netty-native-epoll.jar");
+        Library sidelessNative = Library.of("io.netty:netty-transport-native-epoll:4.2.16.Final:linux-x86_64")
+            .artifact(download("https://example.invalid/netty-native-epoll.jar"));
 
         List<Action> actions = MavenLayout.actions(Arrays.asList(clientNative, sidelessMappedNative, sidelessNative),
             this.directory, null, Platform.current(), true, false

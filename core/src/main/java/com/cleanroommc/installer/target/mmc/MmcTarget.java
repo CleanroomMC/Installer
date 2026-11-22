@@ -7,7 +7,6 @@ package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.InstallerMeta;
 import com.cleanroommc.installer.java.JavaResolution;
-import com.cleanroommc.installer.maven.Coordinate;
 import com.cleanroommc.installer.maven.MavenLayout;
 import com.cleanroommc.installer.platform.DetectedLauncher;
 import com.cleanroommc.installer.platform.Environment;
@@ -24,6 +23,8 @@ import com.cleanroommc.installer.target.action.CopyResourceAction;
 import com.cleanroommc.installer.target.action.DownloadAction;
 import com.cleanroommc.installer.target.action.ExtractZipAction;
 import com.cleanroommc.installer.target.action.WriteFileAction;
+import com.cleanroommc.launcherutils.Coordinate;
+import com.cleanroommc.launcherutils.mmc.MmcPack;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -66,7 +67,7 @@ public final class MmcTarget extends AbstractInstallTarget {
     public static final String EMBEDDED_PACK = "mmc/pack.zip";
 
     private static final Set<String> INSTANCE_OWNED = Collections.singleton("instance.cfg");
-    private static final String FORGE_PATCH = "patches/net.minecraftforge.json";
+    private static final String FORGE_PATCH = "patches/" + MmcPack.FORGE_UID + ".json";
 
     public static boolean updatesExistingInstance(Path directory) {
         return InstallLocations.looksLikeMmcInstance(directory);
@@ -202,8 +203,8 @@ public final class MmcTarget extends AbstractInstallTarget {
     @Override
     public InstallPlan plan(InstallRequest request, InstallContext context) throws InstallException {
         InstallProfile profile = context.profile();
-        String versionId = context.versionJson().id != null
-            ? context.versionJson().id
+        String versionId = context.versionJson().id() != null
+            ? context.versionJson().id()
             : InstallerMeta.versionId(profile.cleanroomVersion());
         Path directory = directory(request, context.env());
         if (directory == null) {

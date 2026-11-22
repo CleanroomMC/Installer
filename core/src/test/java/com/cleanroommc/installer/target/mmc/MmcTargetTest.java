@@ -7,7 +7,6 @@ package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.source.ProfileSource;
 import com.cleanroommc.installer.target.InstallContext;
 import com.cleanroommc.installer.target.InstallException;
@@ -15,6 +14,7 @@ import com.cleanroommc.installer.target.InstallPlan;
 import com.cleanroommc.installer.target.InstallRequest;
 import com.cleanroommc.installer.target.action.CopyResourceAction;
 import com.cleanroommc.installer.util.Log;
+import com.cleanroommc.launcherutils.version.VersionJson;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -131,8 +131,7 @@ class MmcTargetTest {
         profile.profile = "Cleanroom";
         profile.cleanroomVersion = "1.0.0+build.4";
         profile.path = UNIVERSAL;
-        VersionJson version = new VersionJson();
-        version.id = "Cleanroom-1.0.0+build.4";
+        VersionJson version = new VersionJson().id("Cleanroom-1.0.0+build.4");
 
         ByteArrayOutputStream pack = new ByteArrayOutputStream();
         try (ZipOutputStream zip = new ZipOutputStream(pack)) {

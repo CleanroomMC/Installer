@@ -6,6 +6,7 @@
 package com.cleanroommc.installer.target.mmc;
 
 import com.cleanroommc.installer.util.Json;
+import com.cleanroommc.launcherutils.mmc.MmcPack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -18,7 +19,7 @@ import java.nio.file.Path;
 
 public final class MmcInstance {
 
-    private static final String LOADER_UID = "net.minecraftforge";
+    private static final String LOADER_UID = MmcPack.FORGE_UID;
     private static final String CLEANROOM_NAME = "Cleanroom";
     private static final String CLEANROOM_LIBRARY = "com.cleanroommc:cleanroom:";
 
@@ -87,7 +88,7 @@ public final class MmcInstance {
                 String uid = string(component, "uid");
                 if (LOADER_UID.equals(uid)) {
                     loader = component;
-                } else if ("net.minecraft".equals(uid)) {
+                } else if (MmcPack.MINECRAFT_UID.equals(uid)) {
                     minecraft = string(component, "version");
                 }
             }

@@ -6,8 +6,8 @@
 package com.cleanroommc.installer.source;
 
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.target.InstallException;
+import com.cleanroommc.launcherutils.version.VersionJson;
 
 import java.io.IOException;
 import java.io.InputStream;

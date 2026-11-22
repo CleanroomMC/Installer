@@ -4,6 +4,7 @@ dependencies {
     api "com.google.code.gson:gson:${providers.gradleProperty('gson_version').get()}"
     api "org.slf4j:slf4j-api:${providers.gradleProperty('slf4j_version').get()}"
     api "com.cleanroommc:platform-utils:${providers.gradleProperty('platform_utils_version').get()}"
+    api "com.cleanroommc:launcher-utils:${providers.gradleProperty('launcher_utils_version').get()}"
     api ("com.cleanroommc:java-utils:${providers.gradleProperty('java_utils_version').get()}") {
         exclude group: 'org.slf4j', module: 'slf4j-simple'
     }

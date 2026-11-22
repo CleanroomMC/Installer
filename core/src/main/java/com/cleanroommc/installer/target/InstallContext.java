@@ -9,10 +9,10 @@ import com.cleanroommc.installer.java.JavaResolver;
 import com.cleanroommc.installer.net.Downloader;
 import com.cleanroommc.installer.platform.Environment;
 import com.cleanroommc.installer.profile.InstallProfile;
-import com.cleanroommc.installer.profile.VersionJson;
 import com.cleanroommc.installer.source.ProfileSource;
 import com.cleanroommc.installer.util.Log;
 import com.cleanroommc.installer.util.ProgressListener;
+import com.cleanroommc.launcherutils.version.VersionJson;
 
 import java.nio.file.Path;
 
