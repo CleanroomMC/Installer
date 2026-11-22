@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.2 - 2026-11-22
+
+### Feature
+
+- Read install profiles and version json through launcher-utils *[commit by [@Rongmario](https://github.com/Rongmario) in [850f3e3](https://github.com/CleanroomMC/Installer/commit/850f3e34d64766f5ae5d39201fa372706a02f0a5)]*
+
+**Full Changelog**: https://github.com/CleanroomMC/Installer/compare/0.3.1...0.3.2
+
 ## 0.3.1 - 2026-11-21
 
 ### Bug Fix
